@@ -37,6 +37,7 @@ QImage IplImageToQImage(const IplImage *iplImage)
     // Local variables
     int height = iplImage->height;
     int width = iplImage->width;
+    // PIXEL DEPTH=8-bits unsigned, NO. OF CHANNELS=1
     if(iplImage->depth == IPL_DEPTH_8U && iplImage->nChannels == 1)
     {
         // Set the color table (used to translate colour indexes to qRgb values)
@@ -50,6 +51,7 @@ QImage IplImageToQImage(const IplImage *iplImage)
         img.setColorTable(colorTable);
         return img;
     }
+    // PIXEL DEPTH=8-bits unsigned, NO. OF CHANNELS=3
     else if(iplImage->depth == IPL_DEPTH_8U && iplImage->nChannels == 3)
     {
         // Copy input IplImage
