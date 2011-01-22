@@ -98,7 +98,7 @@ void ProcessingThread::run()
         t.start();
         // Get frame from queue
         IplImage* currentFrame = imageBuffer->getFrame();
-        // Ensure that grabbed frame is not a NULL image
+        // Check that grabbed frame is not a NULL image
         if(currentFrame!=NULL)
         {
             // Set ROI of grabbed frame
@@ -141,7 +141,7 @@ void ProcessingThread::run()
             ////////////////////////////////////
             else
             {
-                // Convert to grayscale
+                // Grayscale conversion
                 if(grayscaleOn)
                     cvCvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
                 // Smooth
@@ -196,7 +196,7 @@ void ProcessingThread::run()
             ////////////////////////////////////
 
             //// Convert IplImage to QImage: Show grayscale frame
-            //// If either Grayscale or Canny processing modes are on AND a box is not being drawn.
+            //// (if either Grayscale or Canny processing modes are on AND a box is not being drawn).
             if((grayscaleOn&&!drawingBox)||(cannyOn&&!drawingBox))
                 frame=IplImageToQImage(currentFrameCopyGrayscale);
             //// Convert IplImage to QImage: Show BGR frame
