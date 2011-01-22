@@ -81,7 +81,7 @@ void ImageBuffer::clearBuffer()
         // Stop adding frames to buffer
         clearBuffer1->acquire();
         // Stop taking frames from buffer
-        clearBuffer2->acquire(); //
+        clearBuffer2->acquire();
         // Release all remaining slots in queue
         freeSlots->release(imageQueue.size());
         // Acquire all queue slots
