@@ -44,15 +44,15 @@ CameraConnectDialog::CameraConnectDialog(QWidget *parent) : QDialog(parent)
     // On dialog creation, reset auto set flags to FALSE
     autoSetDeviceNumber=false;
     autoSetImageBufferSize=false;
-    // lineEdit_deviceNumber (device number) input string validation
+    // deviceNumberEdit (device number) input string validation
     QRegExp rx1("[0-9]\\d{0,2}"); // Integers 0 to 999
     QRegExpValidator *validator1 = new QRegExpValidator(rx1, 0);
     deviceNumberEdit->setValidator(validator1);
-    // lineEdit_imageBufferSize (image buffer size) input string validation
+    // imageBufferSizeEdit (image buffer size) input string validation
     QRegExp rx2("[0-9]\\d{0,2}"); // Integers 0 to 999
     QRegExpValidator *validator2 = new QRegExpValidator(rx2, 0);
     imageBufferSizeEdit->setValidator(validator2);
-    // Set lineEdit_imageBufferSize to default value
+    // Set imageBufferSizeEdit to default value
     imageBufferSizeEdit->setText(QString::number(DEFAULT_IMAGE_BUFFER_SIZE));
 } // CameraConnectDialog constructor
 

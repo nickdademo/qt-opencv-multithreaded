@@ -32,8 +32,54 @@
 
 #include "ProcessingSettingsDialog.h"
 
+// Qt header files
+#include <QtGui>
+
+// OpenCV header files
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
+
+// Header file containing default values
+#include "DefaultValues.h"
+
 ProcessingSettingsDialog::ProcessingSettingsDialog(QWidget *parent) : QDialog(parent)
 {
     // Setup dialog
     setupUi(this);
+    // Set values to defaults
+    resetToDefaults();
 } // ProcessingSettingsDialog constructor
+
+void ProcessingSettingsDialog::resetToDefaults()
+{
+    // Smooth
+    if(SMOOTH_TYPE==CV_BLUR_NO_SCALE)
+        smoothBlurNoScaleButton->setChecked(true);
+    else if(SMOOTH_TYPE==CV_BLUR)
+        smoothBlurButton->setChecked(true);
+    else if(SMOOTH_TYPE==CV_GAUSSIAN)
+        smoothGaussianButton->setChecked(true);
+    else if(SMOOTH_TYPE==CV_MEDIAN)
+        smoothMedianButton->setChecked(true);
+    else if(SMOOTH_TYPE==CV_BILATERAL)
+        smoothBilateralButton->setChecked(true);
+    smoothParam1Edit->setText(QString::number(SMOOTH_PARAM_1));
+    smoothParam2Edit->setText(QString::number(SMOOTH_PARAM_2));
+    smoothParam3Edit->setText(QString::number(SMOOTH_PARAM_3));
+    smoothParam4Edit->setText(QString::number(SMOOTH_PARAM_4));
+    // Dilate
+    dilateIterationsEdit->setText(QString::number(DILATE_ITERATIONS));
+    // Erode
+    erodeIterationsEdit->setText(QString::number(ERODE_ITERATIONS));
+    // Flip
+    if(FLIPMODE==0)
+        flipXAxisButton->setChecked(true);
+    else if(FLIPMODE==1)
+        flipYAxisButton->setChecked(true);
+    else if(FLIPMODE==-1)
+        flipBothAxesButton->setChecked(true);
+    // Canny
+    cannyThresh1Edit->setText(QString::number(CANNY_THRESHOLD_1));
+    cannyThresh2Edit->setText(QString::number(CANNY_THRESHOLD_2));
+    cannyApertureSizeEdit->setText(QString::number(CANNY_APERTURE_SIZE));
+} // resetToDefaults()

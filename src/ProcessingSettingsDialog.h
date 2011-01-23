@@ -42,6 +42,7 @@ class ProcessingSettingsDialog : public QDialog, private Ui::ProcessingSettingsD
 public:
     ProcessingSettingsDialog(QWidget *parent = 0);
 private:
+    void resetToDefaults();
 };
 
 #endif // PROCESSINGSETTINGSDIALOG_H
