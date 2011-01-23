@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>672</width>
-    <height>653</height>
+    <width>661</width>
+    <height>633</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,8 +18,8 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>672</width>
-    <height>626</height>
+    <width>661</width>
+    <height>633</height>
    </size>
   </property>
   <property name="windowTitle">
@@ -32,15 +32,15 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>15</x>
-      <y>15</y>
+      <x>10</x>
+      <y>10</y>
       <width>642</width>
       <height>591</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QLabelWithMouseTracking" name="qLabelFrame">
+      <widget class="QLabelWithMouseTracking" name="frameLabel">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -123,7 +123,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QProgressBar" name="progressBarBuffer">
+          <widget class="QProgressBar" name="imageBufferBar">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -153,7 +153,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="qLabelBuffer">
+          <widget class="QLabel" name="imageBufferLabel">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -225,7 +225,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="qLabelCaptureRate">
+          <widget class="QLabel" name="captureRateLabel">
            <property name="enabled">
             <bool>true</bool>
            </property>
@@ -300,7 +300,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="qLabelProcessingRate">
+          <widget class="QLabel" name="processingRateLabel">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -369,7 +369,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="qLabelDeviceNumber">
+          <widget class="QLabel" name="deviceNumberLabel">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>30</horstretch>
@@ -441,7 +441,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="qLabelCameraResolution">
+          <widget class="QLabel" name="cameraResolutionLabel">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>70</horstretch>
@@ -510,7 +510,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="qLabelROI">
+          <widget class="QLabel" name="roiLabel">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>100</horstretch>
@@ -537,7 +537,7 @@
           </widget>
          </item>
          <item>
-          <widget class="Line" name="line">
+          <widget class="Line" name="line_7">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -558,7 +558,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="qLabelMouseCursorPos">
+          <widget class="QLabel" name="mouseCursorPosLabel">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
              <horstretch>70</horstretch>
@@ -587,7 +587,7 @@
         </layout>
        </item>
        <item>
-        <widget class="QPushButton" name="pushButtonClearImageBuffer">
+        <widget class="QPushButton" name="clearImageBufferButton">
          <property name="font">
           <font>
            <pointsize>8</pointsize>
@@ -615,62 +615,63 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>672</width>
+     <width>661</width>
      <height>23</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuMain">
+   <widget class="QMenu" name="mainMenu">
     <property name="title">
      <string>Main</string>
     </property>
-    <addaction name="actionConnectToCamera"/>
-    <addaction name="actionDisconnectCamera"/>
+    <addaction name="connectToCameraAction"/>
+    <addaction name="disconnectCameraAction"/>
     <addaction name="separator"/>
-    <addaction name="actionExit"/>
+    <addaction name="exitAction"/>
    </widget>
-   <widget class="QMenu" name="menuAbout">
+   <widget class="QMenu" name="aboutMenu">
     <property name="title">
      <string>Help</string>
     </property>
-    <addaction name="actionAbout"/>
+    <addaction name="aboutAction"/>
    </widget>
-   <widget class="QMenu" name="menuProcessing">
+   <widget class="QMenu" name="processingMenu">
     <property name="title">
      <string>Processing</string>
     </property>
-    <addaction name="actionGrayscale"/>
-    <addaction name="actionSmooth"/>
-    <addaction name="actionDilate"/>
-    <addaction name="actionErode"/>
-    <addaction name="actionFlip"/>
-    <addaction name="actionCanny"/>
+    <addaction name="grayscaleAction"/>
+    <addaction name="smoothAction"/>
+    <addaction name="dilateAction"/>
+    <addaction name="erodeAction"/>
+    <addaction name="flipAction"/>
+    <addaction name="cannyAction"/>
+    <addaction name="separator"/>
+    <addaction name="settingsAction"/>
    </widget>
-   <addaction name="menuMain"/>
-   <addaction name="menuProcessing"/>
-   <addaction name="menuAbout"/>
+   <addaction name="mainMenu"/>
+   <addaction name="processingMenu"/>
+   <addaction name="aboutMenu"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionConnectToCamera">
+  <action name="connectToCameraAction">
    <property name="text">
     <string>Connect to Camera...</string>
    </property>
   </action>
-  <action name="actionDisconnectCamera">
+  <action name="disconnectCameraAction">
    <property name="text">
     <string>Disconnect Camera</string>
    </property>
   </action>
-  <action name="actionExit">
+  <action name="exitAction">
    <property name="text">
     <string>Exit</string>
    </property>
   </action>
-  <action name="actionAbout">
+  <action name="aboutAction">
    <property name="text">
     <string>About</string>
    </property>
   </action>
-  <action name="actionGrayscale">
+  <action name="grayscaleAction">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -678,7 +679,7 @@
     <string>1: Grayscale</string>
    </property>
   </action>
-  <action name="actionSmooth">
+  <action name="smoothAction">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -686,7 +687,7 @@
     <string>2: Smooth</string>
    </property>
   </action>
-  <action name="actionFlip">
+  <action name="flipAction">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -694,7 +695,7 @@
     <string>5: Flip</string>
    </property>
   </action>
-  <action name="actionDilate">
+  <action name="dilateAction">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -702,7 +703,7 @@
     <string>3: Dilate</string>
    </property>
   </action>
-  <action name="actionErode">
+  <action name="erodeAction">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -710,12 +711,17 @@
     <string>4: Erode</string>
    </property>
   </action>
-  <action name="actionCanny">
+  <action name="cannyAction">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
     <string>6. Canny</string>
+   </property>
+  </action>
+  <action name="settingsAction">
+   <property name="text">
+    <string>Settings...</string>
    </property>
   </action>
  </widget>

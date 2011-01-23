@@ -56,23 +56,23 @@ ProcessingThread::ProcessingThread(ImageBuffer *imageBuffer, int inputSourceWidt
     fpsSum=0;
     avgFPS=0;
     fps.clear();
-    // Initialize mouse event flags
-    qLabelFrame_mouseXPos=0;
-    qLabelFrame_mouseYPos=0;
-    qLabelFrame_mouseLeftPressed=false;
-    qLabelFrame_mouseRightPressed=false;
-    qLabelFrame_mouseLeftReleased=true;
-    qLabelFrame_mouseRightReleased=true;
-    // Initialize function flags
+    // Initialize MouseEventFlags structure
+    frameLabel.mouseXPos=0;
+    frameLabel.mouseYPos=0;
+    frameLabel.mouseLeftPressed=false;
+    frameLabel.mouseRightPressed=false;
+    frameLabel.mouseLeftReleased=true;
+    frameLabel.mouseRightReleased=true;
+    // Initialize ProcessingFlags structure
+    processingFlags.grayscaleOn=false;
+    processingFlags.smoothOn=false;
+    processingFlags.dilateOn=false;
+    processingFlags.erodeOn=false;
+    processingFlags.flipOn=false;
+    processingFlags.cannyOn=false;
+    // Initialize other flags
     drawingBox=false;
     resetROI=false;
-    // Initialize processing flags
-    grayscaleOn=false;
-    smoothOn=false;
-    dilateOn=false;
-    erodeOn=false;
-    flipOn=false;
-    cannyOn=false;
     // Initialize newROI variable
     newROI=cvRect(0,0,inputSourceWidth,inputSourceHeight);
     // Store original ROI
@@ -110,30 +110,30 @@ void ProcessingThread::run()
             // HANDLE MOUSE EVENTS //
             /////////////////////////
             //  Start drawing box once left mouse button is pressed
-            if(qLabelFrame_mouseLeftPressed&&!drawingBox)
+            if(frameLabel.mouseLeftPressed&&!drawingBox)
             {
                 // Reset ROI before setting a new ROI
                 ROICalibration(true);
                 // Set drawingBox flag
                 drawingBox=true;
-                box=cvRect(qLabelFrame_mouseXPos,qLabelFrame_mouseYPos,0,0);
+                box=cvRect(frameLabel.mouseXPos,frameLabel.mouseYPos,0,0);
             } // if
             // Set ROI reset flag
-            else if(qLabelFrame_mouseRightPressed&&!resetROI)
+            else if(frameLabel.mouseRightPressed&&!resetROI)
                 resetROI=true;
             // Continually resize selection box as mouse cursor moves with left mouse button held
-            else if(qLabelFrame_mouseLeftPressed&&drawingBox)
+            else if(frameLabel.mouseLeftPressed&&drawingBox)
             {
-                box.width=qLabelFrame_mouseXPos-box.x;
-                box.height=qLabelFrame_mouseYPos-box.y;
-                // Draw selection box on frame
+                box.width=frameLabel.mouseXPos-box.x;
+                box.height=frameLabel.mouseYPos-box.y;
+                // Draw selection box on currentFrameCopy
                 drawBox(currentFrameCopy, box, 0xFF, 0x00, 0x00); // Colour = BLUE
             } // else if
             // Set new ROI on left mouse button release
-            else if(qLabelFrame_mouseLeftReleased&&drawingBox)
+            else if(frameLabel.mouseLeftReleased&&drawingBox)
                 ROICalibration(false);
             // Reset to original ROI on right mouse button release
-            else if(qLabelFrame_mouseRightReleased&&resetROI)
+            else if(frameLabel.mouseRightReleased&&resetROI)
                 ROICalibration(true);
 
             ////////////////////////////////////
@@ -142,12 +142,12 @@ void ProcessingThread::run()
             else
             {
                 // Grayscale conversion
-                if(grayscaleOn)
+                if(processingFlags.grayscaleOn)
                     cvCvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
                 // Smooth
-                if(smoothOn)
+                if(processingFlags.smoothOn)
                 {
-                    if(grayscaleOn)
+                    if(processingFlags.grayscaleOn)
                         cvSmooth(currentFrameCopyGrayscale,currentFrameCopyGrayscale,SMOOTH_TYPE,SMOOTH_PARAM_1,SMOOTH_PARAM_2,
                                  SMOOTH_PARAM_3,SMOOTH_PARAM_4);
                     else
@@ -155,33 +155,33 @@ void ProcessingThread::run()
                                  SMOOTH_PARAM_3,SMOOTH_PARAM_4);
                 } // if
                 // Dilate
-                if(dilateOn)
+                if(processingFlags.dilateOn)
                 {
-                    if(grayscaleOn)
+                    if(processingFlags.grayscaleOn)
                         cvDilate(currentFrameCopyGrayscale,currentFrameCopyGrayscale,NULL,DILATE_ITERATIONS);
                     else
                         cvDilate(currentFrameCopy,currentFrameCopy,NULL,DILATE_ITERATIONS);
                 } // if
                 // Erode
-                if(erodeOn)
+                if(processingFlags.erodeOn)
                 {
-                    if(grayscaleOn)
+                    if(processingFlags.grayscaleOn)
                         cvErode(currentFrameCopyGrayscale,currentFrameCopyGrayscale,NULL,ERODE_ITERATIONS);
                     else
                         cvErode(currentFrameCopy,currentFrameCopy,NULL,ERODE_ITERATIONS);
                 } // if
                 // Flip
-                if(flipOn)
+                if(processingFlags.flipOn)
                 {
-                    if(grayscaleOn)
+                    if(processingFlags.grayscaleOn)
                         cvFlip(currentFrameCopyGrayscale,NULL,FLIPMODE);
                     else
                         cvFlip(currentFrameCopy,NULL,FLIPMODE);
                 } // if
                 // Canny edge detection
-                if(cannyOn)
+                if(processingFlags.cannyOn)
                 {
-                    if(grayscaleOn)
+                    if(processingFlags.grayscaleOn)
                         cvCanny(currentFrameCopyGrayscale,currentFrameCopyGrayscale,CANNY_THRESHOLD_1,CANNY_THRESHOLD_2);
                     else
                     {
@@ -197,7 +197,7 @@ void ProcessingThread::run()
 
             //// Convert IplImage to QImage: Show grayscale frame
             //// (if either Grayscale or Canny processing modes are on AND a box is not being drawn).
-            if((grayscaleOn&&!drawingBox)||(cannyOn&&!drawingBox))
+            if((processingFlags.grayscaleOn&&!drawingBox)||(processingFlags.cannyOn&&!drawingBox))
                 frame=IplImageToQImage(currentFrameCopyGrayscale);
             //// Convert IplImage to QImage: Show BGR frame
             else

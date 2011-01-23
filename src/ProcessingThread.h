@@ -53,20 +53,24 @@ public:
     int avgFPS;
     int currentSizeOfBuffer;
     CvRect newROI;
-    // Mouse event flags
-    int qLabelFrame_mouseXPos;
-    int qLabelFrame_mouseYPos;
-    bool qLabelFrame_mouseLeftPressed;
-    bool qLabelFrame_mouseRightPressed;
-    bool qLabelFrame_mouseLeftReleased;
-    bool qLabelFrame_mouseRightReleased;
-    // Processing flags
-    bool grayscaleOn;
-    bool smoothOn;
-    bool dilateOn;
-    bool erodeOn;
-    bool flipOn;
-    bool cannyOn;
+    // MouseEventFlags structure definition
+    struct MouseEventFlags{
+        int mouseXPos;
+        int mouseYPos;
+        bool mouseLeftPressed;
+        bool mouseRightPressed;
+        bool mouseLeftReleased;
+        bool mouseRightReleased;
+    } frameLabel;
+    // ProcessingFlags structure definition
+    struct ProcessingFlags{
+        bool grayscaleOn;
+        bool smoothOn;
+        bool dilateOn;
+        bool erodeOn;
+        bool flipOn;
+        bool cannyOn;
+    } processingFlags;
 private:
     void updateFPS(int);
     void drawBox(IplImage*,CvRect,int,int,int);
@@ -81,7 +85,7 @@ private:
     QQueue<int> fps;
     int fpsSum;
     int sampleNo;
-    // Function flags
+    // Other flags
     bool drawingBox;
     bool resetROI;
 protected:

@@ -47,26 +47,24 @@ CameraConnectDialog::CameraConnectDialog(QWidget *parent) : QDialog(parent)
     // lineEdit_deviceNumber (device number) input string validation
     QRegExp rx1("[0-9]\\d{0,2}"); // Integers 0 to 999
     QRegExpValidator *validator1 = new QRegExpValidator(rx1, 0);
-    lineEdit_deviceNumber->setValidator(validator1);
+    deviceNumberEdit->setValidator(validator1);
     // lineEdit_imageBufferSize (image buffer size) input string validation
     QRegExp rx2("[0-9]\\d{0,2}"); // Integers 0 to 999
     QRegExpValidator *validator2 = new QRegExpValidator(rx2, 0);
-    lineEdit_imageBufferSize->setValidator(validator2);
+    imageBufferSizeEdit->setValidator(validator2);
     // Set lineEdit_imageBufferSize to default value
-    char imageBufferSize_string[10];
-    sprintf(imageBufferSize_string,"%d",DEFAULT_IMAGE_BUFFER_SIZE);
-    lineEdit_imageBufferSize->setText(imageBufferSize_string);
+    imageBufferSizeEdit->setText(QString::number(DEFAULT_IMAGE_BUFFER_SIZE));
 } // CameraConnectDialog constructor
 
 int CameraConnectDialog::getDeviceNumber()
 {
     // Initially set device number to "any available camera".
     deviceNumber=-1;
-    if(anycamera->isChecked())\
+    if(anyCameraButton->isChecked())\
         return deviceNumber; // Attempt to connect to any available camera
     else // User specified camera
     {
-        if(lineEdit_deviceNumber->text().isEmpty()) // Set device number to default if field is blank
+        if(deviceNumberEdit->text().isEmpty()) // Set device number to default if field is blank
         {
             if(!autoSetDeviceNumber)
                 QMessageBox::warning(this->parentWidget(), "WARNING:","Device Number field blank.\nAutomatically set to 'any available camera'.");
@@ -74,7 +72,7 @@ int CameraConnectDialog::getDeviceNumber()
             return deviceNumber;
         } // if
         else
-            return deviceNumber=lineEdit_deviceNumber->text().toInt(); // Attempt to connect to camera specified by user
+            return deviceNumber=deviceNumberEdit->text().toInt(); // Attempt to connect to camera specified by user
     } // else
 } // getDeviceNumber()
 
@@ -82,14 +80,14 @@ int CameraConnectDialog::getImageBufferSize()
 {
     // Initially set image buffer size to default value
     imageBufferSize=DEFAULT_IMAGE_BUFFER_SIZE;
-    if(lineEdit_imageBufferSize->text().isEmpty()) // Set image buffer size to default if field is blank
+    if(imageBufferSizeEdit->text().isEmpty()) // Set image buffer size to default if field is blank
     {
         if(!autoSetImageBufferSize)
             QMessageBox::warning(this->parentWidget(), "WARNING:","Image Buffer Size field blank.\nAutomatically set to default value.");
         autoSetImageBufferSize=true;
         return imageBufferSize;
     } // if
-    else if(lineEdit_imageBufferSize->text().toInt()==0)
+    else if(imageBufferSizeEdit->text().toInt()==0)
     {
         if(!autoSetImageBufferSize)
             QMessageBox::warning(this->parentWidget(), "WARNING:","Image Buffer Size cannot be zero.\nAutomatically set to default value.");
@@ -97,5 +95,5 @@ int CameraConnectDialog::getImageBufferSize()
         return imageBufferSize;
     }
     else
-        return imageBufferSize=lineEdit_imageBufferSize->text().toInt(); // Use image buffer size specified by user
+        return imageBufferSize=imageBufferSizeEdit->text().toInt(); // Use image buffer size specified by user
 } // getImageBufferSize()

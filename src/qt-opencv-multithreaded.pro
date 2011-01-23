@@ -3,11 +3,11 @@ QT       += core gui
 TARGET = qt-opencv-multithreaded
 TEMPLATE = app
 
-VERSION = 1.00
+VERSION = 1.10
 
 DEFINES += APP_VERSION=$$VERSION
 
-FORMS = CameraConnectDialog.ui MainWindow.ui
+FORMS = CameraConnectDialog.ui MainWindow.ui ProcessingSettingsDialog.ui
 
 SOURCES += main.cpp\
         MainWindow.cpp \
@@ -17,7 +17,8 @@ SOURCES += main.cpp\
     CameraConnectDialog.cpp \
     ProcessingThread.cpp \
     ShowIplImage.cpp \
-    QLabelWithMouseTracking.cpp
+    QLabelWithMouseTracking.cpp \
+    ProcessingSettingsDialog.cpp
 
 HEADERS  += MainWindow.h \
     CaptureThread.h \
@@ -27,6 +28,7 @@ HEADERS  += MainWindow.h \
     DefaultValues.h \
     ProcessingThread.h \
     ShowIplImage.h \
-    QLabelWithMouseTracking.h
+    QLabelWithMouseTracking.h \
+    ProcessingSettingsDialog.h
 
 LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_ml -lopencv_video -lopencv_features2d -lopencv_calib3d -lopencv_objdetect -lopencv_contrib -lopencv_legacy -lopencv_flann

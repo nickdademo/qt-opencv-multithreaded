@@ -2,7 +2,7 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* MainWindow.h                                                         */
+/* ProcessingSettingsDialog.h                                           */
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
@@ -30,52 +30,18 @@
 /*                                                                      */
 /************************************************************************/
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef PROCESSINGSETTINGSDIALOG_H
+#define PROCESSINGSETTINGSDIALOG_H
 
-#include "ui_MainWindow.h"
+#include "ui_ProcessingSettingsDialog.h"
 
-#define QUOTE_(x) #x
-#define QUOTE(x) QUOTE_(x)
-
-class CameraConnectDialog;
-class ProcessingSettingsDialog;
-class Controller;
-
-class MainWindow : public QMainWindow, private Ui::MainWindow
+class ProcessingSettingsDialog : public QDialog, private Ui::ProcessingSettingsDialog
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    ProcessingSettingsDialog(QWidget *parent = 0);
 private:
-    CameraConnectDialog *cameraConnectDialog;
-    ProcessingSettingsDialog *processingSettingsDialog;
-    Controller *controller;
-    QString appVersion;
-    int sourceWidth, sourceHeight, imageBufferSize;
-    // Processing flags
-    bool grayscaleOn;
-    bool smoothOn;
-    bool dilateOn;
-    bool erodeOn;
-    bool flipOn;
-    bool cannyOn;
-public slots:
-    void connectToCamera();
-    void disconnectCamera();
-    void about();
-    void clearImageBuffer();
-    void setGrayscale(bool);
-    void setSmooth(bool);
-    void setDilate(bool);
-    void setErode(bool);
-    void setFlip(bool);
-    void setCanny(bool);
-    void setProcessingSettings();
-private slots:
-    void updateFrame(const QImage &frame);
 };
 
-#endif // MAINWINDOW_H
+#endif // PROCESSINGSETTINGSDIALOG_H

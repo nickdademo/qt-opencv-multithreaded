@@ -31,6 +31,7 @@
 /************************************************************************/
 
 #include "CameraConnectDialog.h"
+#include "ProcessingSettingsDialog.h"
 #include "Controller.h"
 #include "MainWindow.h"
 
@@ -53,38 +54,39 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     // Save application version in QString variable
     appVersion=QUOTE(APP_VERSION);
     // Connect GUI signals to slots
-    connect(actionConnectToCamera, SIGNAL(triggered()), this, SLOT(connectToCamera()));
-    connect(actionDisconnectCamera, SIGNAL(triggered()), this, SLOT(disconnectCamera()));
-    connect(actionExit, SIGNAL(triggered()), this, SLOT(close()));
-    connect(actionGrayscale, SIGNAL(toggled(bool)), this, SLOT(setGrayscale(bool)));
-    connect(actionSmooth, SIGNAL(toggled(bool)), this, SLOT(setSmooth(bool)));
-    connect(actionDilate, SIGNAL(toggled(bool)), this, SLOT(setDilate(bool)));
-    connect(actionErode, SIGNAL(toggled(bool)), this, SLOT(setErode(bool)));
-    connect(actionFlip, SIGNAL(toggled(bool)), this, SLOT(setFlip(bool)));
-    connect(actionCanny, SIGNAL(toggled(bool)), this, SLOT(setCanny(bool)));
-    connect(actionAbout, SIGNAL(triggered()), this, SLOT(about()));
-    connect(pushButtonClearImageBuffer, SIGNAL(released()), this, SLOT(clearImageBuffer()));
+    connect(connectToCameraAction, SIGNAL(triggered()), this, SLOT(connectToCamera()));
+    connect(disconnectCameraAction, SIGNAL(triggered()), this, SLOT(disconnectCamera()));
+    connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
+    connect(grayscaleAction, SIGNAL(toggled(bool)), this, SLOT(setGrayscale(bool)));
+    connect(smoothAction, SIGNAL(toggled(bool)), this, SLOT(setSmooth(bool)));
+    connect(dilateAction, SIGNAL(toggled(bool)), this, SLOT(setDilate(bool)));
+    connect(erodeAction, SIGNAL(toggled(bool)), this, SLOT(setErode(bool)));
+    connect(flipAction, SIGNAL(toggled(bool)), this, SLOT(setFlip(bool)));
+    connect(cannyAction, SIGNAL(toggled(bool)), this, SLOT(setCanny(bool)));
+    connect(settingsAction, SIGNAL(triggered()), this, SLOT(setProcessingSettings()));
+    connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
+    connect(clearImageBufferButton, SIGNAL(released()), this, SLOT(clearImageBuffer()));
     // Enable/disable appropriate menu items
-    actionConnectToCamera->setDisabled(false);
-    actionDisconnectCamera->setDisabled(true);
-    menuProcessing->setDisabled(true);
+    connectToCameraAction->setDisabled(false);
+    disconnectCameraAction->setDisabled(true);
+    processingMenu->setDisabled(true);
     // Set GUI in main window
-    actionGrayscale->setChecked(false);
-    actionSmooth->setChecked(false);
-    actionDilate->setChecked(false);
-    actionErode->setChecked(false);
-    actionFlip->setChecked(false);
-    actionCanny->setChecked(false);
-    qLabelFrame->setText("No camera connected.");
-    progressBarBuffer->setValue(0);
-    qLabelBuffer->setText("[000/000]");
-    qLabelCaptureRate->setText("");
-    qLabelProcessingRate->setText("");
-    qLabelDeviceNumber->setText("");
-    qLabelCameraResolution->setText("");
-    qLabelROI->setText("");
-    qLabelMouseCursorPos->setText("");
-    pushButtonClearImageBuffer->setDisabled(true);
+    grayscaleAction->setChecked(false);
+    smoothAction->setChecked(false);
+    dilateAction->setChecked(false);
+    erodeAction->setChecked(false);
+    flipAction->setChecked(false);
+    cannyAction->setChecked(false);
+    frameLabel->setText("No camera connected.");
+    imageBufferBar->setValue(0);
+    imageBufferLabel->setText("[000/000]");
+    captureRateLabel->setText("");
+    processingRateLabel->setText("");
+    deviceNumberLabel->setText("");
+    cameraResolutionLabel->setText("");
+    roiLabel->setText("");
+    mouseCursorPosLabel->setText("");
+    clearImageBufferButton->setDisabled(true);
 } // MainWindow constructor
 
 MainWindow::~MainWindow()
@@ -133,23 +135,23 @@ void MainWindow::connectToCamera()
         // If camera was successfully connected
         if(controller->captureThread->capture!=NULL)
         {
-            // Create queued connection between processing thread (emitter) and GUI thread (receiver)
+            // Create queued connection between processing thread (emitter) and GUI thread (receiver/listener)
             connect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)),Qt::QueuedConnection);
             // Setup progressBarBuffer in main window with minimum and maximum values
-            progressBarBuffer->setMinimum(0);
-            progressBarBuffer->setMaximum(imageBufferSize);
+            imageBufferBar->setMinimum(0);
+            imageBufferBar->setMaximum(imageBufferSize);
             // Enable/disable appropriate menu items
-            actionConnectToCamera->setDisabled(true);
-            actionDisconnectCamera->setDisabled(false);
-            menuProcessing->setDisabled(false);
+            connectToCameraAction->setDisabled(true);
+            disconnectCameraAction->setDisabled(false);
+            processingMenu->setDisabled(false);
             // Enable "Clear Image Buffer" push button in main window
-            pushButtonClearImageBuffer->setDisabled(false);
+            clearImageBufferButton->setDisabled(false);
             // Get input stream properties
             sourceWidth=controller->getInputSourceWidth();
             sourceHeight=controller->getInputSourceHeight();
             // Set text in qLabels in main window
-            qLabelDeviceNumber->setNum(cameraConnectDialog->getDeviceNumber());
-            qLabelCameraResolution->setText(QString::number(sourceWidth)+QString("x")+QString::number(sourceHeight));
+            deviceNumberLabel->setNum(cameraConnectDialog->getDeviceNumber());
+            cameraResolutionLabel->setText(QString::number(sourceWidth)+QString("x")+QString::number(sourceHeight));
         }
         // Display error dialog if camera connection is unsuccessful
         else
@@ -186,26 +188,26 @@ void MainWindow::disconnectCamera()
         delete controller;
         controller=NULL;
         // Enable/Disable appropriate menu items
-        actionConnectToCamera->setDisabled(false);
-        actionDisconnectCamera->setDisabled(true);
-        menuProcessing->setDisabled(true);
+        connectToCameraAction->setDisabled(false);
+        disconnectCameraAction->setDisabled(true);
+        processingMenu->setDisabled(true);
         // Set GUI in main window
-        actionGrayscale->setChecked(false);
-        actionSmooth->setChecked(false);
-        actionDilate->setChecked(false);
-        actionErode->setChecked(false);
-        actionFlip->setChecked(false);
-        actionCanny->setChecked(false);
-        qLabelFrame->setText("No camera connected.");
-        progressBarBuffer->setValue(0);
-        qLabelBuffer->setText("[000/000]");
-        qLabelCaptureRate->setText("");
-        qLabelProcessingRate->setText("");
-        qLabelDeviceNumber->setText("");
-        qLabelCameraResolution->setText("");
-        qLabelROI->setText("");
-        qLabelMouseCursorPos->setText("");
-        pushButtonClearImageBuffer->setDisabled(true);
+        grayscaleAction->setChecked(false);
+        smoothAction->setChecked(false);
+        dilateAction->setChecked(false);
+        erodeAction->setChecked(false);
+        flipAction->setChecked(false);
+        cannyAction->setChecked(false);
+        frameLabel->setText("No camera connected.");
+        imageBufferBar->setValue(0);
+        imageBufferLabel->setText("[000/000]");
+        captureRateLabel->setText("");
+        processingRateLabel->setText("");
+        deviceNumberLabel->setText("");
+        cameraResolutionLabel->setText("");
+        roiLabel->setText("");
+        mouseCursorPosLabel->setText("");
+        clearImageBufferButton->setDisabled(true);
     }
     // Display error dialog if camera could not be disconnected
     else
@@ -286,45 +288,56 @@ void MainWindow::updateFrame(const QImage &frame)
 {
     // Reset mouse event flags
     // The following checks ensure that every click/release pair, no matter how fast, is picked up by the processing thread
-    if(controller->processingThread->qLabelFrame_mouseRightPressed&&qLabelFrame->getRightMouseButtonRelease())
-        qLabelFrame->setRightMouseButtonPress(false);
-    if(controller->processingThread->qLabelFrame_mouseLeftPressed&&qLabelFrame->getLeftMouseButtonRelease())
-        qLabelFrame->setLeftMouseButtonPress(false);
+    if(controller->processingThread->frameLabel.mouseRightPressed&&frameLabel->getRightMouseButtonRelease())
+        frameLabel->setRightMouseButtonPress(false);
+    if(controller->processingThread->frameLabel.mouseLeftPressed&&frameLabel->getLeftMouseButtonRelease())
+        frameLabel->setLeftMouseButtonPress(false);
     // Update mouse event flags
-    controller->processingThread->qLabelFrame_mouseXPos=qLabelFrame->getMouseXPos();
-    controller->processingThread->qLabelFrame_mouseYPos=qLabelFrame->getMouseYPos();
-    controller->processingThread->qLabelFrame_mouseLeftPressed=qLabelFrame->getLeftMouseButtonPress();
-    controller->processingThread->qLabelFrame_mouseRightPressed=qLabelFrame->getRightMouseButtonPress();
-    controller->processingThread->qLabelFrame_mouseLeftReleased=qLabelFrame->getLeftMouseButtonRelease();
-    controller->processingThread->qLabelFrame_mouseRightReleased=qLabelFrame->getRightMouseButtonRelease();
+    controller->processingThread->frameLabel.mouseXPos=frameLabel->getMouseXPos();
+    controller->processingThread->frameLabel.mouseYPos=frameLabel->getMouseYPos();
+    controller->processingThread->frameLabel.mouseLeftPressed=frameLabel->getLeftMouseButtonPress();
+    controller->processingThread->frameLabel.mouseRightPressed=frameLabel->getRightMouseButtonPress();
+    controller->processingThread->frameLabel.mouseLeftReleased=frameLabel->getLeftMouseButtonRelease();
+    controller->processingThread->frameLabel.mouseRightReleased=frameLabel->getRightMouseButtonRelease();
     // Update processing flags
-    controller->processingThread->grayscaleOn=grayscaleOn;
-    controller->processingThread->smoothOn=smoothOn;
-    controller->processingThread->dilateOn=dilateOn;
-    controller->processingThread->erodeOn=erodeOn;
-    controller->processingThread->flipOn=flipOn;
-    controller->processingThread->cannyOn=cannyOn;
+    controller->processingThread->processingFlags.grayscaleOn=grayscaleOn;
+    controller->processingThread->processingFlags.smoothOn=smoothOn;
+    controller->processingThread->processingFlags.dilateOn=dilateOn;
+    controller->processingThread->processingFlags.erodeOn=erodeOn;
+    controller->processingThread->processingFlags.flipOn=flipOn;
+    controller->processingThread->processingFlags.cannyOn=cannyOn;
     // Show statistics
     //// Show [number of images in buffer / image buffer size] in qLabelBuffer in main window
-    qLabelBuffer->setText(QString("[")+QString::number(controller->processingThread->currentSizeOfBuffer)+
+    imageBufferLabel->setText(QString("[")+QString::number(controller->processingThread->currentSizeOfBuffer)+
                           QString("/")+QString::number(imageBufferSize)+QString("]"));
     //// Show percentage of image bufffer full in progressBarBuffer in main window
-    progressBarBuffer->setValue(controller->processingThread->currentSizeOfBuffer);
+    imageBufferBar->setValue(controller->processingThread->currentSizeOfBuffer);
     //// Show processing rate in qLabelProcessingRate in main window
-    qLabelCaptureRate->setNum(controller->captureThread->avgFPS);
-    qLabelCaptureRate->setText(qLabelCaptureRate->text()+" fps");
+    captureRateLabel->setNum(controller->captureThread->avgFPS);
+    captureRateLabel->setText(captureRateLabel->text()+" fps");
     //// Show processing rate in qLabelProcessingRate in main window
-    qLabelProcessingRate->setNum(controller->processingThread->avgFPS);
-    qLabelProcessingRate->setText(qLabelProcessingRate->text()+" fps");
+    processingRateLabel->setNum(controller->processingThread->avgFPS);
+    processingRateLabel->setText(processingRateLabel->text()+" fps");
     //// Show ROI information in qLabelROI in main window
-    qLabelROI->setText(QString("(")+QString::number(controller->processingThread->newROI.x)+QString(",")+
+    roiLabel->setText(QString("(")+QString::number(controller->processingThread->newROI.x)+QString(",")+
                        QString::number(controller->processingThread->newROI.y)+QString(") ")+
                        QString::number(controller->processingThread->newROI.width)+
                        QString("x")+QString::number(controller->processingThread->newROI.height));
     //// Show mouse cursor position in qLabelMouseCursorPos in main window
-    qLabelMouseCursorPos->setText(QString("(")+QString::number(qLabelFrame->getMouseXPos())+
-                                  QString(",")+QString::number(qLabelFrame->getMouseYPos())+
+    mouseCursorPosLabel->setText(QString("(")+QString::number(frameLabel->getMouseXPos())+
+                                  QString(",")+QString::number(frameLabel->getMouseYPos())+
                                   QString(")"));
     // Display frame in main window
-    qLabelFrame->setPixmap(QPixmap::fromImage(frame));
+    frameLabel->setPixmap(QPixmap::fromImage(frame));
 } // updateFrame()
+
+void MainWindow::setProcessingSettings()
+{
+    // Create dialog
+    processingSettingsDialog = new ProcessingSettingsDialog(this);
+    // Prompt user
+    // If user presses OK button on dialog, update processing settings; else do nothing
+    if(processingSettingsDialog->exec()==1)
+    {
+    }
+} // setProcessingSettings()
