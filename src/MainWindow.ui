@@ -732,6 +732,9 @@
    <header>QLabelWithMouseTracking.h</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>clearImageBufferButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

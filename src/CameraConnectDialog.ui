@@ -80,13 +80,13 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>75</width>
+          <width>50</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>75</width>
+          <width>50</width>
           <height>16777215</height>
          </size>
         </property>
@@ -132,13 +132,13 @@
         </property>
         <property name="minimumSize">
          <size>
-          <width>75</width>
+          <width>50</width>
           <height>0</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>75</width>
+          <width>50</width>
           <height>16777215</height>
          </size>
         </property>
@@ -176,6 +176,8 @@
   <tabstop>anyCameraButton</tabstop>
   <tabstop>deviceNumberButton</tabstop>
   <tabstop>deviceNumberEdit</tabstop>
+  <tabstop>imageBufferSizeEdit</tabstop>
+  <tabstop>okCancelBox</tabstop>
  </tabstops>
  <resources/>
  <connections>

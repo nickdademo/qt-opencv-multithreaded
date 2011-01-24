@@ -63,7 +63,7 @@ ProcessingSettingsDialog::ProcessingSettingsDialog(QWidget *parent) : QDialog(pa
     QRegExpValidator *validator8 = new QRegExpValidator(rx8, 0);
     cannyThresh2Edit->setValidator(validator8);
     // cannyApertureSizeEdit input string validation
-    QRegExp rx9("[0-9]\\d{0,2}"); // Integers 0 to 99
+    QRegExp rx9("[3,5,7]\\d{0,0}"); // Integers 0 to 9
     QRegExpValidator *validator9 = new QRegExpValidator(rx9, 0);
     cannyApertureSizeEdit->setValidator(validator9);
     // Set dialog values to defaults
@@ -85,8 +85,6 @@ void ProcessingSettingsDialog::updateStoredSettingsFromDialog()
         processingSettings.smoothType=CV_GAUSSIAN;
     else if(smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothMedianButton)
         processingSettings.smoothType=CV_MEDIAN;
-    else if(smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothBilateralButton)
-        processingSettings.smoothType=CV_BILATERAL;
     processingSettings.smoothParam1=smoothParam1Edit->text().toInt();
     processingSettings.smoothParam2=smoothParam2Edit->text().toInt();
     processingSettings.smoothParam3=smoothParam3Edit->text().toDouble();
@@ -119,8 +117,6 @@ void ProcessingSettingsDialog::updateDialogSettingsFromStored()
         smoothGaussianButton->setChecked(true);
     else if(processingSettings.smoothType==CV_MEDIAN)
         smoothMedianButton->setChecked(true);
-    else if(processingSettings.smoothType==CV_BILATERAL)
-        smoothBilateralButton->setChecked(true);
     smoothParam1Edit->setText(QString::number(processingSettings.smoothParam1));
     smoothParam2Edit->setText(QString::number(processingSettings.smoothParam2));
     smoothParam3Edit->setText(QString::number(processingSettings.smoothParam3));
@@ -155,8 +151,6 @@ void ProcessingSettingsDialog::resetDialogToDefaults()
         smoothGaussianButton->setChecked(true);
     else if(DEFAULT_SMOOTH_TYPE==CV_MEDIAN)
         smoothMedianButton->setChecked(true);
-    else if(DEFAULT_SMOOTH_TYPE==CV_BILATERAL)
-        smoothBilateralButton->setChecked(true);
     smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
     smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
     smoothParam3Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_3));
@@ -197,6 +191,11 @@ void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         smoothParam2Edit->setEnabled(true);
         smoothParam3Edit->setEnabled(false);
         smoothParam4Edit->setEnabled(false);
+        // Set parameter range labels
+        smoothParam1RangeLabel->setText("[1-99]");
+        smoothParam2RangeLabel->setText("[0-99]");
+        smoothParam3RangeLabel->setText("");
+        smoothParam4RangeLabel->setText("");
     }
     else if(input==(QAbstractButton*)smoothBlurButton)
     {
@@ -213,6 +212,11 @@ void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         smoothParam2Edit->setEnabled(true);
         smoothParam3Edit->setEnabled(false);
         smoothParam4Edit->setEnabled(false);
+        // Set parameter range labels
+        smoothParam1RangeLabel->setText("[1-99]");
+        smoothParam2RangeLabel->setText("[0-99]");
+        smoothParam3RangeLabel->setText("");
+        smoothParam4RangeLabel->setText("");
     }
     else if(input==(QAbstractButton*)smoothGaussianButton)
     {
@@ -225,7 +229,7 @@ void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         QRegExpValidator *validator2 = new QRegExpValidator(rx2, 0);
         smoothParam2Edit->setValidator(validator2);
         // smoothParam3Edit input string validation
-        QDoubleValidator *validator3 = new QDoubleValidator(0.0, 99.0, 2, this);
+        QDoubleValidator *validator3 = new QDoubleValidator(0.0, 99.99, 2, this);
         validator3->setNotation(QDoubleValidator::StandardNotation);
         smoothParam3Edit->setValidator(validator3);
         // Enable/disable appropriate parameter inputs
@@ -233,6 +237,11 @@ void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         smoothParam2Edit->setEnabled(true);
         smoothParam3Edit->setEnabled(true);
         smoothParam4Edit->setEnabled(false);
+        // Set parameter range labels
+        smoothParam1RangeLabel->setText("[0-99]");
+        smoothParam2RangeLabel->setText("[0-99]");
+        smoothParam3RangeLabel->setText("[0.00-99.99]");
+        smoothParam4RangeLabel->setText("");
     }
     else if(input==(QAbstractButton*)smoothMedianButton)
     {
@@ -245,71 +254,88 @@ void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         smoothParam2Edit->setEnabled(false);
         smoothParam3Edit->setEnabled(false);
         smoothParam4Edit->setEnabled(false);
-    }
-    else if(input==(QAbstractButton*)smoothBilateralButton)
-    {
-        // smoothParam1Edit input string validation
-        QRegExp rx1("[0-9]\\d{0,1}"); // Integers 0 to 99
-        QRegExpValidator *validator1 = new QRegExpValidator(rx1, 0);
-        smoothParam1Edit->setValidator(validator1);
-        // smoothParam3Edit input string validation
-        QDoubleValidator *validator3 = new QDoubleValidator(0.0, 99.0, 2, this);
-        validator3->setNotation(QDoubleValidator::StandardNotation);
-        smoothParam3Edit->setValidator(validator3);
-        // smoothParam4Edit input string validation
-        QDoubleValidator *validator4 = new QDoubleValidator(0.0, 99.0, 2, this);
-        validator4->setNotation(QDoubleValidator::StandardNotation);
-        smoothParam4Edit->setValidator(validator4);
-        // Enable/disable appropriate parameter inputs
-        smoothParam1Edit->setEnabled(true);
-        smoothParam2Edit->setEnabled(false);
-        smoothParam3Edit->setEnabled(true);
-        smoothParam4Edit->setEnabled(true);
+        // Set parameter range labels
+        smoothParam1RangeLabel->setText("[1-99]");
+        smoothParam2RangeLabel->setText("");
+        smoothParam3RangeLabel->setText("");
+        smoothParam4RangeLabel->setText("");
     }
 } // smoothTypeChange()
 
 void ProcessingSettingsDialog::validateDialog()
 {
+    // Local variables
+    bool inputEmpty=false;
+
     // If value of Smooth parameter 1 is EVEN (and not zero), convert to ODD by adding 1
     if(((smoothParam1Edit->text().toInt()%2)==0)&&(smoothParam1Edit->text().toInt()!=0))
+    {
         smoothParam1Edit->setText(QString::number(smoothParam1Edit->text().toInt()+1));
+        QMessageBox::information(this->parentWidget(),"NOTE:","Smooth parameter 1 must be an ODD number.\n\nAutomatically set to (inputted value+1).");
+    }
     // If value of Smooth parameter 2 is EVEN (and not zero), convert to ODD by adding 1
     if(((smoothParam2Edit->text().toInt()%2)==0)&&(smoothParam2Edit->text().toInt()!=0))
+    {
         smoothParam2Edit->setText(QString::number(smoothParam2Edit->text().toInt()+1));
+        QMessageBox::information(this->parentWidget(),"NOTE:","Smooth parameter 2 must be an ODD number (or zero).\n\nAutomatically set to (inputted value+1).");
+    }
 
     // Check for empty inputs: if empty, set to default values
     if(smoothParam1Edit->text().isEmpty())
+    {
         smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
+        inputEmpty=true;
+    }
     if(smoothParam2Edit->text().isEmpty())
+    {
         smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
+        inputEmpty=true;
+    }
     if(smoothParam3Edit->text().isEmpty())
+    {
         smoothParam3Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_3));
+        inputEmpty=true;
+    }
     if(smoothParam4Edit->text().isEmpty())
+    {
         smoothParam4Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_4));
+        inputEmpty=true;
+    }
     if(dilateIterationsEdit->text().isEmpty())
+    {
         dilateIterationsEdit->setText(QString::number(DEFAULT_DILATE_ITERATIONS));
+        inputEmpty=true;
+    }
     if(erodeIterationsEdit->text().isEmpty())
+    {
         erodeIterationsEdit->setText(QString::number(DEFAULT_ERODE_ITERATIONS));
+        inputEmpty=true;
+    }
     if(cannyThresh1Edit->text().isEmpty())
+    {
         cannyThresh1Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_1));
+        inputEmpty=true;
+    }
     if(cannyThresh2Edit->text().isEmpty())
+    {
         cannyThresh2Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_2));
+        inputEmpty=true;
+    }
     if(cannyApertureSizeEdit->text().isEmpty())
+    {
         cannyApertureSizeEdit->setText(QString::number(DEFAULT_CANNY_APERTURE_SIZE));
+        inputEmpty=true;
+    }
+    // Check if any of the inputs were empty
+    if(inputEmpty)
+        QMessageBox::warning(this->parentWidget(),"WARNING:","One or more inputs empty.\n\nAutomatically set to default values.");
 
-    // Check for special Smooth parameter cases
+    // Check for special parameter case when smoothing type is GAUSSIAN
     if((smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothGaussianButton)&&
-       (smoothParam1Edit->text().toInt()==0)&&(smoothParam3Edit->text().toInt()==0))
+       (smoothParam1Edit->text().toInt()==0)&&(smoothParam3Edit->text().toDouble()==0.00))
     {
         smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
         smoothParam3Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_3));
         QMessageBox::warning(this->parentWidget(),"ERROR:","Parameters 1 and 3 cannot BOTH be zero when the smoothing type is GAUSSIAN.\n\nAutomatically set to default values.");
-    }
-    else if((smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothBilateralButton)&&
-            (smoothParam1Edit->text().toInt()==0)&&(smoothParam4Edit->text().toInt()==0))
-    {
-        smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
-        smoothParam4Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_4));
-        QMessageBox::warning(this->parentWidget(),"ERROR:","Parameters 1 and 4 cannot BOTH be zero when the smoothing type is BILATERAL.\n\nAutomatically set to default values.");
     }
 } // validateDialog()
