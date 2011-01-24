@@ -46,8 +46,8 @@ public:
         int smoothType;
         int smoothParam1;
         int smoothParam2;
-        int smoothParam3;
-        int smoothParam4;
+        double smoothParam3;
+        double smoothParam4;
         int dilateNumberOfIterations;
         int erodeNumberOfIterations;
         int flipMode;
@@ -55,10 +55,13 @@ public:
         double cannyThreshold2;
         int cannyApertureSize;
     } processingSettings;
-    void updateStoredSettingsFromDialog();
     void updateDialogSettingsFromStored();
+public slots:
+    void updateStoredSettingsFromDialog();
 private slots:
     void resetDialogToDefaults();
+    void validateDialog();
+    void smoothTypeChange(QAbstractButton*);
 };
 
 #endif // PROCESSINGSETTINGSDIALOG_H

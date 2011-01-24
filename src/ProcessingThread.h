@@ -76,8 +76,8 @@ public:
         int smoothType;
         int smoothParam1;
         int smoothParam2;
-        int smoothParam3;
-        int smoothParam4;
+        double smoothParam3;
+        double smoothParam4;
         int dilateNumberOfIterations;
         int erodeNumberOfIterations;
         int flipMode;

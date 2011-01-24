@@ -353,7 +353,7 @@ void MainWindow::setProcessingSettings()
     // Prompt user
     // If user presses OK button on dialog, update processing settings
     if(processingSettingsDialog->exec()==1)
-       processingSettingsDialog->updateStoredSettingsFromDialog();
+        processingSettingsDialog->updateStoredSettingsFromDialog();
     // Else, restore dialog state
     else
        processingSettingsDialog->updateDialogSettingsFromStored();
