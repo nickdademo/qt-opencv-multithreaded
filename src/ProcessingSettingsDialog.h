@@ -41,8 +41,24 @@ class ProcessingSettingsDialog : public QDialog, private Ui::ProcessingSettingsD
 
 public:
     ProcessingSettingsDialog(QWidget *parent = 0);
-private:
-    void resetToDefaults();
+    // ProcessingSettings structure definition
+    struct ProcessingSettings{
+        int smoothType;
+        int smoothParam1;
+        int smoothParam2;
+        int smoothParam3;
+        int smoothParam4;
+        int dilateNumberOfIterations;
+        int erodeNumberOfIterations;
+        int flipMode;
+        double cannyThreshold1;
+        double cannyThreshold2;
+        int cannyApertureSize;
+    } processingSettings;
+    void updateStoredSettingsFromDialog();
+    void updateDialogSettingsFromStored();
+private slots:
+    void resetDialogToDefaults();
 };
 
 #endif // PROCESSINGSETTINGSDIALOG_H

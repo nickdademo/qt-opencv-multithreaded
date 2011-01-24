@@ -38,19 +38,24 @@
 // Qt header files
 #include <QDebug>
 
+// Header file containing default values
+#include "DefaultValues.h"
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {  
     // Setup user interface
     setupUi(this);
     // Initially set controller to NULL
     controller=NULL;
-    // Initialize processing flags
-    grayscaleOn=false;
-    smoothOn=false;
-    dilateOn=false;
-    erodeOn=false;
-    flipOn=false;
-    cannyOn=false;
+    // Create processingSettingsDialog
+    processingSettingsDialog = new ProcessingSettingsDialog(this);
+    // Initialize ProcessingFlags structure
+    processingFlags.grayscaleOn=false;
+    processingFlags.smoothOn=false;
+    processingFlags.dilateOn=false;
+    processingFlags.erodeOn=false;
+    processingFlags.flipOn=false;
+    processingFlags.cannyOn=false;
     // Save application version in QString variable
     appVersion=QUOTE(APP_VERSION);
     // Connect GUI signals to slots
@@ -137,7 +142,7 @@ void MainWindow::connectToCamera()
         {
             // Create queued connection between processing thread (emitter) and GUI thread (receiver/listener)
             connect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)),Qt::QueuedConnection);
-            // Setup progressBarBuffer in main window with minimum and maximum values
+            // Setup imageBufferBar in main window with minimum and maximum values
             imageBufferBar->setMinimum(0);
             imageBufferBar->setMaximum(imageBufferSize);
             // Enable/disable appropriate menu items
@@ -149,7 +154,7 @@ void MainWindow::connectToCamera()
             // Get input stream properties
             sourceWidth=controller->getInputSourceWidth();
             sourceHeight=controller->getInputSourceHeight();
-            // Set text in qLabels in main window
+            // Set text in labels in main window
             deviceNumberLabel->setNum(cameraConnectDialog->getDeviceNumber());
             cameraResolutionLabel->setText(QString::number(sourceWidth)+QString("x")+QString::number(sourceHeight));
         }
@@ -228,60 +233,60 @@ void MainWindow::setGrayscale(bool input)
 {
     // Not checked
     if(!input)
-        grayscaleOn=false;
+        processingFlags.grayscaleOn=false;
     // Checked
     else if(input)
-        grayscaleOn=true;
+        processingFlags.grayscaleOn=true;
 } // setGrayscale()
 
 void MainWindow::setSmooth(bool input)
 {
     // Not checked
     if(!input)
-        smoothOn=false;
+        processingFlags.smoothOn=false;
     // Checked
     else if(input)
-        smoothOn=true;
+        processingFlags.smoothOn=true;
 } // setSmooth()
 
 void MainWindow::setDilate(bool input)
 {
     // Not checked
     if(!input)
-        dilateOn=false;
+        processingFlags.dilateOn=false;
     // Checked
     else if(input)
-        dilateOn=true;
+        processingFlags.dilateOn=true;
 } // setDilate()
 
 void MainWindow::setErode(bool input)
 {
     // Not checked
     if(!input)
-        erodeOn=false;
+        processingFlags.erodeOn=false;
     // Checked
     else if(input)
-        erodeOn=true;
+        processingFlags.erodeOn=true;
 } // setErode()
 
 void MainWindow::setFlip(bool input)
 {
     // Not checked
     if(!input)
-        flipOn=false;
+        processingFlags.flipOn=false;
     // Checked
     else if(input)
-        flipOn=true;
+        processingFlags.flipOn=true;
 } // setFlip()
 
 void MainWindow::setCanny(bool input)
 {
     // Not checked
     if(!input)
-        cannyOn=false;
+        processingFlags.cannyOn=false;
     // Checked
     else if(input)
-        cannyOn=true;
+        processingFlags.cannyOn=true;
 } // setCanny()
 
 void MainWindow::updateFrame(const QImage &frame)
@@ -300,44 +305,56 @@ void MainWindow::updateFrame(const QImage &frame)
     controller->processingThread->frameLabel.mouseLeftReleased=frameLabel->getLeftMouseButtonRelease();
     controller->processingThread->frameLabel.mouseRightReleased=frameLabel->getRightMouseButtonRelease();
     // Update processing flags
-    controller->processingThread->processingFlags.grayscaleOn=grayscaleOn;
-    controller->processingThread->processingFlags.smoothOn=smoothOn;
-    controller->processingThread->processingFlags.dilateOn=dilateOn;
-    controller->processingThread->processingFlags.erodeOn=erodeOn;
-    controller->processingThread->processingFlags.flipOn=flipOn;
-    controller->processingThread->processingFlags.cannyOn=cannyOn;
+    controller->processingThread->processingFlags.grayscaleOn=processingFlags.grayscaleOn;
+    controller->processingThread->processingFlags.smoothOn=processingFlags.smoothOn;
+    controller->processingThread->processingFlags.dilateOn=processingFlags.dilateOn;
+    controller->processingThread->processingFlags.erodeOn=processingFlags.erodeOn;
+    controller->processingThread->processingFlags.flipOn=processingFlags.flipOn;
+    controller->processingThread->processingFlags.cannyOn=processingFlags.cannyOn;
+    // Update processing settings
+    controller->processingThread->processingSettings.smoothType=processingSettingsDialog->processingSettings.smoothType;
+    controller->processingThread->processingSettings.smoothParam1=processingSettingsDialog->processingSettings.smoothParam1;
+    controller->processingThread->processingSettings.smoothParam2=processingSettingsDialog->processingSettings.smoothParam2;
+    controller->processingThread->processingSettings.smoothParam3=processingSettingsDialog->processingSettings.smoothParam3;
+    controller->processingThread->processingSettings.smoothParam4=processingSettingsDialog->processingSettings.smoothParam4;
+    controller->processingThread->processingSettings.dilateNumberOfIterations=processingSettingsDialog->processingSettings.dilateNumberOfIterations;
+    controller->processingThread->processingSettings.erodeNumberOfIterations=processingSettingsDialog->processingSettings.erodeNumberOfIterations;
+    controller->processingThread->processingSettings.flipMode=processingSettingsDialog->processingSettings.flipMode;
+    controller->processingThread->processingSettings.cannyThreshold1=processingSettingsDialog->processingSettings.cannyThreshold1;
+    controller->processingThread->processingSettings.cannyThreshold2=processingSettingsDialog->processingSettings.cannyThreshold2;
+    controller->processingThread->processingSettings.cannyApertureSize=processingSettingsDialog->processingSettings.cannyApertureSize;
     // Show statistics
-    //// Show [number of images in buffer / image buffer size] in qLabelBuffer in main window
+    //// Show [number of images in buffer / image buffer size] in imageBufferLabel in main window
     imageBufferLabel->setText(QString("[")+QString::number(controller->processingThread->currentSizeOfBuffer)+
-                          QString("/")+QString::number(imageBufferSize)+QString("]"));
-    //// Show percentage of image bufffer full in progressBarBuffer in main window
+                              QString("/")+QString::number(imageBufferSize)+QString("]"));
+    //// Show percentage of image bufffer full in imageBufferBar in main window
     imageBufferBar->setValue(controller->processingThread->currentSizeOfBuffer);
-    //// Show processing rate in qLabelProcessingRate in main window
+    //// Show processing rate in captureRateLabel in main window
     captureRateLabel->setNum(controller->captureThread->avgFPS);
     captureRateLabel->setText(captureRateLabel->text()+" fps");
-    //// Show processing rate in qLabelProcessingRate in main window
+    //// Show processing rate in processingRateLabel in main window
     processingRateLabel->setNum(controller->processingThread->avgFPS);
     processingRateLabel->setText(processingRateLabel->text()+" fps");
-    //// Show ROI information in qLabelROI in main window
+    //// Show ROI information in roiLabel in main window
     roiLabel->setText(QString("(")+QString::number(controller->processingThread->newROI.x)+QString(",")+
-                       QString::number(controller->processingThread->newROI.y)+QString(") ")+
-                       QString::number(controller->processingThread->newROI.width)+
-                       QString("x")+QString::number(controller->processingThread->newROI.height));
-    //// Show mouse cursor position in qLabelMouseCursorPos in main window
+                      QString::number(controller->processingThread->newROI.y)+QString(") ")+
+                      QString::number(controller->processingThread->newROI.width)+
+                      QString("x")+QString::number(controller->processingThread->newROI.height));
+    //// Show mouse cursor position in mouseCursorPosLabel in main window
     mouseCursorPosLabel->setText(QString("(")+QString::number(frameLabel->getMouseXPos())+
-                                  QString(",")+QString::number(frameLabel->getMouseYPos())+
-                                  QString(")"));
+                                 QString(",")+QString::number(frameLabel->getMouseYPos())+
+                                 QString(")"));
     // Display frame in main window
     frameLabel->setPixmap(QPixmap::fromImage(frame));
 } // updateFrame()
 
 void MainWindow::setProcessingSettings()
 {
-    // Create dialog
-    processingSettingsDialog = new ProcessingSettingsDialog(this);
     // Prompt user
-    // If user presses OK button on dialog, update processing settings; else do nothing
+    // If user presses OK button on dialog, update processing settings
     if(processingSettingsDialog->exec()==1)
-    {
-    }
+       processingSettingsDialog->updateStoredSettingsFromDialog();
+    // Else, restore dialog state
+    else
+       processingSettingsDialog->updateDialogSettingsFromStored();
 } // setProcessingSettings()

@@ -55,13 +55,15 @@ private:
     Controller *controller;
     QString appVersion;
     int sourceWidth, sourceHeight, imageBufferSize;
-    // Processing flags
-    bool grayscaleOn;
-    bool smoothOn;
-    bool dilateOn;
-    bool erodeOn;
-    bool flipOn;
-    bool cannyOn;
+    // ProcessingFlags structure definition
+    struct ProcessingFlags{
+        bool grayscaleOn;
+        bool smoothOn;
+        bool dilateOn;
+        bool erodeOn;
+        bool flipOn;
+        bool cannyOn;
+    } processingFlags;
 public slots:
     void connectToCamera();
     void disconnectCamera();

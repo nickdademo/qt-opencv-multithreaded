@@ -70,6 +70,18 @@ ProcessingThread::ProcessingThread(ImageBuffer *imageBuffer, int inputSourceWidt
     processingFlags.erodeOn=false;
     processingFlags.flipOn=false;
     processingFlags.cannyOn=false;
+    // Initialize ProcessingSettings structure
+    processingSettings.smoothType=DEFAULT_SMOOTH_TYPE;
+    processingSettings.smoothParam1=DEFAULT_SMOOTH_PARAM_1;
+    processingSettings.smoothParam2=DEFAULT_SMOOTH_PARAM_2;
+    processingSettings.smoothParam3=DEFAULT_SMOOTH_PARAM_3;
+    processingSettings.smoothParam4=DEFAULT_SMOOTH_PARAM_4;
+    processingSettings.dilateNumberOfIterations=DEFAULT_DILATE_ITERATIONS;
+    processingSettings.erodeNumberOfIterations=DEFAULT_ERODE_ITERATIONS;
+    processingSettings.flipMode=DEFAULT_FLIP_MODE;
+    processingSettings.cannyThreshold1=DEFAULT_CANNY_THRESHOLD_1;
+    processingSettings.cannyThreshold2=DEFAULT_CANNY_THRESHOLD_2;
+    processingSettings.cannyApertureSize=DEFAULT_CANNY_APERTURE_SIZE;
     // Initialize other flags
     drawingBox=false;
     resetROI=false;
@@ -148,47 +160,54 @@ void ProcessingThread::run()
                 if(processingFlags.smoothOn)
                 {
                     if(processingFlags.grayscaleOn)
-                        cvSmooth(currentFrameCopyGrayscale,currentFrameCopyGrayscale,SMOOTH_TYPE,SMOOTH_PARAM_1,SMOOTH_PARAM_2,
-                                 SMOOTH_PARAM_3,SMOOTH_PARAM_4);
+                        cvSmooth(currentFrameCopyGrayscale,currentFrameCopyGrayscale,
+                                 processingSettings.smoothType,
+                                 processingSettings.smoothParam1,processingSettings.smoothParam2,
+                                 processingSettings.smoothParam3,processingSettings.smoothParam4);
                     else
-                        cvSmooth(currentFrameCopy,currentFrameCopy,SMOOTH_TYPE,SMOOTH_PARAM_1,SMOOTH_PARAM_2,
-                                 SMOOTH_PARAM_3,SMOOTH_PARAM_4);
+                        cvSmooth(currentFrameCopy,currentFrameCopy,
+                                 processingSettings.smoothType,
+                                 processingSettings.smoothParam1,processingSettings.smoothParam2,
+                                 processingSettings.smoothParam3,processingSettings.smoothParam4);
                 } // if
                 // Dilate
                 if(processingFlags.dilateOn)
                 {
                     if(processingFlags.grayscaleOn)
-                        cvDilate(currentFrameCopyGrayscale,currentFrameCopyGrayscale,NULL,DILATE_ITERATIONS);
+                        cvDilate(currentFrameCopyGrayscale,currentFrameCopyGrayscale,NULL,
+                                 processingSettings.dilateNumberOfIterations);
                     else
-                        cvDilate(currentFrameCopy,currentFrameCopy,NULL,DILATE_ITERATIONS);
+                        cvDilate(currentFrameCopy,currentFrameCopy,NULL,
+                                 processingSettings.dilateNumberOfIterations);
                 } // if
                 // Erode
                 if(processingFlags.erodeOn)
                 {
                     if(processingFlags.grayscaleOn)
-                        cvErode(currentFrameCopyGrayscale,currentFrameCopyGrayscale,NULL,ERODE_ITERATIONS);
+                        cvErode(currentFrameCopyGrayscale,currentFrameCopyGrayscale,NULL,
+                                processingSettings.erodeNumberOfIterations);
                     else
-                        cvErode(currentFrameCopy,currentFrameCopy,NULL,ERODE_ITERATIONS);
+                        cvErode(currentFrameCopy,currentFrameCopy,NULL,
+                                processingSettings.erodeNumberOfIterations);
                 } // if
                 // Flip
                 if(processingFlags.flipOn)
                 {
                     if(processingFlags.grayscaleOn)
-                        cvFlip(currentFrameCopyGrayscale,NULL,FLIPMODE);
+                        cvFlip(currentFrameCopyGrayscale,NULL,processingSettings.flipMode);
                     else
-                        cvFlip(currentFrameCopy,NULL,FLIPMODE);
+                        cvFlip(currentFrameCopy,NULL,processingSettings.flipMode);
                 } // if
                 // Canny edge detection
                 if(processingFlags.cannyOn)
                 {
-                    if(processingFlags.grayscaleOn)
-                        cvCanny(currentFrameCopyGrayscale,currentFrameCopyGrayscale,CANNY_THRESHOLD_1,CANNY_THRESHOLD_2);
-                    else
-                    {
-                        // Frame must be converted to grayscale first
+                    // Frame must be converted to grayscale first if grayscale conversion is OFF
+                    if(!processingFlags.grayscaleOn)
                         cvCvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
-                        cvCanny(currentFrameCopyGrayscale,currentFrameCopyGrayscale,CANNY_THRESHOLD_1,CANNY_THRESHOLD_2);
-                    } // else
+
+                    cvCanny(currentFrameCopyGrayscale,currentFrameCopyGrayscale,
+                            processingSettings.cannyThreshold1,processingSettings.cannyThreshold2,
+                            processingSettings.cannyApertureSize);
                 } // if
             } // else
             ////////////////////////////////////

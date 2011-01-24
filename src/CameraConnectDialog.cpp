@@ -34,6 +34,7 @@
 
 // Qt header files
 #include <QtGui>
+
 // Header file containing default values
 #include "DefaultValues.h"
 
@@ -60,7 +61,7 @@ int CameraConnectDialog::getDeviceNumber()
 {
     // Initially set device number to "any available camera".
     deviceNumber=-1;
-    if(anyCameraButton->isChecked())\
+    if(anyCameraButton->isChecked())
         return deviceNumber; // Attempt to connect to any available camera
     else // User specified camera
     {

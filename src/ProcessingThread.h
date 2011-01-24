@@ -71,6 +71,20 @@ public:
         bool flipOn;
         bool cannyOn;
     } processingFlags;
+    // ProcessingSettings structure definition
+    struct ProcessingSettings{
+        int smoothType;
+        int smoothParam1;
+        int smoothParam2;
+        int smoothParam3;
+        int smoothParam4;
+        int dilateNumberOfIterations;
+        int erodeNumberOfIterations;
+        int flipMode;
+        double cannyThreshold1;
+        double cannyThreshold2;
+        int cannyApertureSize;
+    } processingSettings;
 private:
     void updateFPS(int);
     void drawBox(IplImage*,CvRect,int,int,int);
