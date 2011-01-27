@@ -63,12 +63,12 @@ ProcessingSettingsDialog::ProcessingSettingsDialog(QWidget *parent) : QDialog(pa
     QRegExpValidator *validator8 = new QRegExpValidator(rx8, 0);
     cannyThresh2Edit->setValidator(validator8);
     // cannyApertureSizeEdit input string validation
-    QRegExp rx9("[3,5,7]\\d{0,0}"); // Integers 0 to 9
+    QRegExp rx9("[3,5,7]\\d{0,0}"); // Integers 3,5,7
     QRegExpValidator *validator9 = new QRegExpValidator(rx9, 0);
     cannyApertureSizeEdit->setValidator(validator9);
     // Set dialog values to defaults
     resetDialogToDefaults();
-    // Update values in ProcessingSettings structure
+    // Update processing settings in processingSettings structure and processingThread
     updateStoredSettingsFromDialog();
 } // ProcessingSettingsDialog constructor
 
@@ -104,6 +104,8 @@ void ProcessingSettingsDialog::updateStoredSettingsFromDialog()
     processingSettings.cannyThreshold1=cannyThresh1Edit->text().toDouble();
     processingSettings.cannyThreshold2=cannyThresh2Edit->text().toDouble();
     processingSettings.cannyApertureSize=cannyApertureSizeEdit->text().toInt();
+    // Update processing flags in processingThread
+    emit newProcessingSettings(processingSettings);
 } // updateStoredSettingsFromDialog()
 
 void ProcessingSettingsDialog::updateDialogSettingsFromStored()

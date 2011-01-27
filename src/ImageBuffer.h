@@ -38,6 +38,7 @@
 #include <QMutex>
 #include <QQueue>
 #include <QSemaphore>
+
 // OpenCV header files
 #include <opencv/highgui.h>
 
@@ -45,18 +46,19 @@ class ImageBuffer
 {
 
 public:
-        ImageBuffer(int size);
-        void addFrame(const IplImage *image);
-        IplImage* getFrame();
-        void clearBuffer();
-        int getSizeOfImageBuffer();
+    ImageBuffer(int size);
+    void addFrame(const IplImage *image);
+    IplImage* getFrame();
+    void clearBuffer();
+    int getSizeOfImageBuffer();
 private:
-        QWaitCondition bufferNotEmpty;
-        QWaitCondition bufferNotFull;
-        QMutex mutex1, mutex2, mutex3;
-        QQueue<IplImage*> imageQueue; 
-        QSemaphore *freeSlots, *usedSlots, *clearBuffer1, *clearBuffer2;
-        int bufferSize;
+    QMutex mutex;
+    QQueue<IplImage*> imageQueue;
+    QSemaphore *freeSlots;
+    QSemaphore *usedSlots;
+    QSemaphore *clearBuffer1;
+    QSemaphore *clearBuffer2;
+    int bufferSize;
 };
 
 #endif // IMAGEBUFFER_H

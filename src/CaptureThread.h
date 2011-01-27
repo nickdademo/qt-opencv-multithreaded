@@ -50,16 +50,19 @@ public:
     void disconnectCamera();
     void stopCaptureThread();
     CvCapture *capture;
-    volatile bool isActive;
-    int avgFPS;
+    int getAvgFPS();
 private:
     void updateFPS(int);
     ImageBuffer *imageBuffer;
     QTime t;
+    QMutex mutex1;
+    QMutex mutex2;
     int captureTime;
+    int avgFPS;
     QQueue<int> fps;
     int sampleNo;
     int fpsSum;
+    volatile bool stopped;
 protected:
     void run();
 };

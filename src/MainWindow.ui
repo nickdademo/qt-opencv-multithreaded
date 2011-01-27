@@ -40,7 +40,7 @@
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
-      <widget class="QLabelWithMouseTracking" name="frameLabel">
+      <widget class="FrameLabel" name="frameLabel">
        <property name="enabled">
         <bool>true</bool>
        </property>
@@ -727,9 +727,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QLabelWithMouseTracking</class>
+   <class>FrameLabel</class>
    <extends>QLabel</extends>
-   <header>QLabelWithMouseTracking.h</header>
+   <header>FrameLabel.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>

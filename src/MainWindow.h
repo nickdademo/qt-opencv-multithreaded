@@ -54,8 +54,10 @@ private:
     ProcessingSettingsDialog *processingSettingsDialog;
     Controller *controller;
     QString appVersion;
-    int sourceWidth, sourceHeight, imageBufferSize;
-    // ProcessingFlags structure definition
+    int sourceWidth;
+    int sourceHeight;
+    int imageBufferSize;
+    // ProcessingFlags structure definition and declaration
     struct ProcessingFlags{
         bool grayscaleOn;
         bool smoothOn;
@@ -64,6 +66,26 @@ private:
         bool flipOn;
         bool cannyOn;
     } processingFlags;
+    // ProcessingSettings structure definition
+    struct ProcessingSettings{
+        int smoothType;
+        int smoothParam1;
+        int smoothParam2;
+        double smoothParam3;
+        double smoothParam4;
+        int dilateNumberOfIterations;
+        int erodeNumberOfIterations;
+        int flipMode;
+        double cannyThreshold1;
+        double cannyThreshold2;
+        int cannyApertureSize;
+    };
+    // TaskData structure definition
+    struct TaskData{
+        bool setROIOn;
+        bool resetROIOn;
+        QRect selectionBox;
+    };
 public slots:
     void connectToCamera();
     void disconnectCamera();
@@ -78,6 +100,8 @@ public slots:
     void setProcessingSettings();
 private slots:
     void updateFrame(const QImage &frame);
+signals:
+    void newProcessingFlags(struct ProcessingFlags p_flags);
 };
 
 #endif // MAINWINDOW_H

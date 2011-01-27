@@ -17,7 +17,7 @@ SOURCES += main.cpp\
     CameraConnectDialog.cpp \
     ProcessingThread.cpp \
     ShowIplImage.cpp \
-    QLabelWithMouseTracking.cpp \
+    FrameLabel.cpp \
     ProcessingSettingsDialog.cpp
 
 HEADERS  += MainWindow.h \
@@ -28,7 +28,7 @@ HEADERS  += MainWindow.h \
     DefaultValues.h \
     ProcessingThread.h \
     ShowIplImage.h \
-    QLabelWithMouseTracking.h \
+    FrameLabel.h \
     ProcessingSettingsDialog.h
 
 LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_ml -lopencv_video -lopencv_features2d -lopencv_calib3d -lopencv_objdetect -lopencv_contrib -lopencv_legacy -lopencv_flann

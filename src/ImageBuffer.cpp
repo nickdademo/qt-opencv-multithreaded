@@ -51,9 +51,9 @@ void ImageBuffer::addFrame(const IplImage* image)
     // Copy the input IplImage
     IplImage* temp = cvCloneImage(image);
     // Add image to queue
-    mutex1.lock();
+    mutex.lock();
         imageQueue.enqueue(temp);
-    mutex1.unlock();
+    mutex.unlock();
     clearBuffer1->release();
     usedSlots->release();
 } // addFrame()
@@ -64,9 +64,9 @@ IplImage* ImageBuffer::getFrame()
     usedSlots->acquire();
     IplImage* temp=0;
     // Take image from queue
-    mutex2.lock();
+    mutex.lock();
         temp=imageQueue.dequeue();
-    mutex2.unlock();
+    mutex.unlock();
     freeSlots->release();
     clearBuffer2->release();
     // Return image to caller
@@ -107,7 +107,7 @@ void ImageBuffer::clearBuffer()
         qDebug() << "Image buffer successfully cleared.";
     }
     else
-        qDebug() << "ERROR: Image buffer is already empty.";
+        qDebug() << "WARNING: Could not clear image buffer: already empty.";
 } // clearBuffer()
 
 int ImageBuffer::getSizeOfImageBuffer()

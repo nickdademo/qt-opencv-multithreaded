@@ -45,50 +45,44 @@
 #include "DefaultValues.h"
 
 ProcessingThread::ProcessingThread(ImageBuffer *imageBuffer, int inputSourceWidth, int inputSourceHeight)
-                                   : QThread(), imageBuffer(imageBuffer)
+                                   : QThread(), imageBuffer(imageBuffer), inputSourceWidth(inputSourceWidth),
+                                   inputSourceHeight(inputSourceHeight)
 {
     // Create IplImages
     currentFrameCopy=cvCreateImage(cvSize(inputSourceWidth,inputSourceHeight),IPL_DEPTH_8U,3);
     currentFrameCopyGrayscale=cvCreateImage(cvSize(inputSourceWidth,inputSourceHeight),IPL_DEPTH_8U,1);
     // Initialize variables
-    isActive=true;
+    stopped=false;
     sampleNo=0;
     fpsSum=0;
     avgFPS=0;
     fps.clear();
-    // Initialize MouseEventFlags structure
-    frameLabel.mouseXPos=0;
-    frameLabel.mouseYPos=0;
-    frameLabel.mouseLeftPressed=false;
-    frameLabel.mouseRightPressed=false;
-    frameLabel.mouseLeftReleased=true;
-    frameLabel.mouseRightReleased=true;
-    // Initialize ProcessingFlags structure
-    processingFlags.grayscaleOn=false;
-    processingFlags.smoothOn=false;
-    processingFlags.dilateOn=false;
-    processingFlags.erodeOn=false;
-    processingFlags.flipOn=false;
-    processingFlags.cannyOn=false;
-    // Initialize ProcessingSettings structure
-    processingSettings.smoothType=DEFAULT_SMOOTH_TYPE;
-    processingSettings.smoothParam1=DEFAULT_SMOOTH_PARAM_1;
-    processingSettings.smoothParam2=DEFAULT_SMOOTH_PARAM_2;
-    processingSettings.smoothParam3=DEFAULT_SMOOTH_PARAM_3;
-    processingSettings.smoothParam4=DEFAULT_SMOOTH_PARAM_4;
-    processingSettings.dilateNumberOfIterations=DEFAULT_DILATE_ITERATIONS;
-    processingSettings.erodeNumberOfIterations=DEFAULT_ERODE_ITERATIONS;
-    processingSettings.flipMode=DEFAULT_FLIP_MODE;
-    processingSettings.cannyThreshold1=DEFAULT_CANNY_THRESHOLD_1;
-    processingSettings.cannyThreshold2=DEFAULT_CANNY_THRESHOLD_2;
-    processingSettings.cannyApertureSize=DEFAULT_CANNY_APERTURE_SIZE;
-    // Initialize other flags
-    drawingBox=false;
-    resetROI=false;
-    // Initialize newROI variable
-    newROI=cvRect(0,0,inputSourceWidth,inputSourceHeight);
+    // Initialize processing flags
+    grayscaleOn=false;
+    smoothOn=false;
+    dilateOn=false;
+    erodeOn=false;
+    flipOn=false;
+    cannyOn=false;
+    // Initialize task flags
+    setROIOn=false;
+    resetROIOn=false;
+    // Initialize processing settings
+    smoothType=DEFAULT_SMOOTH_TYPE;
+    smoothParam1=DEFAULT_SMOOTH_PARAM_1;
+    smoothParam2=DEFAULT_SMOOTH_PARAM_2;
+    smoothParam3=DEFAULT_SMOOTH_PARAM_3;
+    smoothParam4=DEFAULT_SMOOTH_PARAM_4;
+    dilateNumberOfIterations=DEFAULT_DILATE_ITERATIONS;
+    erodeNumberOfIterations=DEFAULT_ERODE_ITERATIONS;
+    flipMode=DEFAULT_FLIP_MODE;
+    cannyThreshold1=DEFAULT_CANNY_THRESHOLD_1;
+    cannyThreshold2=DEFAULT_CANNY_THRESHOLD_2;
+    cannyApertureSize=DEFAULT_CANNY_APERTURE_SIZE;
+    // Initialize currentROI variable
+    currentROI=cvRect(0,0,inputSourceWidth,inputSourceHeight);
     // Store original ROI
-    originalROI=newROI;
+    originalROI=currentROI;
 } // ProcessingThread constructor
 
 ProcessingThread::~ProcessingThread()
@@ -102,8 +96,21 @@ ProcessingThread::~ProcessingThread()
 
 void ProcessingThread::run()
 {
-    while(isActive)
+    while(1)
     {
+        /////////////////////////////////
+        // Stop thread if stopped=TRUE //
+        /////////////////////////////////
+        mutex1.lock();
+        if (stopped)
+        {
+            stopped=false;
+            mutex1.unlock();
+            break;
+        }
+        mutex1.unlock();
+        /////////////////////////////////
+        /////////////////////////////////
         // Save processing time
         processingTime=t.elapsed();
         // Start timer (used to calculate processing rate)
@@ -114,116 +121,93 @@ void ProcessingThread::run()
         if(currentFrame!=NULL)
         {
             // Set ROI of grabbed frame
-            cvSetImageROI(currentFrame,newROI);
+            cvSetImageROI(currentFrame,currentROI);
             // Make copy of current frame (processing will be performed on this copy)
             cvCopy(currentFrame,currentFrameCopy);
 
-            /////////////////////////
-            // HANDLE MOUSE EVENTS //
-            /////////////////////////
-            //  Start drawing box once left mouse button is pressed
-            if(frameLabel.mouseLeftPressed&&!drawingBox)
-            {
-                // Reset ROI before setting a new ROI
-                ROICalibration(true);
-                // Set drawingBox flag
-                drawingBox=true;
-                box=cvRect(frameLabel.mouseXPos,frameLabel.mouseYPos,0,0);
-            } // if
-            // Set ROI reset flag
-            else if(frameLabel.mouseRightPressed&&!resetROI)
-                resetROI=true;
-            // Continually resize selection box as mouse cursor moves with left mouse button held
-            else if(frameLabel.mouseLeftPressed&&drawingBox)
-            {
-                box.width=frameLabel.mouseXPos-box.x;
-                box.height=frameLabel.mouseYPos-box.y;
-                // Draw selection box on currentFrameCopy
-                drawBox(currentFrameCopy, box, 0xFF, 0x00, 0x00); // Colour = BLUE
-            } // else if
-            // Set new ROI on left mouse button release
-            else if(frameLabel.mouseLeftReleased&&drawingBox)
-                ROICalibration(false);
-            // Reset to original ROI on right mouse button release
-            else if(frameLabel.mouseRightReleased&&resetROI)
-                ROICalibration(true);
-
+            ///////////////////
+            // PERFORM TASKS //
+            ///////////////////
+            mutex2.lock();
+            if(resetROIOn)
+                resetROI();
+            else if(setROIOn)
+                setROI();
             ////////////////////////////////////
             // PERFORM IMAGE PROCESSING BELOW //
             ////////////////////////////////////
             else
             {
                 // Grayscale conversion
-                if(processingFlags.grayscaleOn)
+                if(grayscaleOn)
                     cvCvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
                 // Smooth
-                if(processingFlags.smoothOn)
+                if(smoothOn)
                 {
-                    if(processingFlags.grayscaleOn)
+                    if(grayscaleOn)
                         cvSmooth(currentFrameCopyGrayscale,currentFrameCopyGrayscale,
-                                 processingSettings.smoothType,
-                                 processingSettings.smoothParam1,processingSettings.smoothParam2,
-                                 processingSettings.smoothParam3,processingSettings.smoothParam4);
+                                 smoothType,smoothParam1,smoothParam2,smoothParam3,smoothParam4);
                     else
                         cvSmooth(currentFrameCopy,currentFrameCopy,
-                                 processingSettings.smoothType,
-                                 processingSettings.smoothParam1,processingSettings.smoothParam2,
-                                 processingSettings.smoothParam3,processingSettings.smoothParam4);
+                                 smoothType,smoothParam1,smoothParam2,smoothParam3,smoothParam4);
                 } // if
                 // Dilate
-                if(processingFlags.dilateOn)
+                if(dilateOn)
                 {
-                    if(processingFlags.grayscaleOn)
+                    if(grayscaleOn)
                         cvDilate(currentFrameCopyGrayscale,currentFrameCopyGrayscale,NULL,
-                                 processingSettings.dilateNumberOfIterations);
+                                 dilateNumberOfIterations);
                     else
                         cvDilate(currentFrameCopy,currentFrameCopy,NULL,
-                                 processingSettings.dilateNumberOfIterations);
+                                 dilateNumberOfIterations);
                 } // if
                 // Erode
-                if(processingFlags.erodeOn)
+                if(erodeOn)
                 {
-                    if(processingFlags.grayscaleOn)
+                    if(grayscaleOn)
                         cvErode(currentFrameCopyGrayscale,currentFrameCopyGrayscale,NULL,
-                                processingSettings.erodeNumberOfIterations);
+                                erodeNumberOfIterations);
                     else
                         cvErode(currentFrameCopy,currentFrameCopy,NULL,
-                                processingSettings.erodeNumberOfIterations);
+                                erodeNumberOfIterations);
                 } // if
                 // Flip
-                if(processingFlags.flipOn)
+                if(flipOn)
                 {
-                    if(processingFlags.grayscaleOn)
-                        cvFlip(currentFrameCopyGrayscale,NULL,processingSettings.flipMode);
+                    if(grayscaleOn)
+                        cvFlip(currentFrameCopyGrayscale,NULL,flipMode);
                     else
-                        cvFlip(currentFrameCopy,NULL,processingSettings.flipMode);
+                        cvFlip(currentFrameCopy,NULL,flipMode);
                 } // if
                 // Canny edge detection
-                if(processingFlags.cannyOn)
+                if(cannyOn)
                 {
                     // Frame must be converted to grayscale first if grayscale conversion is OFF
-                    if(!processingFlags.grayscaleOn)
+                    if(!grayscaleOn)
                         cvCvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
 
                     cvCanny(currentFrameCopyGrayscale,currentFrameCopyGrayscale,
-                            processingSettings.cannyThreshold1,processingSettings.cannyThreshold2,
-                            processingSettings.cannyApertureSize);
+                            cannyThreshold1,cannyThreshold2,
+                            cannyApertureSize);
                 } // if
             } // else
+            mutex2.unlock();
             ////////////////////////////////////
             // PERFORM IMAGE PROCESSING ABOVE //
             ////////////////////////////////////
 
             //// Convert IplImage to QImage: Show grayscale frame
-            //// (if either Grayscale or Canny processing modes are on AND a box is not being drawn).
-            if((processingFlags.grayscaleOn&&!drawingBox)||(processingFlags.cannyOn&&!drawingBox))
+            //// (if either Grayscale or Canny processing modes are ON)
+            if(grayscaleOn||cannyOn)
                 frame=IplImageToQImage(currentFrameCopyGrayscale);
             //// Convert IplImage to QImage: Show BGR frame
             else
                 frame=IplImageToQImage(currentFrameCopy);
             // Update statistics
             updateFPS(processingTime);
+            mutex4.lock();
             currentSizeOfBuffer=imageBuffer->getSizeOfImageBuffer();
+            mutex4.unlock();
             // Inform controller of new frame (QImage)
             emit newFrame(frame);
             // Release IplImage
@@ -254,7 +238,9 @@ void ProcessingThread::updateFPS(int timeElapsed)
         // Empty queue and store sum
         while(!fps.empty())
             fpsSum+=fps.dequeue();
+        mutex3.lock();
         avgFPS=fpsSum/16; // Calculate average FPS
+        mutex3.unlock();
         fpsSum=0; // Reset sum
         sampleNo=0; // Reset sample number
     } // if
@@ -262,73 +248,119 @@ void ProcessingThread::updateFPS(int timeElapsed)
 
 void ProcessingThread::stopProcessingThread()
 {
-    isActive=false;
+    mutex1.lock();
+    stopped=true;
+    mutex1.unlock();
 } // stopProcessingThread()
 
-void ProcessingThread::drawBox(IplImage* img, CvRect box, int B, int G, int R)
+void ProcessingThread::setROI()
 {
-    cvRectangle(img,cvPoint(box.x,box.y),cvPoint(box.x+box.width,box.y+box.height),cvScalar(B,G,R));
-} // drawBox()
-
-void ProcessingThread::ROICalibration(bool reset)
-{
-    // Reset to original ROI
-    if(reset)
+    // Selection box can also be drawn from bottom-right to top-left corner
+    if(box.width<0)
     {
-        // Check if current ROI is the same as original ROI
-        if((newROI.x==originalROI.x)&&(newROI.y==originalROI.y)&&(newROI.width==originalROI.width)&&(newROI.height==originalROI.height))
-        {
-            // Reset resetROI flag
-            resetROI=false;
-            qDebug() << "WARNING: Cannot reset ROI - already set to original ROI.";
-        } // if
-        else
-        {
-            // Reset ROI
-            cvResetImageROI(currentFrameCopy);
-            cvResetImageROI(currentFrameCopyGrayscale);
-            // Set ROI back to original ROI
-            newROI=originalROI;
-            // Reset resetROI flag
-            resetROI=false;
-            qDebug() << "ROI successfully reset.";
-        } // else
+        box.x+=box.width;
+        box.width*=-1;
+    } // if
+    if(box.height<0)
+    {
+        box.y+=box.height;
+        box.height*=-1;
     } // if
 
-    // Set new ROI
+    // Check if selection box has positive dimensions
+    if((box.width>0)&&((box.height)>0))
+    {
+        // Check if selection box is not outside window
+        if((box.x<0)||(box.y<0)||((box.x+box.width)>inputSourceWidth)||((box.y+box.height)>inputSourceHeight))
+            qDebug() << "ERROR: Selection box outside range. Please try again.";
+        else
+        {
+            // Set area outside ROI in currentFrameCopy to blue
+            cvSet(currentFrameCopy, cvScalar(127,0,0));
+            // Set area outside ROI in currentFrameCopyGrayscale to gray
+            cvSet(currentFrameCopyGrayscale, cvScalar(127,0,0));
+            // Store new ROI in currentROI variable
+            currentROI=box;
+            // Set new ROI
+            cvSetImageROI(currentFrameCopy, currentROI);
+            cvSetImageROI(currentFrameCopyGrayscale, currentROI);
+            qDebug() << "ROI successfully SET.";
+        } // else
+     } // if
+    // Reset setROIOn flag to FALSE
+    setROIOn=false;
+} // setROI()
+
+void ProcessingThread::resetROI()
+{
+    // Check if current ROI is the same as original ROI
+    if((currentROI.x==originalROI.x)&&(currentROI.y==originalROI.y)&&
+       (currentROI.width==originalROI.width)&&(currentROI.height==originalROI.height))
+        qDebug() << "WARNING: Cannot reset ROI: already set to original ROI.";
     else
     {
-        // Selection box can also be drawn from bottom-right to top-left corner
-        if(box.width<0)
-        {
-                 box.x+=box.width;
-                 box.width *=-1;
-        } // if
-        if(box.height<0)
-        {
-                 box.y+=box.height;
-                 box.height*=-1;
-        } // if
-        // Reset drawingBox flag
-        drawingBox=false;
-        // Check if selection box has positive dimensions
-        if((box.width>0)&&((box.height)>0))
-        {
-            // Check if selection box is not outside window
-            if((box.x<0)||(box.y<0)||((box.x+(box.width))>newROI.width)||((box.y+(box.height))>newROI.height))
-                qDebug() << "ERROR: Selection box outside range. Please try again.";
-            else
-            {
-                // Set area outside ROI in currentFrameCopy to blue
-                cvSet(currentFrameCopy, cvScalar(127,0,0));
-                // Set area outside ROI in currentFrameCopyGrayscale to gray
-                cvSet(currentFrameCopyGrayscale, cvScalar(127,0,0));
-                // Store new ROI in newROI variable
-                newROI=box;
-                // Set new ROI
-                cvSetImageROI(currentFrameCopy, newROI);
-                cvSetImageROI(currentFrameCopyGrayscale, newROI);
-            } // else
-         } // if
+        // Reset ROI
+        cvResetImageROI(currentFrameCopy);
+        cvResetImageROI(currentFrameCopyGrayscale);
+        // Set ROI back to original ROI
+        currentROI=originalROI;
+        qDebug() << "ROI successfully RESET.";
     } // else
-} // ROICalibration()
+    // Reset resetROIOn flag to FALSE
+    resetROIOn=false;
+} // resetROI()
+
+void ProcessingThread::updateProcessingFlags(struct ProcessingFlags p_flags)
+{
+    QMutexLocker locker(&mutex2);
+    this->grayscaleOn=p_flags.grayscaleOn;
+    this->smoothOn=p_flags.smoothOn;
+    this->dilateOn=p_flags.dilateOn;
+    this->erodeOn=p_flags.erodeOn;
+    this->flipOn=p_flags.flipOn;
+    this->cannyOn=p_flags.cannyOn;
+} // updateProcessingFlags()
+
+void ProcessingThread::updateProcessingSettings(struct ProcessingSettings p_settings)
+{
+    QMutexLocker locker(&mutex2);
+    this->smoothType=p_settings.smoothType;
+    this->smoothParam1=p_settings.smoothParam1;
+    this->smoothParam2=p_settings.smoothParam2;
+    this->smoothParam3=p_settings.smoothParam3;
+    this->smoothParam4=p_settings.smoothParam4;
+    this->dilateNumberOfIterations=p_settings.dilateNumberOfIterations;
+    this->erodeNumberOfIterations=p_settings.erodeNumberOfIterations;
+    this->flipMode=p_settings.flipMode;
+    this->cannyThreshold1=p_settings.cannyThreshold1;
+    this->cannyThreshold2=p_settings.cannyThreshold2;
+    this->cannyApertureSize=p_settings.cannyApertureSize;
+} // updateProcessingSettings()
+
+void ProcessingThread::updateTaskData(struct TaskData taskData)
+{
+    QMutexLocker locker(&mutex2);
+    this->setROIOn=taskData.setROIOn;
+    this->resetROIOn=taskData.resetROIOn;
+    this->box.x=taskData.selectionBox.left();
+    this->box.y=taskData.selectionBox.top();
+    this->box.width=taskData.selectionBox.width();
+    this->box.height=taskData.selectionBox.height();
+} // updateTaskData()
+
+int ProcessingThread::getAvgFPS()
+{
+    QMutexLocker lock(&mutex3);
+    return avgFPS;
+} // getAvgFPS()
+
+int ProcessingThread::getCurrentSizeOfBuffer()
+{
+    QMutexLocker lock(&mutex4);
+    return currentSizeOfBuffer;
+} // getCurrentSizeOfBuffer()
+
+CvRect ProcessingThread::getCurrentROI()
+{
+    return currentROI;
+} // getCurrentROI();

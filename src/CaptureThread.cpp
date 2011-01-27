@@ -40,7 +40,7 @@ CaptureThread::CaptureThread(ImageBuffer *buffer, int deviceNumber):QThread(), i
     // Open camera
     capture=cvCaptureFromCAM(deviceNumber);
     // Initialize variables
-    isActive=true;
+    stopped=false;
     sampleNo=0;
     fpsSum=0;
     avgFPS=0;
@@ -49,8 +49,21 @@ CaptureThread::CaptureThread(ImageBuffer *buffer, int deviceNumber):QThread(), i
 
 void CaptureThread::run()
 {
-    while(isActive)
+    while(1)
     {
+        /////////////////////////////////
+        // Stop thread if stopped=TRUE //
+        /////////////////////////////////
+        mutex1.lock();
+        if (stopped)
+        {
+            stopped=false;
+            mutex1.unlock();
+            break;
+        }
+        mutex1.unlock();
+        /////////////////////////////////
+        /////////////////////////////////
         // Save capture time
         captureTime=t.elapsed();
         // Start timer (used to calculate capture rate)
@@ -58,7 +71,9 @@ void CaptureThread::run()
         // Capture and add frame to buffer
         imageBuffer->addFrame(cvQueryFrame(capture));
         // Update statistics
+        mutex2.lock();
         updateFPS(captureTime);
+        mutex2.unlock();
     }
     qDebug() << "Stopping capture thread...";
 } // run()
@@ -102,5 +117,13 @@ void CaptureThread::updateFPS(int timeElapsed)
 
 void CaptureThread::stopCaptureThread()
 {
-    isActive=false;
+    mutex1.lock();
+    stopped=true;
+    mutex1.unlock();
 } // stopCaptureThread()
+
+int CaptureThread::getAvgFPS()
+{
+    QMutexLocker lock(&mutex2);
+    return avgFPS;
+} // getAvgFPS()

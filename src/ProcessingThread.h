@@ -49,19 +49,33 @@ public:
     ProcessingThread(ImageBuffer *imageBuffer, int inputSourceWidth, int inputSourceHeight);
     ~ProcessingThread();
     void stopProcessingThread();
-    volatile bool isActive;
-    int avgFPS;
+    int getAvgFPS();
+    int getCurrentSizeOfBuffer();
+    CvRect getCurrentROI();
+private:
+    void updateFPS(int);
+    void setROI();
+    void resetROI();
+    ImageBuffer *imageBuffer;
+    volatile bool stopped;
+    int inputSourceWidth;
+    int inputSourceHeight;
     int currentSizeOfBuffer;
-    CvRect newROI;
-    // MouseEventFlags structure definition
-    struct MouseEventFlags{
-        int mouseXPos;
-        int mouseYPos;
-        bool mouseLeftPressed;
-        bool mouseRightPressed;
-        bool mouseLeftReleased;
-        bool mouseRightReleased;
-    } frameLabel;
+    IplImage *currentFrameCopy;
+    IplImage *currentFrameCopyGrayscale;
+    CvRect originalROI;
+    CvRect currentROI;
+    QImage frame;
+    QTime t;
+    int processingTime;
+    QQueue<int> fps;
+    int fpsSum;
+    int sampleNo;
+    int avgFPS;
+    QMutex mutex1;
+    QMutex mutex2;
+    QMutex mutex3;
+    QMutex mutex4;
     // ProcessingFlags structure definition
     struct ProcessingFlags{
         bool grayscaleOn;
@@ -70,7 +84,7 @@ public:
         bool erodeOn;
         bool flipOn;
         bool cannyOn;
-    } processingFlags;
+    };
     // ProcessingSettings structure definition
     struct ProcessingSettings{
         int smoothType;
@@ -84,26 +98,42 @@ public:
         double cannyThreshold1;
         double cannyThreshold2;
         int cannyApertureSize;
-    } processingSettings;
-private:
-    void updateFPS(int);
-    void drawBox(IplImage*,CvRect,int,int,int);
-    void ROICalibration(bool);
-    ImageBuffer *imageBuffer;
-    int inputSourceWidth, inputSourceHeight;
-    IplImage *currentFrameCopy, *currentFrameCopyGrayscale;
-    CvRect box, originalROI;
-    QImage frame;
-    QTime t;
-    int processingTime;
-    QQueue<int> fps;
-    int fpsSum;
-    int sampleNo;
-    // Other flags
-    bool drawingBox;
-    bool resetROI;
+    };
+    // TaskData structure definition
+    struct TaskData{
+        bool setROIOn;
+        bool resetROIOn;
+        QRect selectionBox;
+    };
+    // Processing flags
+    bool grayscaleOn;
+    bool smoothOn;
+    bool dilateOn;
+    bool erodeOn;
+    bool flipOn;
+    bool cannyOn;
+    // Processing settings
+    int smoothType;
+    int smoothParam1;
+    int smoothParam2;
+    double smoothParam3;
+    double smoothParam4;
+    int dilateNumberOfIterations;
+    int erodeNumberOfIterations;
+    int flipMode;
+    double cannyThreshold1;
+    double cannyThreshold2;
+    int cannyApertureSize;
+    // Task data
+    bool setROIOn;
+    bool resetROIOn;
+    CvRect box;
 protected:
     void run();
+private slots:
+    void updateProcessingFlags(struct ProcessingFlags);
+    void updateProcessingSettings(struct ProcessingSettings);
+    void updateTaskData(struct TaskData);
 signals:
     void newFrame(const QImage &frame);
 };

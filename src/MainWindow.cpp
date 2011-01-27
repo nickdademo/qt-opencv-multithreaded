@@ -99,13 +99,16 @@ MainWindow::~MainWindow()
     // Check if controller exists
     if(controller!=NULL)
     {
-        // Disconnect queued connection
+        // Disconnect queued connections
         disconnect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)));
+        disconnect(this,SIGNAL(newProcessingFlags(struct ProcessingFlags)),controller->processingThread,SLOT(updateProcessingFlags(struct ProcessingFlags)));
+        disconnect(this->processingSettingsDialog,SIGNAL(newProcessingSettings(struct ProcessingSettings)),controller->processingThread,SLOT(updateProcessingSettings(struct ProcessingSettings)));
+        disconnect(this->frameLabel,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)));
         // Stop processing thread
-        if(controller->processingThread->isActive)
+        if(controller->processingThread->isRunning())
             controller->stopProcessingThread();
         // Stop capture thread
-        if(controller->captureThread->isActive)
+        if(controller->captureThread->isRunning())
             controller->stopCaptureThread();
         // Clear image buffer
         controller->clearImageBuffer();
@@ -115,7 +118,7 @@ MainWindow::~MainWindow()
             // Disconnect camera if connected
             if(controller->captureThread->capture!=NULL)
                 controller->disconnectCamera();
-            // Delete processing and capturethreads
+            // Delete processing and capture threads
             controller->deleteProcessingThread();
             controller->deleteCaptureThread();
         }
@@ -142,6 +145,13 @@ void MainWindow::connectToCamera()
         {
             // Create queued connection between processing thread (emitter) and GUI thread (receiver/listener)
             connect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)),Qt::QueuedConnection);
+            // Create queued connections between GUI thread (emitter) and processing thread (receiver/listener)
+            qRegisterMetaType<struct ProcessingFlags>("ProcessingFlags");
+            connect(this,SIGNAL(newProcessingFlags(struct ProcessingFlags)),controller->processingThread,SLOT(updateProcessingFlags(struct ProcessingFlags)),Qt::QueuedConnection);
+            qRegisterMetaType<struct ProcessingSettings>("ProcessingSettings");
+            connect(this->processingSettingsDialog,SIGNAL(newProcessingSettings(struct ProcessingSettings)),controller->processingThread,SLOT(updateProcessingSettings(struct ProcessingSettings)),Qt::QueuedConnection);
+            qRegisterMetaType<struct TaskData>("TaskData");
+            connect(this->frameLabel,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)),Qt::QueuedConnection);
             // Setup imageBufferBar in main window with minimum and maximum values
             imageBufferBar->setMinimum(0);
             imageBufferBar->setMaximum(imageBufferSize);
@@ -169,13 +179,16 @@ void MainWindow::disconnectCamera()
     // Check if controller exists
     if(controller!=NULL)
     {
-        // Disconnect queued connection
+        // Disconnect queued connections
         disconnect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)));
+        disconnect(this,SIGNAL(newProcessingFlags(struct ProcessingFlags)),controller->processingThread,SLOT(updateProcessingFlags(struct ProcessingFlags)));
+        disconnect(this->processingSettingsDialog,SIGNAL(newProcessingSettings(struct ProcessingSettings)),controller->processingThread,SLOT(updateProcessingSettings(struct ProcessingSettings)));
+        disconnect(this->frameLabel,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)));
         // Stop processing thread
-        if(controller->processingThread->isActive)
+        if(controller->processingThread->isRunning())
             controller->stopProcessingThread();
         // Stop capture thread
-        if(controller->captureThread->isActive)
+        if(controller->captureThread->isRunning())
             controller->stopCaptureThread();
         // Clear image buffer
         controller->clearImageBuffer();
@@ -237,6 +250,8 @@ void MainWindow::setGrayscale(bool input)
     // Checked
     else if(input)
         processingFlags.grayscaleOn=true;
+    // Update processing flags in processingThread
+    emit newProcessingFlags(processingFlags);
 } // setGrayscale()
 
 void MainWindow::setSmooth(bool input)
@@ -247,6 +262,8 @@ void MainWindow::setSmooth(bool input)
     // Checked
     else if(input)
         processingFlags.smoothOn=true;
+    // Update processing flags in processingThread
+    emit newProcessingFlags(processingFlags);
 } // setSmooth()
 
 void MainWindow::setDilate(bool input)
@@ -257,6 +274,8 @@ void MainWindow::setDilate(bool input)
     // Checked
     else if(input)
         processingFlags.dilateOn=true;
+    // Update processing flags in processingThread
+    emit newProcessingFlags(processingFlags);
 } // setDilate()
 
 void MainWindow::setErode(bool input)
@@ -267,6 +286,8 @@ void MainWindow::setErode(bool input)
     // Checked
     else if(input)
         processingFlags.erodeOn=true;
+    // Update processing flags in processingThread
+    emit newProcessingFlags(processingFlags);
 } // setErode()
 
 void MainWindow::setFlip(bool input)
@@ -277,6 +298,8 @@ void MainWindow::setFlip(bool input)
     // Checked
     else if(input)
         processingFlags.flipOn=true;
+    // Update processing flags in processingThread
+    emit newProcessingFlags(processingFlags);
 } // setFlip()
 
 void MainWindow::setCanny(bool input)
@@ -287,62 +310,31 @@ void MainWindow::setCanny(bool input)
     // Checked
     else if(input)
         processingFlags.cannyOn=true;
+    // Update processing flags in processingThread
+    emit newProcessingFlags(processingFlags);
 } // setCanny()
 
 void MainWindow::updateFrame(const QImage &frame)
 {
-    // Reset mouse event flags
-    // The following checks ensure that every click/release pair, no matter how fast, is picked up by the processing thread
-    if(controller->processingThread->frameLabel.mouseRightPressed&&frameLabel->getRightMouseButtonRelease())
-        frameLabel->setRightMouseButtonPress(false);
-    if(controller->processingThread->frameLabel.mouseLeftPressed&&frameLabel->getLeftMouseButtonRelease())
-        frameLabel->setLeftMouseButtonPress(false);
-    // Update mouse event flags
-    controller->processingThread->frameLabel.mouseXPos=frameLabel->getMouseXPos();
-    controller->processingThread->frameLabel.mouseYPos=frameLabel->getMouseYPos();
-    controller->processingThread->frameLabel.mouseLeftPressed=frameLabel->getLeftMouseButtonPress();
-    controller->processingThread->frameLabel.mouseRightPressed=frameLabel->getRightMouseButtonPress();
-    controller->processingThread->frameLabel.mouseLeftReleased=frameLabel->getLeftMouseButtonRelease();
-    controller->processingThread->frameLabel.mouseRightReleased=frameLabel->getRightMouseButtonRelease();
-    // Update processing flags
-    controller->processingThread->processingFlags.grayscaleOn=processingFlags.grayscaleOn;
-    controller->processingThread->processingFlags.smoothOn=processingFlags.smoothOn;
-    controller->processingThread->processingFlags.dilateOn=processingFlags.dilateOn;
-    controller->processingThread->processingFlags.erodeOn=processingFlags.erodeOn;
-    controller->processingThread->processingFlags.flipOn=processingFlags.flipOn;
-    controller->processingThread->processingFlags.cannyOn=processingFlags.cannyOn;
-    // Update processing settings
-    controller->processingThread->processingSettings.smoothType=processingSettingsDialog->processingSettings.smoothType;
-    controller->processingThread->processingSettings.smoothParam1=processingSettingsDialog->processingSettings.smoothParam1;
-    controller->processingThread->processingSettings.smoothParam2=processingSettingsDialog->processingSettings.smoothParam2;
-    controller->processingThread->processingSettings.smoothParam3=processingSettingsDialog->processingSettings.smoothParam3;
-    controller->processingThread->processingSettings.smoothParam4=processingSettingsDialog->processingSettings.smoothParam4;
-    controller->processingThread->processingSettings.dilateNumberOfIterations=processingSettingsDialog->processingSettings.dilateNumberOfIterations;
-    controller->processingThread->processingSettings.erodeNumberOfIterations=processingSettingsDialog->processingSettings.erodeNumberOfIterations;
-    controller->processingThread->processingSettings.flipMode=processingSettingsDialog->processingSettings.flipMode;
-    controller->processingThread->processingSettings.cannyThreshold1=processingSettingsDialog->processingSettings.cannyThreshold1;
-    controller->processingThread->processingSettings.cannyThreshold2=processingSettingsDialog->processingSettings.cannyThreshold2;
-    controller->processingThread->processingSettings.cannyApertureSize=processingSettingsDialog->processingSettings.cannyApertureSize;
-    // Show statistics
-    //// Show [number of images in buffer / image buffer size] in imageBufferLabel in main window
-    imageBufferLabel->setText(QString("[")+QString::number(controller->processingThread->currentSizeOfBuffer)+
+    // Show [number of images in buffer / image buffer size] in imageBufferLabel in main window
+    imageBufferLabel->setText(QString("[")+QString::number(controller->processingThread->getCurrentSizeOfBuffer())+
                               QString("/")+QString::number(imageBufferSize)+QString("]"));
-    //// Show percentage of image bufffer full in imageBufferBar in main window
-    imageBufferBar->setValue(controller->processingThread->currentSizeOfBuffer);
-    //// Show processing rate in captureRateLabel in main window
-    captureRateLabel->setNum(controller->captureThread->avgFPS);
+    // Show percentage of image bufffer full in imageBufferBar in main window
+    imageBufferBar->setValue(controller->processingThread->getCurrentSizeOfBuffer());
+    // Show processing rate in captureRateLabel in main window
+    captureRateLabel->setNum(controller->captureThread->getAvgFPS());
     captureRateLabel->setText(captureRateLabel->text()+" fps");
-    //// Show processing rate in processingRateLabel in main window
-    processingRateLabel->setNum(controller->processingThread->avgFPS);
+    // Show processing rate in processingRateLabel in main window
+    processingRateLabel->setNum(controller->processingThread->getAvgFPS());
     processingRateLabel->setText(processingRateLabel->text()+" fps");
-    //// Show ROI information in roiLabel in main window
-    roiLabel->setText(QString("(")+QString::number(controller->processingThread->newROI.x)+QString(",")+
-                      QString::number(controller->processingThread->newROI.y)+QString(") ")+
-                      QString::number(controller->processingThread->newROI.width)+
-                      QString("x")+QString::number(controller->processingThread->newROI.height));
-    //// Show mouse cursor position in mouseCursorPosLabel in main window
-    mouseCursorPosLabel->setText(QString("(")+QString::number(frameLabel->getMouseXPos())+
-                                 QString(",")+QString::number(frameLabel->getMouseYPos())+
+    // Show ROI information in roiLabel in main window
+    roiLabel->setText(QString("(")+QString::number(controller->processingThread->getCurrentROI().x)+QString(",")+
+                      QString::number(controller->processingThread->getCurrentROI().y)+QString(") ")+
+                      QString::number(controller->processingThread->getCurrentROI().width)+
+                      QString("x")+QString::number(controller->processingThread->getCurrentROI().height));
+    // Show mouse cursor position in mouseCursorPosLabel in main window
+    mouseCursorPosLabel->setText(QString("(")+QString::number(frameLabel->getMouseCursorPos().x())+
+                                 QString(",")+QString::number(frameLabel->getMouseCursorPos().y())+
                                  QString(")"));
     // Display frame in main window
     frameLabel->setPixmap(QPixmap::fromImage(frame));
@@ -350,7 +342,7 @@ void MainWindow::updateFrame(const QImage &frame)
 
 void MainWindow::setProcessingSettings()
 {
-    // Prompt user
+    // Prompt user:
     // If user presses OK button on dialog, update processing settings
     if(processingSettingsDialog->exec()==1)
         processingSettingsDialog->updateStoredSettingsFromDialog();
