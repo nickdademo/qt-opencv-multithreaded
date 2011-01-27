@@ -49,11 +49,14 @@ public:
     CaptureThread(ImageBuffer *buffer, int deviceNumber);
     void disconnectCamera();
     void stopCaptureThread();
-    CvCapture *capture;
     int getAvgFPS();
+    bool isCameraConnected();
+    int getInputSourceWidth();
+    int getInputSourceHeight();
 private:
     void updateFPS(int);
     ImageBuffer *imageBuffer;
+    CvCapture *capture;
     QTime t;
     QMutex mutex1;
     QMutex mutex2;

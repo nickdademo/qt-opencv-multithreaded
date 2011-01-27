@@ -57,7 +57,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     processingFlags.cannyOn=false;
     // Save application version in QString variable
     appVersion=QUOTE(APP_VERSION);
-    // Connect GUI signals to slots
+    // Connect signals to slots
     connect(connectToCameraAction, SIGNAL(triggered()), this, SLOT(connectToCamera()));
     connect(disconnectCameraAction, SIGNAL(triggered()), this, SLOT(disconnectCamera()));
     connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
@@ -70,6 +70,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(settingsAction, SIGNAL(triggered()), this, SLOT(setProcessingSettings()));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
     connect(clearImageBufferButton, SIGNAL(released()), this, SLOT(clearImageBuffer()));
+    connect(frameLabel, SIGNAL(onMouseMoveEvent()), this, SLOT(updateMouseCursorPosLabel()));
     // Enable/disable appropriate menu items
     connectToCameraAction->setDisabled(false);
     disconnectCameraAction->setDisabled(true);
@@ -115,7 +116,7 @@ MainWindow::~MainWindow()
         if((controller->captureThread->isFinished())&&(controller->processingThread->isFinished()))
         {
             // Disconnect camera if connected
-            if(controller->captureThread->capture!=NULL)
+            if(controller->captureThread->isCameraConnected())
                 controller->disconnectCamera();
             // Delete processing and capture threads
             controller->deleteProcessingThread();
@@ -140,7 +141,7 @@ void MainWindow::connectToCamera()
         // Create controller
         controller = new Controller(cameraConnectDialog->getDeviceNumber(),imageBufferSize);
         // If camera was successfully connected
-        if(controller->captureThread->capture!=NULL)
+        if(controller->captureThread->isCameraConnected())
         {
             // Create queued connection between processing thread (emitter) and GUI thread (receiver/listener)
             connect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)),Qt::QueuedConnection);
@@ -166,6 +167,20 @@ void MainWindow::connectToCamera()
             // Set text in labels in main window
             deviceNumberLabel->setNum(cameraConnectDialog->getDeviceNumber());
             cameraResolutionLabel->setText(QString::number(sourceWidth)+QString("x")+QString::number(sourceHeight));
+            /*
+            QThread::IdlePriority               0	scheduled only when no other threads are running.
+            QThread::LowestPriority             1	scheduled less often than LowPriority.
+            QThread::LowPriority                2	scheduled less often than NormalPriority.
+            QThread::NormalPriority             3	the default priority of the operating system.
+            QThread::HighPriority               4	scheduled more often than NormalPriority.
+            QThread::HighestPriority            5	scheduled more often than HighPriority.
+            QThread::TimeCriticalPriority	6	scheduled as often as possible.
+            QThread::InheritPriority            7	use the same priority as the creating thread. This is the default.
+            */
+            // Start capturing frames from camera
+            controller->captureThread->start(QThread::IdlePriority);
+            // Start processing captured frames
+            controller->processingThread->start();
         }
         // Display error dialog if camera connection is unsuccessful
         else
@@ -195,7 +210,7 @@ void MainWindow::disconnectCamera()
         if((controller->captureThread->isFinished())&&(controller->processingThread->isFinished()))
         {
             // Disconnect camera if connected
-            if(controller->captureThread->capture!=NULL)
+            if(controller->captureThread->isCameraConnected())
                 controller->disconnectCamera();
             // Delete processing and capture threads
             controller->deleteProcessingThread();
@@ -331,10 +346,6 @@ void MainWindow::updateFrame(const QImage &frame)
                       QString::number(controller->processingThread->getCurrentROI().y)+QString(") ")+
                       QString::number(controller->processingThread->getCurrentROI().width)+
                       QString("x")+QString::number(controller->processingThread->getCurrentROI().height));
-    // Show mouse cursor position in mouseCursorPosLabel in main window
-    mouseCursorPosLabel->setText(QString("(")+QString::number(frameLabel->getMouseCursorPos().x())+
-                                 QString(",")+QString::number(frameLabel->getMouseCursorPos().y())+
-                                 QString(")"));
     // Display frame in main window
     frameLabel->setPixmap(QPixmap::fromImage(frame));
 } // updateFrame()
@@ -349,3 +360,11 @@ void MainWindow::setProcessingSettings()
     else
        processingSettingsDialog->updateDialogSettingsFromStored();
 } // setProcessingSettings()
+
+void MainWindow::updateMouseCursorPosLabel()
+{
+    // Update mouse cursor position in mouseCursorPosLabel in main window
+    mouseCursorPosLabel->setText(QString("(")+QString::number(frameLabel->getMouseCursorPos().x())+
+                                 QString(",")+QString::number(frameLabel->getMouseCursorPos().y())+
+                                 QString(")"));
+} // updateMouseCursorPosLabel()

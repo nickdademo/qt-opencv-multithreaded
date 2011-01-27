@@ -71,6 +71,7 @@ public slots:
     void setFlip(bool);
     void setCanny(bool);
     void setProcessingSettings();
+    void updateMouseCursorPosLabel();
 private slots:
     void updateFrame(const QImage &frame);
 signals:

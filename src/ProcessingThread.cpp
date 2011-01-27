@@ -308,31 +308,31 @@ void ProcessingThread::resetROI()
     resetROIOn=false;
 } // resetROI()
 
-void ProcessingThread::updateProcessingFlags(struct ProcessingFlags p_flags)
+void ProcessingThread::updateProcessingFlags(struct ProcessingFlags processingFlags)
 {
     QMutexLocker locker(&mutex2);
-    this->grayscaleOn=p_flags.grayscaleOn;
-    this->smoothOn=p_flags.smoothOn;
-    this->dilateOn=p_flags.dilateOn;
-    this->erodeOn=p_flags.erodeOn;
-    this->flipOn=p_flags.flipOn;
-    this->cannyOn=p_flags.cannyOn;
+    this->grayscaleOn=processingFlags.grayscaleOn;
+    this->smoothOn=processingFlags.smoothOn;
+    this->dilateOn=processingFlags.dilateOn;
+    this->erodeOn=processingFlags.erodeOn;
+    this->flipOn=processingFlags.flipOn;
+    this->cannyOn=processingFlags.cannyOn;
 } // updateProcessingFlags()
 
-void ProcessingThread::updateProcessingSettings(struct ProcessingSettings p_settings)
+void ProcessingThread::updateProcessingSettings(struct ProcessingSettings processingSettings)
 {
     QMutexLocker locker(&mutex2);
-    this->smoothType=p_settings.smoothType;
-    this->smoothParam1=p_settings.smoothParam1;
-    this->smoothParam2=p_settings.smoothParam2;
-    this->smoothParam3=p_settings.smoothParam3;
-    this->smoothParam4=p_settings.smoothParam4;
-    this->dilateNumberOfIterations=p_settings.dilateNumberOfIterations;
-    this->erodeNumberOfIterations=p_settings.erodeNumberOfIterations;
-    this->flipMode=p_settings.flipMode;
-    this->cannyThreshold1=p_settings.cannyThreshold1;
-    this->cannyThreshold2=p_settings.cannyThreshold2;
-    this->cannyApertureSize=p_settings.cannyApertureSize;
+    this->smoothType=processingSettings.smoothType;
+    this->smoothParam1=processingSettings.smoothParam1;
+    this->smoothParam2=processingSettings.smoothParam2;
+    this->smoothParam3=processingSettings.smoothParam3;
+    this->smoothParam4=processingSettings.smoothParam4;
+    this->dilateNumberOfIterations=processingSettings.dilateNumberOfIterations;
+    this->erodeNumberOfIterations=processingSettings.erodeNumberOfIterations;
+    this->flipMode=processingSettings.flipMode;
+    this->cannyThreshold1=processingSettings.cannyThreshold1;
+    this->cannyThreshold2=processingSettings.cannyThreshold2;
+    this->cannyApertureSize=processingSettings.cannyApertureSize;
 } // updateProcessingSettings()
 
 void ProcessingThread::updateTaskData(struct TaskData taskData)

@@ -128,3 +128,21 @@ int CaptureThread::getAvgFPS()
     QMutexLocker lock(&mutex2);
     return avgFPS;
 } // getAvgFPS()
+
+bool CaptureThread::isCameraConnected()
+{
+    if(capture!=NULL)
+        return true;
+    else
+        return false;
+} // isCameraConnected()
+
+int CaptureThread::getInputSourceWidth()
+{
+    return cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH);
+} // getInputSourceWidth()
+
+int CaptureThread::getInputSourceHeight()
+{
+    return cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);
+} // getInputSourceHeight()

@@ -38,33 +38,12 @@
 
 Controller::Controller(int deviceNumber, int imageBufferSize) : imageBufferSize(imageBufferSize)
 {
-    /*
-    QThread::IdlePriority               0	scheduled only when no other threads are running.
-    QThread::LowestPriority             1	scheduled less often than LowPriority.
-    QThread::LowPriority                2	scheduled less often than NormalPriority.
-    QThread::NormalPriority             3	the default priority of the operating system.
-    QThread::HighPriority               4	scheduled more often than NormalPriority.
-    QThread::HighestPriority            5	scheduled more often than HighPriority.
-    QThread::TimeCriticalPriority	6	scheduled as often as possible.
-    QThread::InheritPriority            7	use the same priority as the creating thread. This is the default.
-    */
-
     // Create image buffer with user-defined size
     imageBuffer = new ImageBuffer(imageBufferSize);
     // Create capture thread with user-defined device number
     captureThread = new CaptureThread(imageBuffer, deviceNumber);
-    // Only start threads if camera connection was successful
-    if(captureThread->capture!=NULL)
-    {
-        // Start capturing frames from camera
-        captureThread->start(QThread::IdlePriority);
-        // Create processing thread
-        processingThread = new ProcessingThread(imageBuffer,getInputSourceWidth(),getInputSourceHeight());
-        // Start processing captured frames
-        processingThread->start();
-    }
-    else
-        qDebug() << "ERROR: Could not connect to camera.";
+    // Create processing thread
+    processingThread = new ProcessingThread(imageBuffer,getInputSourceWidth(),getInputSourceHeight());
 } // Controller constructor
 
 Controller::~Controller()
@@ -120,10 +99,10 @@ void Controller::clearImageBuffer()
 
 int Controller::getInputSourceWidth()
 {
-    return cvGetCaptureProperty(captureThread->capture, CV_CAP_PROP_FRAME_WIDTH);
+    return captureThread->getInputSourceWidth();
 } // getInputSourceWidth()
 
 int Controller::getInputSourceHeight()
 {
-    return cvGetCaptureProperty(captureThread->capture, CV_CAP_PROP_FRAME_HEIGHT);
+    return captureThread->getInputSourceHeight();
 } // getInputSourceHeight()
