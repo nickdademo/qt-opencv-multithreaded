@@ -35,7 +35,7 @@
 // Qt header files
 #include <QDebug>
 
-ImageBuffer::ImageBuffer(int size) : bufferSize(size)
+ImageBuffer::ImageBuffer(int bufferSize) : bufferSize(bufferSize)
 {
     // Semaphore initializations
     freeSlots = new QSemaphore(bufferSize);
@@ -52,7 +52,7 @@ void ImageBuffer::addFrame(const IplImage* image)
     IplImage* temp = cvCloneImage(image);
     // Add image to queue
     mutex.lock();
-        imageQueue.enqueue(temp);
+    imageQueue.enqueue(temp);
     mutex.unlock();
     clearBuffer1->release();
     usedSlots->release();
@@ -65,7 +65,7 @@ IplImage* ImageBuffer::getFrame()
     IplImage* temp=0;
     // Take image from queue
     mutex.lock();
-        temp=imageQueue.dequeue();
+    temp=imageQueue.dequeue();
     mutex.unlock();
     freeSlots->release();
     clearBuffer2->release();

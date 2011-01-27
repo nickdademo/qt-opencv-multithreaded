@@ -100,7 +100,7 @@ private:
     // Task data
     bool setROIOn;
     bool resetROIOn;
-    CvRect box;
+    CvRect selectionBox;
 protected:
     void run();
 private slots:

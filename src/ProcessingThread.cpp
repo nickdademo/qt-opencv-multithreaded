@@ -254,22 +254,22 @@ void ProcessingThread::stopProcessingThread()
 void ProcessingThread::setROI()
 {
     // Selection box can also be drawn from bottom-right to top-left corner
-    if(box.width<0)
+    if(selectionBox.width<0)
     {
-        box.x+=box.width;
-        box.width*=-1;
+        selectionBox.x+=selectionBox.width;
+        selectionBox.width*=-1;
     } // if
-    if(box.height<0)
+    if(selectionBox.height<0)
     {
-        box.y+=box.height;
-        box.height*=-1;
+        selectionBox.y+=selectionBox.height;
+        selectionBox.height*=-1;
     } // if
 
     // Check if selection box has positive dimensions
-    if((box.width>0)&&((box.height)>0))
+    if((selectionBox.width>0)&&((selectionBox.height)>0))
     {
         // Check if selection box is not outside window
-        if((box.x<0)||(box.y<0)||((box.x+box.width)>inputSourceWidth)||((box.y+box.height)>inputSourceHeight))
+        if((selectionBox.x<0)||(selectionBox.y<0)||((selectionBox.x+selectionBox.width)>inputSourceWidth)||((selectionBox.y+selectionBox.height)>inputSourceHeight))
             qDebug() << "ERROR: Selection box outside range. Please try again.";
         else
         {
@@ -278,7 +278,7 @@ void ProcessingThread::setROI()
             // Set area outside ROI in currentFrameCopyGrayscale to gray
             cvSet(currentFrameCopyGrayscale, cvScalar(127,0,0));
             // Store new ROI in currentROI variable
-            currentROI=box;
+            currentROI=selectionBox;
             // Set new ROI
             cvSetImageROI(currentFrameCopy, currentROI);
             cvSetImageROI(currentFrameCopyGrayscale, currentROI);
@@ -340,10 +340,10 @@ void ProcessingThread::updateTaskData(struct TaskData taskData)
     QMutexLocker locker(&mutex2);
     this->setROIOn=taskData.setROIOn;
     this->resetROIOn=taskData.resetROIOn;
-    this->box.x=taskData.selectionBox.left();
-    this->box.y=taskData.selectionBox.top();
-    this->box.width=taskData.selectionBox.width();
-    this->box.height=taskData.selectionBox.height();
+    this->selectionBox.x=taskData.selectionBox.left();
+    this->selectionBox.y=taskData.selectionBox.top();
+    this->selectionBox.width=taskData.selectionBox.width();
+    this->selectionBox.height=taskData.selectionBox.height();
 } // updateTaskData()
 
 int ProcessingThread::getAvgFPS()
