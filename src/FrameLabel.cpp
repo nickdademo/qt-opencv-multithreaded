@@ -75,29 +75,40 @@ void FrameLabel::mouseReleaseEvent(QMouseEvent *ev)
     // On left mouse button release
     if(ev->button()==Qt::LeftButton)
     {
-        // Stop drawing box
-        drawBox=false;
-        // Set setROIOn flag to TRUE
-        taskData.setROIOn=true;
-        // Save box dimensions
-        taskData.selectionBox.setLeft(box->left());
-        taskData.selectionBox.setTop(box->top());
-        taskData.selectionBox.setWidth(box->width());
-        taskData.selectionBox.setHeight(box->height());
-        // Update taskData in processingThread
-        emit newTaskData(taskData);
-        // Reset setROIOn flag to FALSE
-        taskData.setROIOn=false;
+        // Set ROI
+        if(drawBox)
+        {
+            // Stop drawing box
+            drawBox=false;
+            // Set setROIOn flag to TRUE
+            taskData.setROIOn=true;
+            // Save box dimensions
+            taskData.selectionBox.setLeft(box->left());
+            taskData.selectionBox.setTop(box->top());
+            taskData.selectionBox.setWidth(box->width());
+            taskData.selectionBox.setHeight(box->height());
+            // Update taskData in processingThread
+            emit newTaskData(taskData);
+            // Reset setROIOn flag to FALSE
+            taskData.setROIOn=false;
+        }
     }
     // On right mouse button release
     else if(ev->button()==Qt::RightButton)
     {
-        // Set resetROIOn flag to FALSE
-        taskData.resetROIOn=true;
-        // Update taskData in processingThread
-        emit newTaskData(taskData);
-        // Reset resetROIOn flag to FALSE
-        taskData.resetROIOn=false;
+        // If user presses (and then releases) the right mouse button while drawing box, stop drawing box
+        if(drawBox)
+            drawBox=false;
+        // Reset ROI
+        else
+        {
+            // Set resetROIOn flag to FALSE
+            taskData.resetROIOn=true;
+            // Update taskData in processingThread
+            emit newTaskData(taskData);
+            // Reset resetROIOn flag to FALSE
+            taskData.resetROIOn=false;
+        }
     }
 } // mouseReleaseEvent()
 
