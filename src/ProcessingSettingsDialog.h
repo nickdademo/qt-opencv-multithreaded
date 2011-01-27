@@ -34,6 +34,7 @@
 #define PROCESSINGSETTINGSDIALOG_H
 
 #include "ui_ProcessingSettingsDialog.h"
+#include "Structures.h"
 
 class ProcessingSettingsDialog : public QDialog, private Ui::ProcessingSettingsDialog
 {
@@ -43,20 +44,7 @@ public:
     ProcessingSettingsDialog(QWidget *parent = 0);
     void updateDialogSettingsFromStored();
 private:
-    // ProcessingSettings structure definition and declaration
-    struct ProcessingSettings{
-        int smoothType;
-        int smoothParam1;
-        int smoothParam2;
-        double smoothParam3;
-        double smoothParam4;
-        int dilateNumberOfIterations;
-        int erodeNumberOfIterations;
-        int flipMode;
-        double cannyThreshold1;
-        double cannyThreshold2;
-        int cannyApertureSize;
-    } processingSettings;
+    ProcessingSettings processingSettings;
 public slots:
     void updateStoredSettingsFromDialog();
 private slots:

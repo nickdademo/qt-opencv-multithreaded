@@ -34,6 +34,7 @@
 #define MAINWINDOW_H
 
 #include "ui_MainWindow.h"
+#include "Structures.h"
 
 #define QUOTE_(x) #x
 #define QUOTE(x) QUOTE_(x)
@@ -53,39 +54,11 @@ private:
     CameraConnectDialog *cameraConnectDialog;
     ProcessingSettingsDialog *processingSettingsDialog;
     Controller *controller;
+    ProcessingFlags processingFlags;
     QString appVersion;
     int sourceWidth;
     int sourceHeight;
     int imageBufferSize;
-    // ProcessingFlags structure definition and declaration
-    struct ProcessingFlags{
-        bool grayscaleOn;
-        bool smoothOn;
-        bool dilateOn;
-        bool erodeOn;
-        bool flipOn;
-        bool cannyOn;
-    } processingFlags;
-    // ProcessingSettings structure definition
-    struct ProcessingSettings{
-        int smoothType;
-        int smoothParam1;
-        int smoothParam2;
-        double smoothParam3;
-        double smoothParam4;
-        int dilateNumberOfIterations;
-        int erodeNumberOfIterations;
-        int flipMode;
-        double cannyThreshold1;
-        double cannyThreshold2;
-        int cannyApertureSize;
-    };
-    // TaskData structure definition
-    struct TaskData{
-        bool setROIOn;
-        bool resetROIOn;
-        QRect selectionBox;
-    };
 public slots:
     void connectToCamera();
     void disconnectCamera();

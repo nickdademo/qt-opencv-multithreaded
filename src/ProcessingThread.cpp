@@ -36,11 +36,9 @@
 
 // Qt header files
 #include <QDebug>
-
 // OpenCV header files
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
-
 // Header file containing default values
 #include "DefaultValues.h"
 

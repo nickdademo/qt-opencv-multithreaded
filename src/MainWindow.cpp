@@ -37,7 +37,6 @@
 
 // Qt header files
 #include <QDebug>
-
 // Header file containing default values
 #include "DefaultValues.h"
 

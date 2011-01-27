@@ -29,6 +29,7 @@
 /* SOFTWARE.                                                            */
 /*                                                                      */
 /************************************************************************/
+
 #include "CaptureThread.h"
 #include "ImageBuffer.h"
 

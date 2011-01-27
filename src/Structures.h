@@ -2,7 +2,7 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* ProcessingThead.h                                                    */
+/* Structures.h                                                         */
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
@@ -30,62 +30,14 @@
 /*                                                                      */
 /************************************************************************/
 
-#ifndef PROCESSINGTHREAD_H
-#define PROCESSINGTHREAD_H
-
-#include "Structures.h"
+#ifndef STRUCTURES_H
+#define STRUCTURES_H
 
 // Qt header files
-#include <QThread>
 #include <QtGui>
-// OpenCV header files
-#include <opencv/highgui.h>
 
-class ImageBuffer;
-
-class ProcessingThread : public QThread
-{
-    Q_OBJECT
-
-public:
-    ProcessingThread(ImageBuffer *imageBuffer, int inputSourceWidth, int inputSourceHeight);
-    ~ProcessingThread();
-    void stopProcessingThread();
-    int getAvgFPS();
-    int getCurrentSizeOfBuffer();
-    CvRect getCurrentROI();
-private:
-    void updateFPS(int);
-    void setROI();
-    void resetROI();
-    ImageBuffer *imageBuffer;
-    volatile bool stopped;
-    int inputSourceWidth;
-    int inputSourceHeight;
-    int currentSizeOfBuffer;
-    IplImage *currentFrameCopy;
-    IplImage *currentFrameCopyGrayscale;
-    CvRect originalROI;
-    CvRect currentROI;
-    QImage frame;
-    QTime t;
-    int processingTime;
-    QQueue<int> fps;
-    int fpsSum;
-    int sampleNo;
-    int avgFPS;
-    QMutex mutex1;
-    QMutex mutex2;
-    QMutex mutex3;
-    QMutex mutex4;
-    // Processing flags
-    bool grayscaleOn;
-    bool smoothOn;
-    bool dilateOn;
-    bool erodeOn;
-    bool flipOn;
-    bool cannyOn;
-    // Processing settings
+// ProcessingSettings structure definition
+struct ProcessingSettings{
     int smoothType;
     int smoothParam1;
     int smoothParam2;
@@ -97,18 +49,23 @@ private:
     double cannyThreshold1;
     double cannyThreshold2;
     int cannyApertureSize;
-    // Task data
-    bool setROIOn;
-    bool resetROIOn;
-    CvRect box;
-protected:
-    void run();
-private slots:
-    void updateProcessingFlags(struct ProcessingFlags);
-    void updateProcessingSettings(struct ProcessingSettings);
-    void updateTaskData(struct TaskData);
-signals:
-    void newFrame(const QImage &frame);
 };
 
-#endif // PROCESSINGTHREAD_H
+// ProcessingFlags structure definition
+struct ProcessingFlags{
+    bool grayscaleOn;
+    bool smoothOn;
+    bool dilateOn;
+    bool erodeOn;
+    bool flipOn;
+    bool cannyOn;
+};
+
+// TaskData structure definition
+struct TaskData{
+    bool setROIOn;
+    bool resetROIOn;
+    QRect selectionBox;
+};
+
+#endif // STRUCTURES_H

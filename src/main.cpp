@@ -30,8 +30,10 @@
 /*                                                                      */
 /************************************************************************/
 
-#include <QtGui/QApplication>
 #include "MainWindow.h"
+
+// Qt header files
+#include <QtGui/QApplication>
 
 #define X_INITIAL 0
 #define Y_INITIAL 0
@@ -45,4 +47,4 @@ int main(int argc, char *argv[])
     // Set the initial screen position of the main window
     w.setGeometry(X_INITIAL, Y_INITIAL, w.width(), w.height());
     return a.exec();
-}
+} // main()

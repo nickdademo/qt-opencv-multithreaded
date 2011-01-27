@@ -34,7 +34,6 @@
 
 // Qt header files
 #include <QtGui>
-
 // Header file containing default values
 #include "DefaultValues.h"
 
