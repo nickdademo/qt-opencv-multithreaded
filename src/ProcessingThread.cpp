@@ -99,14 +99,14 @@ void ProcessingThread::run()
         /////////////////////////////////
         // Stop thread if stopped=TRUE //
         /////////////////////////////////
-        mutex1.lock();
+        stoppedMutex.lock();
         if (stopped)
         {
             stopped=false;
-            mutex1.unlock();
+            stoppedMutex.unlock();
             break;
         }
-        mutex1.unlock();
+        stoppedMutex.unlock();
         /////////////////////////////////
         /////////////////////////////////
         // Save processing time
@@ -122,11 +122,10 @@ void ProcessingThread::run()
             cvSetImageROI(currentFrame,currentROI);
             // Make copy of current frame (processing will be performed on this copy)
             cvCopy(currentFrame,currentFrameCopy);
-
             ///////////////////
             // PERFORM TASKS //
             ///////////////////
-            mutex2.lock();
+            updateMembersMutex.lock();
             if(resetROIOn)
                 resetROI();
             else if(setROIOn)
@@ -189,7 +188,6 @@ void ProcessingThread::run()
                             cannyApertureSize);
                 } // if
             } // else
-            mutex2.unlock();
             ////////////////////////////////////
             // PERFORM IMAGE PROCESSING ABOVE //
             ////////////////////////////////////
@@ -201,11 +199,10 @@ void ProcessingThread::run()
             //// Convert IplImage to QImage: Show BGR frame
             else
                 frame=IplImageToQImage(currentFrameCopy);
+            updateMembersMutex.unlock();
             // Update statistics
             updateFPS(processingTime);
-            mutex4.lock();
             currentSizeOfBuffer=imageBuffer->getSizeOfImageBuffer();
-            mutex4.unlock();
             // Inform controller of new frame (QImage)
             emit newFrame(frame);
             // Release IplImage
@@ -236,9 +233,7 @@ void ProcessingThread::updateFPS(int timeElapsed)
         // Empty queue and store sum
         while(!fps.empty())
             fpsSum+=fps.dequeue();
-        mutex3.lock();
         avgFPS=fpsSum/16; // Calculate average FPS
-        mutex3.unlock();
         fpsSum=0; // Reset sum
         sampleNo=0; // Reset sample number
     } // if
@@ -246,9 +241,9 @@ void ProcessingThread::updateFPS(int timeElapsed)
 
 void ProcessingThread::stopProcessingThread()
 {
-    mutex1.lock();
+    stoppedMutex.lock();
     stopped=true;
-    mutex1.unlock();
+    stoppedMutex.unlock();
 } // stopProcessingThread()
 
 void ProcessingThread::setROI()
@@ -310,7 +305,7 @@ void ProcessingThread::resetROI()
 
 void ProcessingThread::updateProcessingFlags(struct ProcessingFlags processingFlags)
 {
-    QMutexLocker locker(&mutex2);
+    QMutexLocker locker(&updateMembersMutex);
     this->grayscaleOn=processingFlags.grayscaleOn;
     this->smoothOn=processingFlags.smoothOn;
     this->dilateOn=processingFlags.dilateOn;
@@ -321,7 +316,7 @@ void ProcessingThread::updateProcessingFlags(struct ProcessingFlags processingFl
 
 void ProcessingThread::updateProcessingSettings(struct ProcessingSettings processingSettings)
 {
-    QMutexLocker locker(&mutex2);
+    QMutexLocker locker(&updateMembersMutex);
     this->smoothType=processingSettings.smoothType;
     this->smoothParam1=processingSettings.smoothParam1;
     this->smoothParam2=processingSettings.smoothParam2;
@@ -337,7 +332,7 @@ void ProcessingThread::updateProcessingSettings(struct ProcessingSettings proces
 
 void ProcessingThread::updateTaskData(struct TaskData taskData)
 {
-    QMutexLocker locker(&mutex2);
+    QMutexLocker locker(&updateMembersMutex);
     this->setROIOn=taskData.setROIOn;
     this->resetROIOn=taskData.resetROIOn;
     this->selectionBox.x=taskData.selectionBox.left();
@@ -348,13 +343,11 @@ void ProcessingThread::updateTaskData(struct TaskData taskData)
 
 int ProcessingThread::getAvgFPS()
 {
-    QMutexLocker lock(&mutex3);
     return avgFPS;
 } // getAvgFPS()
 
 int ProcessingThread::getCurrentSizeOfBuffer()
 {
-    QMutexLocker lock(&mutex4);
     return currentSizeOfBuffer;
 } // getCurrentSizeOfBuffer()
 

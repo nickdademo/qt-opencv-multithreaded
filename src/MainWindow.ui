@@ -668,7 +668,7 @@
   </action>
   <action name="aboutAction">
    <property name="text">
-    <string>About</string>
+    <string>About...</string>
    </property>
   </action>
   <action name="grayscaleAction">

@@ -74,10 +74,8 @@ private:
     int fpsSum;
     int sampleNo;
     int avgFPS;
-    QMutex mutex1;
-    QMutex mutex2;
-    QMutex mutex3;
-    QMutex mutex4;
+    QMutex stoppedMutex;
+    QMutex updateMembersMutex;
     // Processing flags
     bool grayscaleOn;
     bool smoothOn;

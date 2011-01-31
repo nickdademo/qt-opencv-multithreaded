@@ -38,7 +38,6 @@
 #include <QMutex>
 #include <QQueue>
 #include <QSemaphore>
-
 // OpenCV header files
 #include <opencv/highgui.h>
 

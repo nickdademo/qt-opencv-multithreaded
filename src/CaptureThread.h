@@ -58,8 +58,7 @@ private:
     ImageBuffer *imageBuffer;
     CvCapture *capture;
     QTime t;
-    QMutex mutex1;
-    QMutex mutex2;
+    QMutex stoppedMutex;
     int captureTime;
     int avgFPS;
     QQueue<int> fps;

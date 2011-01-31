@@ -55,14 +55,14 @@ void CaptureThread::run()
         /////////////////////////////////
         // Stop thread if stopped=TRUE //
         /////////////////////////////////
-        mutex1.lock();
+        stoppedMutex.lock();
         if (stopped)
         {
             stopped=false;
-            mutex1.unlock();
+            stoppedMutex.unlock();
             break;
         }
-        mutex1.unlock();
+        stoppedMutex.unlock();
         /////////////////////////////////
         /////////////////////////////////
         // Save capture time
@@ -72,9 +72,7 @@ void CaptureThread::run()
         // Capture and add frame to buffer
         imageBuffer->addFrame(cvQueryFrame(capture));
         // Update statistics
-        mutex2.lock();
         updateFPS(captureTime);
-        mutex2.unlock();
     }
     qDebug() << "Stopping capture thread...";
 } // run()
@@ -118,14 +116,13 @@ void CaptureThread::updateFPS(int timeElapsed)
 
 void CaptureThread::stopCaptureThread()
 {
-    mutex1.lock();
+    stoppedMutex.lock();
     stopped=true;
-    mutex1.unlock();
+    stoppedMutex.unlock();
 } // stopCaptureThread()
 
 int CaptureThread::getAvgFPS()
 {
-    QMutexLocker lock(&mutex2);
     return avgFPS;
 } // getAvgFPS()
 
