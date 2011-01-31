@@ -126,7 +126,7 @@ MainWindow::~MainWindow()
         delete controller;
         controller=NULL;
     }
-} // MainWindow deconstructor
+} // MainWindow destructor
 
 void MainWindow::connectToCamera()
 {
@@ -136,10 +136,15 @@ void MainWindow::connectToCamera()
     // If user presses OK button on dialog, tell controller to connect to camera; else do nothing
     if(cameraConnectDialog->exec()==1)
     {
+        // Set private member variables in cameraConnectDialog to values in dialog
+        cameraConnectDialog->setDeviceNumber();
+        cameraConnectDialog->setImageBufferSize();
         // Store image buffer size in local variable
         imageBufferSize=cameraConnectDialog->getImageBufferSize();
+        // Store device number in local variable
+        deviceNumber=cameraConnectDialog->getDeviceNumber();
         // Create controller
-        controller = new Controller(cameraConnectDialog->getDeviceNumber(),imageBufferSize);
+        controller = new Controller(deviceNumber,imageBufferSize);
         // If camera was successfully connected
         if(controller->captureThread->isCameraConnected())
         {
@@ -165,7 +170,7 @@ void MainWindow::connectToCamera()
             sourceWidth=controller->getInputSourceWidth();
             sourceHeight=controller->getInputSourceHeight();
             // Set text in labels in main window
-            deviceNumberLabel->setNum(cameraConnectDialog->getDeviceNumber());
+            deviceNumberLabel->setNum(deviceNumber);
             cameraResolutionLabel->setText(QString::number(sourceWidth)+QString("x")+QString::number(sourceHeight));
             /*
             QThread::IdlePriority               0	scheduled only when no other threads are running.

@@ -58,6 +58,7 @@ private:
     QString appVersion;
     int sourceWidth;
     int sourceHeight;
+    int deviceNumber;
     int imageBufferSize;
 public slots:
     void connectToCamera();

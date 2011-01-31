@@ -90,7 +90,7 @@ ProcessingThread::~ProcessingThread()
         cvReleaseImage(&currentFrameCopy);
     if(currentFrameCopyGrayscale!=NULL)
         cvReleaseImage(&currentFrameCopyGrayscale);
-} // ProcessingThread deconstructor
+} // ProcessingThread destructor
 
 void ProcessingThread::run()
 {

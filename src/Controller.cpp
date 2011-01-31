@@ -50,7 +50,7 @@ Controller::~Controller()
 {
     // Delete image buffer
     delete imageBuffer;
-} // Controller deconstructor
+} // Controller destructor
 
 void Controller::disconnectCamera()
 {

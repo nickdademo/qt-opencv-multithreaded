@@ -2,7 +2,7 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* MainWindow.cpp                                                       */
+/* CaptureThread.cpp                                                    */
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */

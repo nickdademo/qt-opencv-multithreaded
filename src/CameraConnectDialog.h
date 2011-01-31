@@ -41,13 +41,13 @@ class CameraConnectDialog : public QDialog, private Ui::CameraConnectDialog
 
 public:
     CameraConnectDialog(QWidget *parent = 0);
+    void setDeviceNumber();
+    void setImageBufferSize();
     int getDeviceNumber();
     int getImageBufferSize();
 private:
     int deviceNumber;
     int imageBufferSize;
-    bool autoSetDeviceNumber;
-    bool autoSetImageBufferSize;
 };
 
 #endif // CAMERACONNECTDIALOG_H
