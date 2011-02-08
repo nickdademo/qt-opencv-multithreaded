@@ -48,7 +48,12 @@ private:
 public slots:
     void updateStoredSettingsFromDialog();
 private slots:
-    void resetDialogToDefaults();
+    void resetAllDialogToDefaults();
+    void resetSmoothDialogToDefaults();
+    void resetDilateDialogToDefaults();
+    void resetErodeDialogToDefaults();
+    void resetFlipDialogToDefaults();
+    void resetCannyDialogToDefaults();
     void validateDialog();
     void smoothTypeChange(QAbstractButton*);
 signals:

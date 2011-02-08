@@ -42,7 +42,12 @@ ProcessingSettingsDialog::ProcessingSettingsDialog(QWidget *parent) : QDialog(pa
     // Setup dialog
     setupUi(this);
     // Connect GUI signals and slots
-    connect(resetToDefaultsButton,SIGNAL(released()),SLOT(resetDialogToDefaults()));
+    connect(resetAllToDefaultsButton,SIGNAL(released()),SLOT(resetAllDialogToDefaults()));
+    connect(resetSmoothToDefaultsButton,SIGNAL(released()),SLOT(resetSmoothDialogToDefaults()));
+    connect(resetDilateToDefaultsButton,SIGNAL(released()),SLOT(resetDilateDialogToDefaults()));
+    connect(resetErodeToDefaultsButton,SIGNAL(released()),SLOT(resetErodeDialogToDefaults()));
+    connect(resetFlipToDefaultsButton,SIGNAL(released()),SLOT(resetFlipDialogToDefaults()));
+    connect(resetCannyToDefaultsButton,SIGNAL(released()),SLOT(resetCannyDialogToDefaults()));
     connect(applyButton,SIGNAL(released()),SLOT(updateStoredSettingsFromDialog()));
     connect(smoothTypeGroup,SIGNAL(buttonReleased(QAbstractButton*)),SLOT(smoothTypeChange(QAbstractButton*)));
     // dilateIterationsEdit input string validation
@@ -66,7 +71,7 @@ ProcessingSettingsDialog::ProcessingSettingsDialog(QWidget *parent) : QDialog(pa
     QRegExpValidator *validator9 = new QRegExpValidator(rx9, 0);
     cannyApertureSizeEdit->setValidator(validator9);
     // Set dialog values to defaults
-    resetDialogToDefaults();
+    resetAllDialogToDefaults();
     // Update processing settings in processingSettings structure and processingThread
     updateStoredSettingsFromDialog();
 } // ProcessingSettingsDialog constructor
@@ -141,39 +146,19 @@ void ProcessingSettingsDialog::updateDialogSettingsFromStored()
     smoothTypeChange(smoothTypeGroup->checkedButton());
 } // updateDialogSettingsFromStored()
 
-void ProcessingSettingsDialog::resetDialogToDefaults()
+void ProcessingSettingsDialog::resetAllDialogToDefaults()
 {
     // Smooth
-    if(DEFAULT_SMOOTH_TYPE==CV_BLUR_NO_SCALE)
-        smoothBlurNoScaleButton->setChecked(true);
-    else if(DEFAULT_SMOOTH_TYPE==CV_BLUR)
-        smoothBlurButton->setChecked(true);
-    else if(DEFAULT_SMOOTH_TYPE==CV_GAUSSIAN)
-        smoothGaussianButton->setChecked(true);
-    else if(DEFAULT_SMOOTH_TYPE==CV_MEDIAN)
-        smoothMedianButton->setChecked(true);
-    smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
-    smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
-    smoothParam3Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_3));
-    smoothParam4Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_4));
+    resetSmoothDialogToDefaults();
     // Dilate
-    dilateIterationsEdit->setText(QString::number(DEFAULT_DILATE_ITERATIONS));
+    resetDilateDialogToDefaults();
     // Erode
-    erodeIterationsEdit->setText(QString::number(DEFAULT_ERODE_ITERATIONS));
+    resetErodeDialogToDefaults();
     // Flip
-    if(DEFAULT_FLIP_MODE==0)
-        flipXAxisButton->setChecked(true);
-    else if(DEFAULT_FLIP_MODE==1)
-        flipYAxisButton->setChecked(true);
-    else if(DEFAULT_FLIP_MODE==-1)
-        flipBothAxesButton->setChecked(true);
+    resetFlipDialogToDefaults();
     // Canny
-    cannyThresh1Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_1));
-    cannyThresh2Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_2));
-    cannyApertureSizeEdit->setText(QString::number(DEFAULT_CANNY_APERTURE_SIZE));
-    // Enable/disable appropriate Smooth parameter inputs
-    smoothTypeChange(smoothTypeGroup->checkedButton());
-} // resetDialogToDefaults()
+    resetCannyDialogToDefaults();
+} // resetAllDialogToDefaults()
 
 void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
 {
@@ -340,3 +325,48 @@ void ProcessingSettingsDialog::validateDialog()
         QMessageBox::warning(this->parentWidget(),"ERROR:","Parameters 1 and 3 cannot BOTH be zero when the smoothing type is GAUSSIAN.\n\nAutomatically set to default values.");
     }
 } // validateDialog()
+
+void ProcessingSettingsDialog::resetSmoothDialogToDefaults()
+{
+    if(DEFAULT_SMOOTH_TYPE==CV_BLUR_NO_SCALE)
+        smoothBlurNoScaleButton->setChecked(true);
+    else if(DEFAULT_SMOOTH_TYPE==CV_BLUR)
+        smoothBlurButton->setChecked(true);
+    else if(DEFAULT_SMOOTH_TYPE==CV_GAUSSIAN)
+        smoothGaussianButton->setChecked(true);
+    else if(DEFAULT_SMOOTH_TYPE==CV_MEDIAN)
+        smoothMedianButton->setChecked(true);
+    smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
+    smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
+    smoothParam3Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_3));
+    smoothParam4Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_4));
+    // Enable/disable appropriate Smooth parameter inputs
+    smoothTypeChange(smoothTypeGroup->checkedButton());
+} // resetSmoothDialogToDefaults()
+
+void ProcessingSettingsDialog::resetDilateDialogToDefaults()
+{
+    dilateIterationsEdit->setText(QString::number(DEFAULT_DILATE_ITERATIONS));
+} // resetDilateDialogToDefaults()
+
+void ProcessingSettingsDialog::resetErodeDialogToDefaults()
+{
+    erodeIterationsEdit->setText(QString::number(DEFAULT_ERODE_ITERATIONS));
+} // resetErodeDialogToDefaults()
+
+void ProcessingSettingsDialog::resetFlipDialogToDefaults()
+{
+    if(DEFAULT_FLIP_MODE==0)
+        flipXAxisButton->setChecked(true);
+    else if(DEFAULT_FLIP_MODE==1)
+        flipYAxisButton->setChecked(true);
+    else if(DEFAULT_FLIP_MODE==-1)
+        flipBothAxesButton->setChecked(true);
+} // resetFlipDialogToDefaults()
+
+void ProcessingSettingsDialog::resetCannyDialogToDefaults()
+{
+    cannyThresh1Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_1));
+    cannyThresh2Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_2));
+    cannyApertureSizeEdit->setText(QString::number(DEFAULT_CANNY_APERTURE_SIZE));
+} // resetCannyDialogToDefaults()
