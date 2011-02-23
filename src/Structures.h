@@ -63,9 +63,16 @@ struct ProcessingFlags{
 
 // TaskData structure definition
 struct TaskData{
-    bool setROIOn;
-    bool resetROIOn;
     QRect selectionBox;
+    bool setROIFlag;
+    bool resetROIFlag;
+};
+
+// MouseData structure definition
+struct MouseData{
+    QRect selectionBox;
+    bool leftButtonRelease;
+    bool rightButtonRelease;
 };
 
 #endif // STRUCTURES_H

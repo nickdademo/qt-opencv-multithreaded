@@ -40,8 +40,9 @@ FrameLabel::FrameLabel(QWidget *parent) : QLabel(parent)
     mouseCursorPos.setX(0);
     mouseCursorPos.setY(0);
     drawBox=false;
-    taskData.setROIOn=false;
-    taskData.resetROIOn=false;
+    // Initialize MouseData structure
+    mouseData.leftButtonRelease=false;
+    mouseData.rightButtonRelease=false;
 } // FrameLabel constructor
 
 void FrameLabel::mouseMoveEvent(QMouseEvent *ev)
@@ -75,23 +76,24 @@ void FrameLabel::mouseReleaseEvent(QMouseEvent *ev)
     // On left mouse button release
     if(ev->button()==Qt::LeftButton)
     {
-        // Set ROI
+        // Set leftButtonRelease flag to TRUE
+        mouseData.leftButtonRelease=true;
         if(drawBox)
         {
             // Stop drawing box
             drawBox=false;
-            // Set setROIOn flag to TRUE
-            taskData.setROIOn=true;
             // Save box dimensions
-            taskData.selectionBox.setLeft(box->left());
-            taskData.selectionBox.setTop(box->top());
-            taskData.selectionBox.setWidth(box->width());
-            taskData.selectionBox.setHeight(box->height());
-            // Update taskData in processingThread
-            emit newTaskData(taskData);
-            // Reset setROIOn flag to FALSE
-            taskData.setROIOn=false;
+            mouseData.selectionBox.setX(box->left());
+            mouseData.selectionBox.setY(box->top());
+            mouseData.selectionBox.setWidth(box->width());
+            mouseData.selectionBox.setHeight(box->height());
+            // Set leftButtonRelease flag to TRUE
+            mouseData.leftButtonRelease=true;
+            // Inform main window of event
+            emit newMouseData(mouseData);
         }
+        // Set leftButtonRelease flag to FALSE
+        mouseData.leftButtonRelease=false;
     }
     // On right mouse button release
     else if(ev->button()==Qt::RightButton)
@@ -99,15 +101,14 @@ void FrameLabel::mouseReleaseEvent(QMouseEvent *ev)
         // If user presses (and then releases) the right mouse button while drawing box, stop drawing box
         if(drawBox)
             drawBox=false;
-        // Reset ROI
         else
         {
-            // Set resetROIOn flag to FALSE
-            taskData.resetROIOn=true;
-            // Update taskData in processingThread
-            emit newTaskData(taskData);
-            // Reset resetROIOn flag to FALSE
-            taskData.resetROIOn=false;
+            // Set rightButtonRelease flag to TRUE
+            mouseData.rightButtonRelease=true;
+            // Inform main window of event
+            emit newMouseData(mouseData);
+            // Set rightButtonRelease flag to FALSE
+            mouseData.rightButtonRelease=false;
         }
     }
 } // mouseReleaseEvent()
@@ -116,9 +117,9 @@ void FrameLabel::mousePressEvent(QMouseEvent *ev)
 {
     // Update cursor position
     setMouseCursorPos(ev->pos());;
-    // Start drawing box
     if(ev->button()==Qt::LeftButton)
     {
+        // Start drawing box
         startPoint=ev->pos();
         box=new QRect(startPoint.x(),startPoint.y(),0,0);
         drawBox=true;

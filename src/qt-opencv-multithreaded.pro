@@ -3,7 +3,7 @@ QT       += core gui
 TARGET = qt-opencv-multithreaded
 TEMPLATE = app
 
-VERSION = 1.11
+VERSION = 1.12
 
 DEFINES += APP_VERSION=$$VERSION
 

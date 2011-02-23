@@ -71,6 +71,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
     connect(clearImageBufferButton, SIGNAL(released()), this, SLOT(clearImageBuffer()));
     connect(frameLabel, SIGNAL(onMouseMoveEvent()), this, SLOT(updateMouseCursorPosLabel()));
+    qRegisterMetaType<struct MouseData>("MouseData");
+    connect(this->frameLabel,SIGNAL(newMouseData(struct MouseData)),this,SLOT(newMouseData(struct MouseData)));
     // Enable/disable appropriate menu items
     connectToCameraAction->setDisabled(false);
     disconnectCameraAction->setDisabled(true);
@@ -103,7 +105,7 @@ MainWindow::~MainWindow()
         disconnect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)));
         disconnect(this,SIGNAL(newProcessingFlags(struct ProcessingFlags)),controller->processingThread,SLOT(updateProcessingFlags(struct ProcessingFlags)));
         disconnect(this->processingSettingsDialog,SIGNAL(newProcessingSettings(struct ProcessingSettings)),controller->processingThread,SLOT(updateProcessingSettings(struct ProcessingSettings)));
-        disconnect(this->frameLabel,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)));
+        disconnect(this,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)));
         // Stop processing thread
         if(controller->processingThread->isRunning())
             controller->stopProcessingThread();
@@ -156,7 +158,7 @@ void MainWindow::connectToCamera()
             qRegisterMetaType<struct ProcessingSettings>("ProcessingSettings");
             connect(this->processingSettingsDialog,SIGNAL(newProcessingSettings(struct ProcessingSettings)),controller->processingThread,SLOT(updateProcessingSettings(struct ProcessingSettings)),Qt::QueuedConnection);
             qRegisterMetaType<struct TaskData>("TaskData");
-            connect(this->frameLabel,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)),Qt::QueuedConnection);
+            connect(this,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)),Qt::QueuedConnection);
             // Setup imageBufferBar in main window with minimum and maximum values
             imageBufferBar->setMinimum(0);
             imageBufferBar->setMaximum(imageBufferSize);
@@ -202,7 +204,7 @@ void MainWindow::disconnectCamera()
         disconnect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)));
         disconnect(this,SIGNAL(newProcessingFlags(struct ProcessingFlags)),controller->processingThread,SLOT(updateProcessingFlags(struct ProcessingFlags)));
         disconnect(this->processingSettingsDialog,SIGNAL(newProcessingSettings(struct ProcessingSettings)),controller->processingThread,SLOT(updateProcessingSettings(struct ProcessingSettings)));
-        disconnect(this->frameLabel,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)));
+        disconnect(this,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)));
         // Stop processing thread
         if(controller->processingThread->isRunning())
             controller->stopProcessingThread();
@@ -373,3 +375,64 @@ void MainWindow::updateMouseCursorPosLabel()
                                  QString(",")+QString::number(frameLabel->getMouseCursorPos().y())+
                                  QString(")"));
 } // updateMouseCursorPosLabel()
+
+void MainWindow::newMouseData(struct MouseData mouseData)
+{
+    // Local variables
+    int x_temp, y_temp, width_temp, height_temp;
+    // Set ROI
+    if(mouseData.leftButtonRelease)
+    {
+        // Copy box dimensions from mouseData to taskData
+        taskData.selectionBox.setX(mouseData.selectionBox.x());
+        taskData.selectionBox.setY(mouseData.selectionBox.y());
+        taskData.selectionBox.setWidth(mouseData.selectionBox.width());
+        taskData.selectionBox.setHeight(mouseData.selectionBox.height());
+        // Check if selection box has NON-ZERO dimensions
+        if((taskData.selectionBox.width()!=0)&&((taskData.selectionBox.height())!=0))
+        {
+            // Selection box can also be drawn from bottom-right to top-left corner
+            if(taskData.selectionBox.width()<0)
+            {
+                x_temp=taskData.selectionBox.x();
+                width_temp=taskData.selectionBox.width();
+                taskData.selectionBox.setX(x_temp+taskData.selectionBox.width());
+                taskData.selectionBox.setWidth(width_temp*-1);
+            }
+            if(taskData.selectionBox.height()<0)
+            {
+                y_temp=taskData.selectionBox.y();
+                height_temp=taskData.selectionBox.height();
+                taskData.selectionBox.setY(y_temp+taskData.selectionBox.height());
+                taskData.selectionBox.setHeight(height_temp*-1);
+            }
+            // Check if selection box is not outside window
+            if((taskData.selectionBox.x()<0)||(taskData.selectionBox.y()<0)||
+               ((taskData.selectionBox.x()+taskData.selectionBox.width())>sourceWidth)||
+               ((taskData.selectionBox.y()+taskData.selectionBox.height())>sourceHeight))
+            {
+                // Display error message
+                QMessageBox::warning(this,"ERROR:","Selection box outside range. Please try again.");
+            }
+            else
+            {
+                // Set setROIFlag to TRUE
+                taskData.setROIFlag=true;
+                // Update task data in processingThread
+                emit newTaskData(taskData);
+                // Set setROIFlag to FALSE
+                taskData.setROIFlag=false;
+            }
+        }
+    }
+    // Reset ROI
+    else if(mouseData.rightButtonRelease)
+    {
+        // Set resetROIFlag to TRUE
+        taskData.resetROIFlag=true;
+        // Update task data in processingThread
+        emit newTaskData(taskData);
+        // Set resetROIFlag to FALSE
+        taskData.resetROIFlag=false;
+    }
+} // newMouseData()

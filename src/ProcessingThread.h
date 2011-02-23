@@ -96,8 +96,8 @@ private:
     double cannyThreshold2;
     int cannyApertureSize;
     // Task data
-    bool setROIOn;
-    bool resetROIOn;
+    bool setROIFlag;
+    bool resetROIFlag;
     CvRect selectionBox;
 protected:
     void run();

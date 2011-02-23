@@ -47,18 +47,18 @@ public:
     void setMouseCursorPos(QPoint);
     QPoint getMouseCursorPos();
 private:
+    MouseData mouseData;
     QPoint startPoint;
     QPoint mouseCursorPos;
     bool drawBox;
     QRect *box;
-    TaskData taskData;
 protected:
     void mouseMoveEvent(QMouseEvent *ev);
     void mousePressEvent(QMouseEvent *ev);
     void mouseReleaseEvent(QMouseEvent *ev);
     void paintEvent(QPaintEvent *ev);
 signals:
-    void newTaskData(struct TaskData taskData);
+    void newMouseData(struct MouseData mouseData);
     void onMouseMoveEvent();
 };
 

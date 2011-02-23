@@ -55,6 +55,7 @@ private:
     ProcessingSettingsDialog *processingSettingsDialog;
     Controller *controller;
     ProcessingFlags processingFlags;
+    TaskData taskData;
     QString appVersion;
     int sourceWidth;
     int sourceHeight;
@@ -73,10 +74,12 @@ public slots:
     void setCanny(bool);
     void setProcessingSettings();
     void updateMouseCursorPosLabel();
+    void newMouseData(struct MouseData);
 private slots:
     void updateFrame(const QImage &frame);
 signals:
     void newProcessingFlags(struct ProcessingFlags p_flags);
+    void newTaskData(struct TaskData taskData);
 };
 
 #endif // MAINWINDOW_H

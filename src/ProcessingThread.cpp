@@ -63,8 +63,8 @@ ProcessingThread::ProcessingThread(ImageBuffer *imageBuffer, int inputSourceWidt
     flipOn=false;
     cannyOn=false;
     // Initialize task flags
-    setROIOn=false;
-    resetROIOn=false;
+    setROIFlag=false;
+    resetROIFlag=false;
     // Initialize processing settings
     smoothType=DEFAULT_SMOOTH_TYPE;
     smoothParam1=DEFAULT_SMOOTH_PARAM_1;
@@ -126,9 +126,9 @@ void ProcessingThread::run()
             // PERFORM TASKS //
             ///////////////////
             updateMembersMutex.lock();
-            if(resetROIOn)
+            if(resetROIFlag)
                 resetROI();
-            else if(setROIOn)
+            else if(setROIFlag)
                 setROI();
             ////////////////////////////////////
             // PERFORM IMAGE PROCESSING BELOW //
@@ -248,59 +248,30 @@ void ProcessingThread::stopProcessingThread()
 
 void ProcessingThread::setROI()
 {
-    // Selection box can also be drawn from bottom-right to top-left corner
-    if(selectionBox.width<0)
-    {
-        selectionBox.x+=selectionBox.width;
-        selectionBox.width*=-1;
-    } // if
-    if(selectionBox.height<0)
-    {
-        selectionBox.y+=selectionBox.height;
-        selectionBox.height*=-1;
-    } // if
-
-    // Check if selection box has positive dimensions
-    if((selectionBox.width>0)&&((selectionBox.height)>0))
-    {
-        // Check if selection box is not outside window
-        if((selectionBox.x<0)||(selectionBox.y<0)||((selectionBox.x+selectionBox.width)>inputSourceWidth)||((selectionBox.y+selectionBox.height)>inputSourceHeight))
-            qDebug() << "ERROR: Selection box outside range. Please try again.";
-        else
-        {
-            // Set area outside ROI in currentFrameCopy to blue
-            cvSet(currentFrameCopy, cvScalar(127,0,0));
-            // Set area outside ROI in currentFrameCopyGrayscale to gray
-            cvSet(currentFrameCopyGrayscale, cvScalar(127,0,0));
-            // Store new ROI in currentROI variable
-            currentROI=selectionBox;
-            // Set new ROI
-            cvSetImageROI(currentFrameCopy, currentROI);
-            cvSetImageROI(currentFrameCopyGrayscale, currentROI);
-            qDebug() << "ROI successfully SET.";
-        } // else
-     } // if
+    // Set area outside ROI in currentFrameCopy to blue
+    cvSet(currentFrameCopy, cvScalar(127,0,0));
+    // Set area outside ROI in currentFrameCopyGrayscale to gray
+    cvSet(currentFrameCopyGrayscale, cvScalar(127,0,0));
+    // Store new ROI in currentROI variable
+    currentROI=selectionBox;
+    // Set new ROIs
+    cvSetImageROI(currentFrameCopy, currentROI);
+    cvSetImageROI(currentFrameCopyGrayscale, currentROI);
+    qDebug() << "ROI successfully SET.";
     // Reset setROIOn flag to FALSE
-    setROIOn=false;
+    setROIFlag=false;
 } // setROI()
 
 void ProcessingThread::resetROI()
 {
-    // Check if current ROI is the same as original ROI
-    if((currentROI.x==originalROI.x)&&(currentROI.y==originalROI.y)&&
-       (currentROI.width==originalROI.width)&&(currentROI.height==originalROI.height))
-        qDebug() << "WARNING: Cannot reset ROI: already set to original ROI.";
-    else
-    {
-        // Reset ROI
-        cvResetImageROI(currentFrameCopy);
-        cvResetImageROI(currentFrameCopyGrayscale);
-        // Set ROI back to original ROI
-        currentROI=originalROI;
-        qDebug() << "ROI successfully RESET.";
-    } // else
+    // Reset ROIs
+    cvResetImageROI(currentFrameCopy);
+    cvResetImageROI(currentFrameCopyGrayscale);
+    // Set ROI back to original ROI
+    currentROI=originalROI;
+    qDebug() << "ROI successfully RESET.";
     // Reset resetROIOn flag to FALSE
-    resetROIOn=false;
+    resetROIFlag=false;
 } // resetROI()
 
 void ProcessingThread::updateProcessingFlags(struct ProcessingFlags processingFlags)
@@ -333,8 +304,8 @@ void ProcessingThread::updateProcessingSettings(struct ProcessingSettings proces
 void ProcessingThread::updateTaskData(struct TaskData taskData)
 {
     QMutexLocker locker(&updateMembersMutex);
-    this->setROIOn=taskData.setROIOn;
-    this->resetROIOn=taskData.resetROIOn;
+    this->setROIFlag=taskData.setROIFlag;
+    this->resetROIFlag=taskData.resetROIFlag;
     this->selectionBox.x=taskData.selectionBox.left();
     this->selectionBox.y=taskData.selectionBox.top();
     this->selectionBox.width=taskData.selectionBox.width();
