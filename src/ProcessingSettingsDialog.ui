@@ -1068,6 +1068,7 @@
   </widget>
  </widget>
  <tabstops>
+  <tabstop>tabWidget</tabstop>
   <tabstop>smoothBlurNoScaleButton</tabstop>
   <tabstop>smoothBlurButton</tabstop>
   <tabstop>smoothGaussianButton</tabstop>
@@ -1076,16 +1077,21 @@
   <tabstop>smoothParam2Edit</tabstop>
   <tabstop>smoothParam3Edit</tabstop>
   <tabstop>smoothParam4Edit</tabstop>
+  <tabstop>resetSmoothToDefaultsButton</tabstop>
   <tabstop>dilateIterationsEdit</tabstop>
+  <tabstop>resetDilateToDefaultsButton</tabstop>
   <tabstop>erodeIterationsEdit</tabstop>
+  <tabstop>resetErodeToDefaultsButton</tabstop>
   <tabstop>flipXAxisButton</tabstop>
   <tabstop>flipYAxisButton</tabstop>
   <tabstop>flipBothAxesButton</tabstop>
+  <tabstop>resetFlipToDefaultsButton</tabstop>
   <tabstop>cannyThresh1Edit</tabstop>
   <tabstop>cannyThresh2Edit</tabstop>
   <tabstop>cannyApertureSizeEdit</tabstop>
-  <tabstop>resetAllToDefaultsButton</tabstop>
+  <tabstop>resetCannyToDefaultsButton</tabstop>
   <tabstop>applyButton</tabstop>
+  <tabstop>resetAllToDefaultsButton</tabstop>
   <tabstop>okCancelBox</tabstop>
  </tabstops>
  <resources/>
