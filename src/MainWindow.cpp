@@ -59,12 +59,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     initializeGUI();
     // Connect signals to slots
     signalSlotsInit();
+    // Initialize flag
+    isCameraConnected=false;
 } // MainWindow constructor
 
 MainWindow::~MainWindow()
 {
     // Check if camera is connected
-    if(controller->captureThread->isCameraConnected())
+    if(isCameraConnected)
     {
         // Disconnect connections (4)
         disconnect(controller->processingThread,SIGNAL(newFrame(QImage)),0,0);
@@ -107,7 +109,7 @@ void MainWindow::connectToCamera()
         // Store device number in local variable
         deviceNumber=cameraConnectDialog->getDeviceNumber();
         // Connect to camera
-        if(controller->connectToCamera(deviceNumber,imageBufferSize))
+        if(isCameraConnected=controller->connectToCamera(deviceNumber,imageBufferSize))
         {
             // Create connection between processing thread (emitter) and GUI thread (receiver/listener)
             connect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)),Qt::UniqueConnection);
@@ -182,9 +184,12 @@ void MainWindow::disconnectCamera()
         {
             // Disconnect camera
             controller->disconnectCamera();
-            // Delete processing thread
+            // Delete threads
+            controller->deleteCaptureThread();
             controller->deleteProcessingThread();
         }
+        // Reset flag
+        isCameraConnected=false;
         // Enable/Disable appropriate menu items
         connectToCameraAction->setDisabled(false);
         disconnectCameraAction->setDisabled(true);
@@ -456,6 +461,7 @@ void MainWindow::signalSlotsInit()
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
     connect(clearImageBufferButton, SIGNAL(released()), this, SLOT(clearImageBuffer()));
     connect(frameLabel, SIGNAL(onMouseMoveEvent()), this, SLOT(updateMouseCursorPosLabel()));
+    // Create connection between frameLabel (emitter) and GUI thread (receiver/listener)
     qRegisterMetaType<struct MouseData>("MouseData");
     connect(this->frameLabel,SIGNAL(newMouseData(struct MouseData)),this,SLOT(newMouseData(struct MouseData)));
 } // signalSlotsInit()

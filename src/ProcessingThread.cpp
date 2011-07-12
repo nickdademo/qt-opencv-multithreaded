@@ -112,7 +112,7 @@ void ProcessingThread::run()
             // Grayscale conversion
             if(grayscaleOn)
                 cvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
-            // Smooth
+            // Smooth (in-place operations)
             if(smoothOn)
             {
                 if(grayscaleOn)

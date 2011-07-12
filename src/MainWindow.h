@@ -66,6 +66,7 @@ private:
     int sourceHeight;
     int deviceNumber;
     int imageBufferSize;
+    bool isCameraConnected;
 public slots:
     void connectToCamera();
     void disconnectCamera();
