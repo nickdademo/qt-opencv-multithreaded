@@ -39,6 +39,8 @@
 // OpenCV header files
 #include "opencv/highgui.h"
 
+using namespace cv;
+
 class ImageBuffer;
 
 class CaptureThread : public QThread
@@ -46,7 +48,8 @@ class CaptureThread : public QThread
     Q_OBJECT
 
 public:
-    CaptureThread(ImageBuffer *buffer, int deviceNumber);
+    CaptureThread(ImageBuffer *buffer);
+    bool connectToCamera(int);
     void disconnectCamera();
     void stopCaptureThread();
     int getAvgFPS();
@@ -56,7 +59,8 @@ public:
 private:
     void updateFPS(int);
     ImageBuffer *imageBuffer;
-    CvCapture *capture;
+    VideoCapture cap;
+    Mat grabbedFrame;
     QTime t;
     QMutex stoppedMutex;
     int captureTime;

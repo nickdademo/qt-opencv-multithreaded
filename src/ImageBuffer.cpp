@@ -44,33 +44,36 @@ ImageBuffer::ImageBuffer(int bufferSize) : bufferSize(bufferSize)
     clearBuffer2 = new QSemaphore(1);
 } // ImageBuffer constructor
 
-void ImageBuffer::addFrame(const IplImage* image)
+void ImageBuffer::addFrame(const Mat& frame)
 {
+    // Acquire semaphores
     clearBuffer1->acquire();
     freeSlots->acquire();
-    // Copy the input IplImage
-    IplImage* temp = cvCloneImage(image);
-    // Add image to queue
-    mutex.lock();
-    imageQueue.enqueue(temp);
-    mutex.unlock();
+    // Add frame to queue
+    imageQueueProtect.lock();
+        imageQueue.enqueue(frame);
+    imageQueueProtect.unlock();
+    // Release semaphores
     clearBuffer1->release();
     usedSlots->release();
 } // addFrame()
 
-IplImage* ImageBuffer::getFrame()
+Mat ImageBuffer::getFrame()
 {
+    // Acquire semaphores
     clearBuffer2->acquire();
     usedSlots->acquire();
-    IplImage* temp=0;
-    // Take image from queue
-    mutex.lock();
-    temp=imageQueue.dequeue();
-    mutex.unlock();
+    // Temporary data
+    Mat tempFrame;
+    // Take frame from queue
+    imageQueueProtect.lock();
+        tempFrame=imageQueue.dequeue();
+    imageQueueProtect.unlock();
+    // Release semaphores
     freeSlots->release();
     clearBuffer2->release();
-    // Return image to caller
-    return temp;
+    // Return frame to caller
+    return tempFrame;
 } // getFrame()
 
 void ImageBuffer::clearBuffer()
@@ -91,12 +94,12 @@ void ImageBuffer::clearBuffer()
         // Clear buffer by dequeuing items
         while(imageQueue.size()!=0)
         {
-            // Local temporary storage
-            IplImage* temp;
-            // Dequeue IplImage
+            // Temporary data
+            Mat temp;
+            // Dequeue frame
             temp=imageQueue.dequeue();
-            // Release IplImage
-            cvReleaseImage(&temp);
+            // Release frame
+            temp.release();
         }
         // Release all slots
         freeSlots->release(bufferSize);

@@ -2,7 +2,7 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* DefaultValues.h                                                      */
+/* Config.h                                                             */
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
@@ -30,8 +30,8 @@
 /*                                                                      */
 /************************************************************************/
 
-#ifndef DEFAULTVALUES_H
-#define DEFAULTVALUES_H
+#ifndef CONFIG_H
+#define CONFIG_H
 
 // OpenCV header files
 #include <opencv/cv.h>
@@ -40,9 +40,9 @@
 // Image buffer size
 #define DEFAULT_IMAGE_BUFFER_SIZE 1
 // SMOOTH
-#define DEFAULT_SMOOTH_TYPE CV_GAUSSIAN // Options: [CV_BLUR_NO_SCALE,CV_BLUR,CV_GAUSSIAN,CV_MEDIAN]
+#define DEFAULT_SMOOTH_TYPE 0 // Options: [BLUR=0,GAUSSIAN=1,MEDIAN=2]
 #define DEFAULT_SMOOTH_PARAM_1 3
-#define DEFAULT_SMOOTH_PARAM_2 0
+#define DEFAULT_SMOOTH_PARAM_2 3
 #define DEFAULT_SMOOTH_PARAM_3 0
 #define DEFAULT_SMOOTH_PARAM_4 0
 // DILATE
@@ -50,10 +50,11 @@
 // ERODE
 #define DEFAULT_ERODE_ITERATIONS 1
 // FLIP
-#define DEFAULT_FLIP_MODE 0 // Options: [x-axis=0,y-axis=1,both axes=-1]
+#define DEFAULT_FLIP_CODE 0 // Options: [x-axis=0,y-axis=1,both axes=-1]
 // CANNY
 #define DEFAULT_CANNY_THRESHOLD_1 10
 #define DEFAULT_CANNY_THRESHOLD_2 100
 #define DEFAULT_CANNY_APERTURE_SIZE 3
+#define DEFAULT_CANNY_L2GRADIENT false
 
-#endif // DEFAULTVALUES_H
+#endif // CONFIG_H

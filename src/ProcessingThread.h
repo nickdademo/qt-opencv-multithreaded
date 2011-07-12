@@ -41,6 +41,8 @@
 // OpenCV header files
 #include <opencv/highgui.h>
 
+using namespace cv;
+
 class ImageBuffer;
 
 class ProcessingThread : public QThread
@@ -53,7 +55,7 @@ public:
     void stopProcessingThread();
     int getAvgFPS();
     int getCurrentSizeOfBuffer();
-    CvRect getCurrentROI();
+    Rect getCurrentROI();
 private:
     void updateFPS(int);
     void setROI();
@@ -63,10 +65,10 @@ private:
     int inputSourceWidth;
     int inputSourceHeight;
     int currentSizeOfBuffer;
-    IplImage *currentFrameCopy;
-    IplImage *currentFrameCopyGrayscale;
-    CvRect originalROI;
-    CvRect currentROI;
+    Mat currentFrameCopy;
+    Mat currentFrameCopyGrayscale;
+    Rect originalROI;
+    Rect currentROI;
     QImage frame;
     QTime t;
     int processingTime;
@@ -76,6 +78,8 @@ private:
     int avgFPS;
     QMutex stoppedMutex;
     QMutex updateMembersMutex;
+    Size frameSize;
+    Point framePoint;
     // Processing flags
     bool grayscaleOn;
     bool smoothOn;
@@ -91,14 +95,15 @@ private:
     double smoothParam4;
     int dilateNumberOfIterations;
     int erodeNumberOfIterations;
-    int flipMode;
+    int flipCode;
     double cannyThreshold1;
     double cannyThreshold2;
     int cannyApertureSize;
+    bool cannyL2gradient;
     // Task data
     bool setROIFlag;
     bool resetROIFlag;
-    CvRect selectionBox;
+    Rect selectionBox;
 protected:
     void run();
 private slots:

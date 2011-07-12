@@ -55,7 +55,7 @@
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_5">
          <item>
-          <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <layout class="QHBoxLayout" name="horizontalLayout">
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_3">
              <item>
@@ -74,7 +74,7 @@
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>16777215</width>
+                 <width>140</width>
                  <height>27</height>
                 </size>
                </property>
@@ -93,22 +93,13 @@
              <item>
               <layout class="QVBoxLayout" name="verticalLayout_2">
                <item>
-                <widget class="QRadioButton" name="smoothBlurNoScaleButton">
-                 <property name="font">
-                  <font>
-                   <pointsize>8</pointsize>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>Blur (no scale)</string>
-                 </property>
-                 <attribute name="buttonGroup">
-                  <string>smoothTypeGroup</string>
-                 </attribute>
-                </widget>
-               </item>
-               <item>
                 <widget class="QRadioButton" name="smoothBlurButton">
+                 <property name="maximumSize">
+                  <size>
+                   <width>140</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="font">
                   <font>
                    <pointsize>8</pointsize>
@@ -124,6 +115,12 @@
                </item>
                <item>
                 <widget class="QRadioButton" name="smoothGaussianButton">
+                 <property name="maximumSize">
+                  <size>
+                   <width>140</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="font">
                   <font>
                    <pointsize>8</pointsize>
@@ -139,6 +136,12 @@
                </item>
                <item>
                 <widget class="QRadioButton" name="smoothMedianButton">
+                 <property name="maximumSize">
+                  <size>
+                   <width>140</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
                  <property name="font">
                   <font>
                    <pointsize>8</pointsize>
@@ -211,13 +214,13 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>20</width>
+                     <width>15</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>20</width>
+                     <width>15</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -241,15 +244,20 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>50</width>
+                     <width>45</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>50</width>
+                     <width>45</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>8</pointsize>
+                    </font>
                    </property>
                   </widget>
                  </item>
@@ -260,6 +268,18 @@
                      <pointsize>8</pointsize>
                      <weight>75</weight>
                      <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="smoothParam1Label">
+                   <property name="font">
+                    <font>
+                     <pointsize>8</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -281,13 +301,13 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>20</width>
+                     <width>15</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>20</width>
+                     <width>15</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -311,15 +331,20 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>50</width>
+                     <width>45</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>50</width>
+                     <width>45</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>8</pointsize>
+                    </font>
                    </property>
                   </widget>
                  </item>
@@ -330,6 +355,18 @@
                      <pointsize>8</pointsize>
                      <weight>75</weight>
                      <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="smoothParam2Label">
+                   <property name="font">
+                    <font>
+                     <pointsize>8</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -351,13 +388,13 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>20</width>
+                     <width>15</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>20</width>
+                     <width>15</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -381,15 +418,20 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>50</width>
+                     <width>45</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>50</width>
+                     <width>45</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>8</pointsize>
+                    </font>
                    </property>
                   </widget>
                  </item>
@@ -400,6 +442,18 @@
                      <pointsize>8</pointsize>
                      <weight>75</weight>
                      <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="smoothParam3Label">
+                   <property name="font">
+                    <font>
+                     <pointsize>8</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -421,13 +475,13 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>20</width>
+                     <width>15</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>20</width>
+                     <width>15</width>
                      <height>16777215</height>
                     </size>
                    </property>
@@ -451,15 +505,20 @@
                    </property>
                    <property name="minimumSize">
                     <size>
-                     <width>50</width>
+                     <width>45</width>
                      <height>0</height>
                     </size>
                    </property>
                    <property name="maximumSize">
                     <size>
-                     <width>50</width>
+                     <width>45</width>
                      <height>16777215</height>
                     </size>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <pointsize>8</pointsize>
+                    </font>
                    </property>
                   </widget>
                  </item>
@@ -470,6 +529,18 @@
                      <pointsize>8</pointsize>
                      <weight>75</weight>
                      <bold>true</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="smoothParam4Label">
+                   <property name="font">
+                    <font>
+                     <pointsize>8</pointsize>
                     </font>
                    </property>
                    <property name="text">
@@ -499,7 +570,7 @@
           </layout>
          </item>
          <item>
-          <spacer name="verticalSpacer_1">
+          <spacer name="verticalSpacer_7">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
            </property>
@@ -517,6 +588,19 @@
             <string>Reset to Defaults</string>
            </property>
           </widget>
+         </item>
+         <item>
+          <spacer name="verticalSpacer_1">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>396</width>
+             <height>13</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
@@ -539,6 +623,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout_7">
            <item>
             <widget class="QLabel" name="label_14">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
              <property name="font">
               <font>
                <pointsize>8</pointsize>
@@ -562,7 +652,7 @@
              <property name="minimumSize">
               <size>
                <width>50</width>
-               <height>0</height>
+               <height>27</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -571,10 +661,21 @@
                <height>16777215</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+              </font>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="label">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
              <property name="font">
               <font>
                <pointsize>8</pointsize>
@@ -630,6 +731,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout_8">
            <item>
             <widget class="QLabel" name="label_17">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
              <property name="font">
               <font>
                <pointsize>8</pointsize>
@@ -653,7 +760,7 @@
              <property name="minimumSize">
               <size>
                <width>50</width>
-               <height>0</height>
+               <height>27</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -662,10 +769,21 @@
                <height>16777215</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+              </font>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_13">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
              <property name="font">
               <font>
                <pointsize>8</pointsize>
@@ -762,7 +880,7 @@
               <string>X-axis</string>
              </property>
              <attribute name="buttonGroup">
-              <string>flipModeGroup</string>
+              <string>flipCodeGroup</string>
              </attribute>
             </widget>
            </item>
@@ -777,7 +895,7 @@
               <string>Y-axis</string>
              </property>
              <attribute name="buttonGroup">
-              <string>flipModeGroup</string>
+              <string>flipCodeGroup</string>
              </attribute>
             </widget>
            </item>
@@ -792,7 +910,7 @@
               <string>Both axes</string>
              </property>
              <attribute name="buttonGroup">
-              <string>flipModeGroup</string>
+              <string>flipCodeGroup</string>
              </attribute>
             </widget>
            </item>
@@ -839,6 +957,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout_10">
            <item>
             <widget class="QLabel" name="label_1">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
              <property name="font">
               <font>
                <pointsize>8</pointsize>
@@ -862,7 +986,7 @@
              <property name="minimumSize">
               <size>
                <width>50</width>
-               <height>0</height>
+               <height>27</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -871,10 +995,21 @@
                <height>16777215</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+              </font>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_8">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
              <property name="font">
               <font>
                <pointsize>8</pointsize>
@@ -893,6 +1028,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout_11">
            <item>
             <widget class="QLabel" name="label_16">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
              <property name="font">
               <font>
                <pointsize>8</pointsize>
@@ -916,7 +1057,7 @@
              <property name="minimumSize">
               <size>
                <width>50</width>
-               <height>0</height>
+               <height>27</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -925,10 +1066,21 @@
                <height>16777215</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+              </font>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_20">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
              <property name="font">
               <font>
                <pointsize>8</pointsize>
@@ -947,6 +1099,12 @@
           <layout class="QHBoxLayout" name="horizontalLayout_12">
            <item>
             <widget class="QLabel" name="label_10">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
              <property name="font">
               <font>
                <pointsize>8</pointsize>
@@ -970,7 +1128,7 @@
              <property name="minimumSize">
               <size>
                <width>50</width>
-               <height>0</height>
+               <height>27</height>
               </size>
              </property>
              <property name="maximumSize">
@@ -979,10 +1137,21 @@
                <height>16777215</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>8</pointsize>
+              </font>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QLabel" name="label_9">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>27</height>
+              </size>
+             </property>
              <property name="font">
               <font>
                <pointsize>8</pointsize>
@@ -996,6 +1165,26 @@
             </widget>
            </item>
           </layout>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="cannyL2NormCheckBox">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>27</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>8</pointsize>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Use L2-norm</string>
+           </property>
+          </widget>
          </item>
          <item>
           <spacer name="verticalSpacer_6">
@@ -1069,7 +1258,6 @@
  </widget>
  <tabstops>
   <tabstop>tabWidget</tabstop>
-  <tabstop>smoothBlurNoScaleButton</tabstop>
   <tabstop>smoothBlurButton</tabstop>
   <tabstop>smoothGaussianButton</tabstop>
   <tabstop>smoothMedianButton</tabstop>
@@ -1089,6 +1277,7 @@
   <tabstop>cannyThresh1Edit</tabstop>
   <tabstop>cannyThresh2Edit</tabstop>
   <tabstop>cannyApertureSizeEdit</tabstop>
+  <tabstop>cannyL2NormCheckBox</tabstop>
   <tabstop>resetCannyToDefaultsButton</tabstop>
   <tabstop>applyButton</tabstop>
   <tabstop>resetAllToDefaultsButton</tabstop>
@@ -1130,7 +1319,7 @@
   </connection>
  </connections>
  <buttongroups>
+  <buttongroup name="flipCodeGroup"/>
   <buttongroup name="smoothTypeGroup"/>
-  <buttongroup name="flipModeGroup"/>
  </buttongroups>
 </ui>

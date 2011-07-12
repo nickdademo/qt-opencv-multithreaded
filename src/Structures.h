@@ -45,10 +45,11 @@ struct ProcessingSettings{
     double smoothParam4;
     int dilateNumberOfIterations;
     int erodeNumberOfIterations;
-    int flipMode;
+    int flipCode;
     double cannyThreshold1;
     double cannyThreshold2;
     int cannyApertureSize;
+    bool cannyL2gradient;
 };
 
 // ProcessingFlags structure definition

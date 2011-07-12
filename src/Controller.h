@@ -48,21 +48,20 @@ class Controller : public QObject
     Q_OBJECT
 
 public:
-    Controller(int deviceNumber, int imageBufferSize);
+    Controller();
     ~Controller();
     ImageBuffer *imageBuffer;
     ProcessingThread *processingThread;
     CaptureThread *captureThread;
+    bool connectToCamera(int,int);
     void disconnectCamera();
     void stopCaptureThread();
     void stopProcessingThread();
     void deleteCaptureThread();
     void deleteProcessingThread();
     void clearImageBuffer();
-    int getInputSourceWidth();
-    int getInputSourceHeight();
 private:
-    int imageBufferSize;
+    int imageBufferSizeStore;
 };
 
 #endif // CONTROLLER_H

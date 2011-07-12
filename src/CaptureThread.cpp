@@ -36,10 +36,8 @@
 // Qt header files
 #include <QDebug>
 
-CaptureThread::CaptureThread(ImageBuffer *buffer, int deviceNumber):QThread(), imageBuffer(buffer)
+CaptureThread::CaptureThread(ImageBuffer *imageBuffer) : QThread(), imageBuffer(imageBuffer)
 {
-    // Open camera
-    capture=cvCaptureFromCAM(deviceNumber);
     // Initialize variables
     stopped=false;
     sampleNo=0;
@@ -70,23 +68,28 @@ void CaptureThread::run()
         // Start timer (used to calculate capture rate)
         t.start();
         // Capture and add frame to buffer
-        imageBuffer->addFrame(cvQueryFrame(capture));
+        cap>>grabbedFrame;
+        imageBuffer->addFrame(grabbedFrame);
         // Update statistics
         updateFPS(captureTime);
     }
     qDebug() << "Stopping capture thread...";
 } // run()
 
+bool CaptureThread::connectToCamera(int deviceNumber)
+{
+    // Open camera and return result
+    return cap.open(deviceNumber);
+} // connectToCamera()
+
 void CaptureThread::disconnectCamera()
 {
-    // Disconnect camera if connected
-    if(capture!=NULL)
+    // Check if camera is connected
+    if(cap.isOpened())
     {
-        cvReleaseCapture(&capture);
-        if(capture==NULL)
-            qDebug() << "Camera successfully disconnected.";
-        else
-            qDebug() << "ERROR: Camera could not be disconnected.";
+        // Disconnect camera
+        cap.release();
+        qDebug() << "Camera successfully disconnected.";
     }
 } // disconnectCamera()
 
@@ -128,7 +131,7 @@ int CaptureThread::getAvgFPS()
 
 bool CaptureThread::isCameraConnected()
 {
-    if(capture!=NULL)
+    if(cap.isOpened())
         return true;
     else
         return false;
@@ -136,10 +139,10 @@ bool CaptureThread::isCameraConnected()
 
 int CaptureThread::getInputSourceWidth()
 {
-    return cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_WIDTH);
+    return cap.get(CV_CAP_PROP_FRAME_WIDTH);
 } // getInputSourceWidth()
 
 int CaptureThread::getInputSourceHeight()
 {
-    return cvGetCaptureProperty(capture, CV_CAP_PROP_FRAME_HEIGHT);
+    return cap.get(CV_CAP_PROP_FRAME_HEIGHT);
 } // getInputSourceHeight()

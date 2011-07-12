@@ -46,9 +46,9 @@ public:
 private:
     ProcessingSettings processingSettings;
 public slots:
+    void resetAllDialogToDefaults();
     void updateStoredSettingsFromDialog();
 private slots:
-    void resetAllDialogToDefaults();
     void resetSmoothDialogToDefaults();
     void resetDilateDialogToDefaults();
     void resetErodeDialogToDefaults();

@@ -32,64 +32,37 @@
 
 #include "ImageBuffer.h"
 #include "ProcessingThread.h"
-#include "ShowIplImage.h"
+#include "MatToQImage.h"
 
 // Qt header files
 #include <QDebug>
 // OpenCV header files
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
-// Header file containing default values
-#include "DefaultValues.h"
+// Configuration header file
+#include "Config.h"
 
 ProcessingThread::ProcessingThread(ImageBuffer *imageBuffer, int inputSourceWidth, int inputSourceHeight)
                                    : QThread(), imageBuffer(imageBuffer), inputSourceWidth(inputSourceWidth),
                                    inputSourceHeight(inputSourceHeight)
 {
-    // Create IplImages
-    currentFrameCopy=cvCreateImage(cvSize(inputSourceWidth,inputSourceHeight),IPL_DEPTH_8U,3);
-    currentFrameCopyGrayscale=cvCreateImage(cvSize(inputSourceWidth,inputSourceHeight),IPL_DEPTH_8U,1);
+    // Create images
+    currentFrameCopy.create(Size(inputSourceWidth,inputSourceHeight),CV_8UC3);
+    currentFrameCopyGrayscale.create(Size(inputSourceWidth,inputSourceHeight),CV_8UC1);
     // Initialize variables
     stopped=false;
     sampleNo=0;
     fpsSum=0;
     avgFPS=0;
     fps.clear();
-    // Initialize processing flags
-    grayscaleOn=false;
-    smoothOn=false;
-    dilateOn=false;
-    erodeOn=false;
-    flipOn=false;
-    cannyOn=false;
-    // Initialize task flags
-    setROIFlag=false;
-    resetROIFlag=false;
-    // Initialize processing settings
-    smoothType=DEFAULT_SMOOTH_TYPE;
-    smoothParam1=DEFAULT_SMOOTH_PARAM_1;
-    smoothParam2=DEFAULT_SMOOTH_PARAM_2;
-    smoothParam3=DEFAULT_SMOOTH_PARAM_3;
-    smoothParam4=DEFAULT_SMOOTH_PARAM_4;
-    dilateNumberOfIterations=DEFAULT_DILATE_ITERATIONS;
-    erodeNumberOfIterations=DEFAULT_ERODE_ITERATIONS;
-    flipMode=DEFAULT_FLIP_MODE;
-    cannyThreshold1=DEFAULT_CANNY_THRESHOLD_1;
-    cannyThreshold2=DEFAULT_CANNY_THRESHOLD_2;
-    cannyApertureSize=DEFAULT_CANNY_APERTURE_SIZE;
     // Initialize currentROI variable
-    currentROI=cvRect(0,0,inputSourceWidth,inputSourceHeight);
+    currentROI=Rect(0,0,inputSourceWidth,inputSourceHeight);
     // Store original ROI
     originalROI=currentROI;
 } // ProcessingThread constructor
 
 ProcessingThread::~ProcessingThread()
 {
-    // Free IplImages (if they exist)
-    if(currentFrameCopy!=NULL)
-        cvReleaseImage(&currentFrameCopy);
-    if(currentFrameCopyGrayscale!=NULL)
-        cvReleaseImage(&currentFrameCopyGrayscale);
 } // ProcessingThread destructor
 
 void ProcessingThread::run()
@@ -109,111 +82,132 @@ void ProcessingThread::run()
         stoppedMutex.unlock();
         /////////////////////////////////
         /////////////////////////////////
+
         // Save processing time
         processingTime=t.elapsed();
         // Start timer (used to calculate processing rate)
         t.start();
         // Get frame from queue
-        IplImage* currentFrame = imageBuffer->getFrame();
-        // Check that grabbed frame is not a NULL image
-        if(currentFrame!=NULL)
-        {
-            // Set ROI of grabbed frame
-            cvSetImageROI(currentFrame,currentROI);
-            // Make copy of current frame (processing will be performed on this copy)
-            cvCopy(currentFrame,currentFrameCopy);
-            ///////////////////
-            // PERFORM TASKS //
-            ///////////////////
-            updateMembersMutex.lock();
-            if(resetROIFlag)
-                resetROI();
-            else if(setROIFlag)
-                setROI();
-            ////////////////////////////////////
-            // PERFORM IMAGE PROCESSING BELOW //
-            ////////////////////////////////////
-            else
-            {
-                // Grayscale conversion
-                if(grayscaleOn)
-                    cvCvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
-                // Smooth
-                if(smoothOn)
-                {
-                    if(grayscaleOn)
-                        cvSmooth(currentFrameCopyGrayscale,currentFrameCopyGrayscale,
-                                 smoothType,smoothParam1,smoothParam2,smoothParam3,smoothParam4);
-                    else
-                        cvSmooth(currentFrameCopy,currentFrameCopy,
-                                 smoothType,smoothParam1,smoothParam2,smoothParam3,smoothParam4);
-                } // if
-                // Dilate
-                if(dilateOn)
-                {
-                    if(grayscaleOn)
-                        cvDilate(currentFrameCopyGrayscale,currentFrameCopyGrayscale,NULL,
-                                 dilateNumberOfIterations);
-                    else
-                        cvDilate(currentFrameCopy,currentFrameCopy,NULL,
-                                 dilateNumberOfIterations);
-                } // if
-                // Erode
-                if(erodeOn)
-                {
-                    if(grayscaleOn)
-                        cvErode(currentFrameCopyGrayscale,currentFrameCopyGrayscale,NULL,
-                                erodeNumberOfIterations);
-                    else
-                        cvErode(currentFrameCopy,currentFrameCopy,NULL,
-                                erodeNumberOfIterations);
-                } // if
-                // Flip
-                if(flipOn)
-                {
-                    if(grayscaleOn)
-                        cvFlip(currentFrameCopyGrayscale,NULL,flipMode);
-                    else
-                        cvFlip(currentFrameCopy,NULL,flipMode);
-                } // if
-                // Canny edge detection
-                if(cannyOn)
-                {
-                    // Frame must be converted to grayscale first if grayscale conversion is OFF
-                    if(!grayscaleOn)
-                        cvCvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
+        Mat currentFrame=imageBuffer->getFrame();
+        // Make copy of current frame (processing will be performed on this copy)
+        currentFrame.copyTo(currentFrameCopy);
+        // Set ROI of currentFrameCopy
+        currentFrameCopy.locateROI(frameSize,framePoint);
+        currentFrameCopy.adjustROI(-currentROI.y,-(frameSize.height-currentROI.height-currentROI.y),
+                                   -currentROI.x,-(frameSize.width-currentROI.width-currentROI.x));
 
-                    cvCanny(currentFrameCopyGrayscale,currentFrameCopyGrayscale,
-                            cannyThreshold1,cannyThreshold2,
-                            cannyApertureSize);
-                } // if
-            } // else
-            ////////////////////////////////////
-            // PERFORM IMAGE PROCESSING ABOVE //
-            ////////////////////////////////////
-
-            //// Convert IplImage to QImage: Show grayscale frame
-            //// (if either Grayscale or Canny processing modes are ON)
-            if(grayscaleOn||cannyOn)
-                frame=IplImageToQImage(currentFrameCopyGrayscale);
-            //// Convert IplImage to QImage: Show BGR frame
-            else
-                frame=IplImageToQImage(currentFrameCopy);
-            updateMembersMutex.unlock();
-            // Update statistics
-            updateFPS(processingTime);
-            currentSizeOfBuffer=imageBuffer->getSizeOfImageBuffer();
-            // Inform controller of new frame (QImage)
-            emit newFrame(frame);
-            // Release IplImage
-            if(currentFrame!=NULL)
-                cvReleaseImage(&currentFrame);
-        } // if
+        updateMembersMutex.lock();
+        ///////////////////
+        // PERFORM TASKS //
+        ///////////////////
+        if(resetROIFlag)
+            resetROI();
+        else if(setROIFlag)
+            setROI();
+        ////////////////////////////////////
+        // PERFORM IMAGE PROCESSING BELOW //
+        ////////////////////////////////////
         else
-            qDebug() << "ERROR: Processing thread received a NULL image.";
-    } // while
+        {
+            // Grayscale conversion
+            if(grayscaleOn)
+                cvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
+            // Smooth
+            if(smoothOn)
+            {
+                if(grayscaleOn)
+                {
+                    switch(smoothType)
+                    {
+                        // BLUR
+                        case 0:
+                            blur(currentFrameCopyGrayscale,currentFrameCopyGrayscale,Size(smoothParam1,smoothParam2));
+                            break;
+                        // GAUSSIAN
+                        case 1:
+                            GaussianBlur(currentFrameCopyGrayscale,currentFrameCopyGrayscale,Size(smoothParam1,smoothParam2),smoothParam3,smoothParam4);
+                            break;
+                        // MEDIAN
+                        case 2:
+                            medianBlur(currentFrameCopyGrayscale,currentFrameCopyGrayscale,smoothParam1);
+                            break;
+                    }
+                }
+                else
+                {
+                    switch(smoothType)
+                    {
+                        // BLUR
+                        case 0:
+                            blur(currentFrameCopy,currentFrameCopy,Size(smoothParam1,smoothParam2));
+                            break;
+                        // GAUSSIAN
+                        case 1:
+                            GaussianBlur(currentFrameCopy,currentFrameCopy,Size(smoothParam1,smoothParam2),smoothParam3,smoothParam4);
+                            break;
+                        // MEDIAN
+                        case 2:
+                            medianBlur(currentFrameCopy,currentFrameCopy,smoothParam1);
+                            break;
+                    }
+                }
+            }
+            // Dilate
+            if(dilateOn)
+            {
+                if(grayscaleOn)
+                    dilate(currentFrameCopyGrayscale,currentFrameCopyGrayscale,Mat(),Point(-1,-1),dilateNumberOfIterations);
+                else
+                    dilate(currentFrameCopy,currentFrameCopy,Mat(),Point(-1,-1),dilateNumberOfIterations);
+            }
+            // Erode
+            if(erodeOn)
+            {
+                if(grayscaleOn)
+                    erode(currentFrameCopyGrayscale,currentFrameCopyGrayscale,Mat(),Point(-1,-1),erodeNumberOfIterations);
+                else
+                    erode(currentFrameCopy,currentFrameCopy,Mat(),Point(-1,-1),erodeNumberOfIterations);
+            }
+            // Flip
+            if(flipOn)
+            {
+                if(grayscaleOn)
+                    flip(currentFrameCopyGrayscale,currentFrameCopyGrayscale,flipCode);
+                else
+                    flip(currentFrameCopy,currentFrameCopy,flipCode);
+            }
+            // Canny edge detection
+            if(cannyOn)
+            {
+                // Frame must be converted to grayscale first if grayscale conversion is OFF
+                if(!grayscaleOn)
+                    cvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
+
+                Canny(currentFrameCopyGrayscale,currentFrameCopyGrayscale,
+                      cannyThreshold1,cannyThreshold2,
+                      cannyApertureSize,cannyL2gradient);
+            }
+        }
+        ////////////////////////////////////
+        // PERFORM IMAGE PROCESSING ABOVE //
+        ////////////////////////////////////
+
+        //// Convert Mat to QImage: Show grayscale frame [if either Grayscale or Canny processing modes are ON]
+        if(grayscaleOn||cannyOn)
+            frame=MatToQImage(currentFrameCopyGrayscale);
+        //// Convert Mat to QImage: Show BGR frame
+        else
+            frame=MatToQImage(currentFrameCopy);
+        updateMembersMutex.unlock();
+
+        // Update statistics
+        updateFPS(processingTime);
+        currentSizeOfBuffer=imageBuffer->getSizeOfImageBuffer();
+        // Inform controller of new frame (QImage)
+        emit newFrame(frame);
+    }
     qDebug() << "Stopping processing thread...";
-} // run()
+}
 
 void ProcessingThread::updateFPS(int timeElapsed)
 {
@@ -223,7 +217,7 @@ void ProcessingThread::updateFPS(int timeElapsed)
         fps.enqueue((int)1000/timeElapsed);
         // Increment sample number
         sampleNo++;
-    } // if
+    }
     // Maximum size of queue is 16
     if(fps.size() > 16)
         fps.dequeue();
@@ -236,7 +230,7 @@ void ProcessingThread::updateFPS(int timeElapsed)
         avgFPS=fpsSum/16; // Calculate average FPS
         fpsSum=0; // Reset sum
         sampleNo=0; // Reset sample number
-    } // if
+    }
 } // updateFPS()
 
 void ProcessingThread::stopProcessingThread()
@@ -248,15 +242,8 @@ void ProcessingThread::stopProcessingThread()
 
 void ProcessingThread::setROI()
 {
-    // Set area outside ROI in currentFrameCopy to blue
-    cvSet(currentFrameCopy, cvScalar(127,0,0));
-    // Set area outside ROI in currentFrameCopyGrayscale to gray
-    cvSet(currentFrameCopyGrayscale, cvScalar(127,0,0));
-    // Store new ROI in currentROI variable
+    // Save selection as new (current) ROI
     currentROI=selectionBox;
-    // Set new ROIs
-    cvSetImageROI(currentFrameCopy, currentROI);
-    cvSetImageROI(currentFrameCopyGrayscale, currentROI);
     qDebug() << "ROI successfully SET.";
     // Reset setROIOn flag to FALSE
     setROIFlag=false;
@@ -264,10 +251,7 @@ void ProcessingThread::setROI()
 
 void ProcessingThread::resetROI()
 {
-    // Reset ROIs
-    cvResetImageROI(currentFrameCopy);
-    cvResetImageROI(currentFrameCopyGrayscale);
-    // Set ROI back to original ROI
+    // Reset ROI to original
     currentROI=originalROI;
     qDebug() << "ROI successfully RESET.";
     // Reset resetROIOn flag to FALSE
@@ -295,10 +279,11 @@ void ProcessingThread::updateProcessingSettings(struct ProcessingSettings proces
     this->smoothParam4=processingSettings.smoothParam4;
     this->dilateNumberOfIterations=processingSettings.dilateNumberOfIterations;
     this->erodeNumberOfIterations=processingSettings.erodeNumberOfIterations;
-    this->flipMode=processingSettings.flipMode;
+    this->flipCode=processingSettings.flipCode;
     this->cannyThreshold1=processingSettings.cannyThreshold1;
     this->cannyThreshold2=processingSettings.cannyThreshold2;
     this->cannyApertureSize=processingSettings.cannyApertureSize;
+    this->cannyL2gradient=processingSettings.cannyL2gradient;
 } // updateProcessingSettings()
 
 void ProcessingThread::updateTaskData(struct TaskData taskData)
@@ -322,7 +307,7 @@ int ProcessingThread::getCurrentSizeOfBuffer()
     return currentSizeOfBuffer;
 } // getCurrentSizeOfBuffer()
 
-CvRect ProcessingThread::getCurrentROI()
+Rect ProcessingThread::getCurrentROI()
 {
     return currentROI;
 } // getCurrentROI();

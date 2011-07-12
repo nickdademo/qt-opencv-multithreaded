@@ -37,72 +37,37 @@
 
 // Qt header files
 #include <QDebug>
-// Header file containing default values
-#include "DefaultValues.h"
+// Configuration header file
+#include "Config.h"
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 {  
     // Setup user interface
     setupUi(this);
-    // Initially set controller to NULL
-    controller=NULL;
-    // Create processingSettingsDialog
-    processingSettingsDialog = new ProcessingSettingsDialog(this);
-    // Initialize ProcessingFlags structure
-    processingFlags.grayscaleOn=false;
-    processingFlags.smoothOn=false;
-    processingFlags.dilateOn=false;
-    processingFlags.erodeOn=false;
-    processingFlags.flipOn=false;
-    processingFlags.cannyOn=false;
+    // Create controller
+    controller = new Controller;
     // Save application version in QString variable
     appVersion=QUOTE(APP_VERSION);
+    // Create processingSettingsDialog
+    processingSettingsDialog = new ProcessingSettingsDialog(this);
+    // Initialize data structures
+    initializeProcessingFlagsStructure();
+    initializeTaskDataStructure();
+    // Enable/disable appropriate GUI items
+    setInitGUIState();
+    // Initialize GUI
+    initializeGUI();
     // Connect signals to slots
-    connect(connectToCameraAction, SIGNAL(triggered()), this, SLOT(connectToCamera()));
-    connect(disconnectCameraAction, SIGNAL(triggered()), this, SLOT(disconnectCamera()));
-    connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
-    connect(grayscaleAction, SIGNAL(toggled(bool)), this, SLOT(setGrayscale(bool)));
-    connect(smoothAction, SIGNAL(toggled(bool)), this, SLOT(setSmooth(bool)));
-    connect(dilateAction, SIGNAL(toggled(bool)), this, SLOT(setDilate(bool)));
-    connect(erodeAction, SIGNAL(toggled(bool)), this, SLOT(setErode(bool)));
-    connect(flipAction, SIGNAL(toggled(bool)), this, SLOT(setFlip(bool)));
-    connect(cannyAction, SIGNAL(toggled(bool)), this, SLOT(setCanny(bool)));
-    connect(settingsAction, SIGNAL(triggered()), this, SLOT(setProcessingSettings()));
-    connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
-    connect(clearImageBufferButton, SIGNAL(released()), this, SLOT(clearImageBuffer()));
-    connect(frameLabel, SIGNAL(onMouseMoveEvent()), this, SLOT(updateMouseCursorPosLabel()));
-    qRegisterMetaType<struct MouseData>("MouseData");
-    connect(this->frameLabel,SIGNAL(newMouseData(struct MouseData)),this,SLOT(newMouseData(struct MouseData)));
-    // Enable/disable appropriate menu items
-    connectToCameraAction->setDisabled(false);
-    disconnectCameraAction->setDisabled(true);
-    processingMenu->setDisabled(true);
-    // Set GUI in main window
-    grayscaleAction->setChecked(false);
-    smoothAction->setChecked(false);
-    dilateAction->setChecked(false);
-    erodeAction->setChecked(false);
-    flipAction->setChecked(false);
-    cannyAction->setChecked(false);
-    frameLabel->setText("No camera connected.");
-    imageBufferBar->setValue(0);
-    imageBufferLabel->setText("[000/000]");
-    captureRateLabel->setText("");
-    processingRateLabel->setText("");
-    deviceNumberLabel->setText("");
-    cameraResolutionLabel->setText("");
-    roiLabel->setText("");
-    mouseCursorPosLabel->setText("");
-    clearImageBufferButton->setDisabled(true);
+    signalSlotsInit();
 } // MainWindow constructor
 
 MainWindow::~MainWindow()
 {
-    // Check if controller exists
-    if(controller!=NULL)
+    // Check if camera is connected
+    if(controller->captureThread->isCameraConnected())
     {
-        // Disconnect queued connections
-        disconnect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)));
+        // Disconnect connections (4)
+        disconnect(controller->processingThread,SIGNAL(newFrame(QImage)),0,0);
         disconnect(this,SIGNAL(newProcessingFlags(struct ProcessingFlags)),controller->processingThread,SLOT(updateProcessingFlags(struct ProcessingFlags)));
         disconnect(this->processingSettingsDialog,SIGNAL(newProcessingSettings(struct ProcessingSettings)),controller->processingThread,SLOT(updateProcessingSettings(struct ProcessingSettings)));
         disconnect(this,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)));
@@ -117,16 +82,12 @@ MainWindow::~MainWindow()
         // Check if threads have stopped
         if((controller->captureThread->isFinished())&&(controller->processingThread->isFinished()))
         {
-            // Disconnect camera if connected
-            if(controller->captureThread->isCameraConnected())
-                controller->disconnectCamera();
-            // Delete processing and capture threads
-            controller->deleteProcessingThread();
+            // Disconnect camera
+            controller->disconnectCamera();
+            // Delete threads
             controller->deleteCaptureThread();
+            controller->deleteProcessingThread();
         }
-        // Delete controller
-        delete controller;
-        controller=NULL;
     }
 } // MainWindow destructor
 
@@ -134,8 +95,8 @@ void MainWindow::connectToCamera()
 {
     // Create dialog
     cameraConnectDialog = new CameraConnectDialog(this);
-    // Prompt user
-    // If user presses OK button on dialog, tell controller to connect to camera; else do nothing
+    // PROMPT USER:
+    // If user presses OK button on dialog, connect to camera; else do nothing
     if(cameraConnectDialog->exec()==1)
     {
         // Set private member variables in cameraConnectDialog to values in dialog
@@ -145,20 +106,23 @@ void MainWindow::connectToCamera()
         imageBufferSize=cameraConnectDialog->getImageBufferSize();
         // Store device number in local variable
         deviceNumber=cameraConnectDialog->getDeviceNumber();
-        // Create controller
-        controller = new Controller(deviceNumber,imageBufferSize);
-        // If camera was successfully connected
-        if(controller->captureThread->isCameraConnected())
+        // Connect to camera
+        if(controller->connectToCamera(deviceNumber,imageBufferSize))
         {
-            // Create queued connection between processing thread (emitter) and GUI thread (receiver/listener)
-            connect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)),Qt::QueuedConnection);
-            // Create queued connections between GUI thread (emitter) and processing thread (receiver/listener)
+            // Create connection between processing thread (emitter) and GUI thread (receiver/listener)
+            connect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)),Qt::UniqueConnection);
+            // Create connections (3) between GUI thread (emitter) and processing thread (receiver/listener)
             qRegisterMetaType<struct ProcessingFlags>("ProcessingFlags");
-            connect(this,SIGNAL(newProcessingFlags(struct ProcessingFlags)),controller->processingThread,SLOT(updateProcessingFlags(struct ProcessingFlags)),Qt::QueuedConnection);
+            connect(this,SIGNAL(newProcessingFlags(struct ProcessingFlags)),controller->processingThread,SLOT(updateProcessingFlags(struct ProcessingFlags)),Qt::UniqueConnection);
             qRegisterMetaType<struct ProcessingSettings>("ProcessingSettings");
-            connect(this->processingSettingsDialog,SIGNAL(newProcessingSettings(struct ProcessingSettings)),controller->processingThread,SLOT(updateProcessingSettings(struct ProcessingSettings)),Qt::QueuedConnection);
+            connect(this->processingSettingsDialog,SIGNAL(newProcessingSettings(struct ProcessingSettings)),controller->processingThread,SLOT(updateProcessingSettings(struct ProcessingSettings)),Qt::UniqueConnection);
             qRegisterMetaType<struct TaskData>("TaskData");
-            connect(this,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)),Qt::QueuedConnection);
+            connect(this,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)),Qt::UniqueConnection);
+            // Set data to defaults in processingThread
+            emit newProcessingFlags(processingFlags);
+            emit newTaskData(taskData);
+            processingSettingsDialog->resetAllDialogToDefaults();
+            processingSettingsDialog->updateStoredSettingsFromDialog();
             // Setup imageBufferBar in main window with minimum and maximum values
             imageBufferBar->setMinimum(0);
             imageBufferBar->setMaximum(imageBufferSize);
@@ -169,8 +133,8 @@ void MainWindow::connectToCamera()
             // Enable "Clear Image Buffer" push button in main window
             clearImageBufferButton->setDisabled(false);
             // Get input stream properties
-            sourceWidth=controller->getInputSourceWidth();
-            sourceHeight=controller->getInputSourceHeight();
+            sourceWidth=controller->captureThread->getInputSourceWidth();
+            sourceHeight=controller->captureThread->getInputSourceHeight();
             // Set text in labels in main window
             deviceNumberLabel->setNum(deviceNumber);
             cameraResolutionLabel->setText(QString::number(sourceWidth)+QString("x")+QString::number(sourceHeight));
@@ -197,11 +161,11 @@ void MainWindow::connectToCamera()
 
 void MainWindow::disconnectCamera()
 {
-    // Check if controller exists
-    if(controller!=NULL)
+    // Check if camera is connected
+    if(controller->captureThread->isCameraConnected())
     {
-        // Disconnect queued connections
-        disconnect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)));
+        // Disconnect connections (4)
+        disconnect(controller->processingThread,SIGNAL(newFrame(QImage)),0,0);
         disconnect(this,SIGNAL(newProcessingFlags(struct ProcessingFlags)),controller->processingThread,SLOT(updateProcessingFlags(struct ProcessingFlags)));
         disconnect(this->processingSettingsDialog,SIGNAL(newProcessingSettings(struct ProcessingSettings)),controller->processingThread,SLOT(updateProcessingSettings(struct ProcessingSettings)));
         disconnect(this,SIGNAL(newTaskData(struct TaskData)),controller->processingThread,SLOT(updateTaskData(struct TaskData)));
@@ -216,16 +180,11 @@ void MainWindow::disconnectCamera()
         // Check if threads have stopped
         if((controller->captureThread->isFinished())&&(controller->processingThread->isFinished()))
         {
-            // Disconnect camera if connected
-            if(controller->captureThread->isCameraConnected())
-                controller->disconnectCamera();
-            // Delete processing and capture threads
+            // Disconnect camera
+            controller->disconnectCamera();
+            // Delete processing thread
             controller->deleteProcessingThread();
-            controller->deleteCaptureThread();
         }
-        // Delete controller
-        delete controller;
-        controller=NULL;
         // Enable/Disable appropriate menu items
         connectToCameraAction->setDisabled(false);
         disconnectCameraAction->setDisabled(true);
@@ -255,7 +214,7 @@ void MainWindow::disconnectCamera()
 
 void MainWindow::about()
 {
-    QMessageBox::information(this,"About",QString("Written by Nick D'Ademo\n\nContact: nickdademo@gmail.com\nWebsite: www.nickdademo.com\n\nVersion: ")+appVersion);
+    QMessageBox::information(this,"About",QString("Created by Nick D'Ademo\n\nContact: nickdademo@gmail.com\nWebsite: www.nickdademo.com\n\nVersion: ")+appVersion);
 } // about()
 
 void MainWindow::clearImageBuffer()
@@ -436,3 +395,67 @@ void MainWindow::newMouseData(struct MouseData mouseData)
         taskData.resetROIFlag=false;
     }
 } // newMouseData()
+
+void MainWindow::initializeProcessingFlagsStructure()
+{
+    processingFlags.grayscaleOn=false;
+    processingFlags.smoothOn=false;
+    processingFlags.dilateOn=false;
+    processingFlags.erodeOn=false;
+    processingFlags.flipOn=false;
+    processingFlags.cannyOn=false;
+} // initializeProcessingFlagsStructure()
+
+void MainWindow::initializeTaskDataStructure()
+{
+    taskData.setROIFlag=false;
+    taskData.resetROIFlag=false;
+} // initializeTaskDataStructure()
+
+void MainWindow::initializeGUI()
+{
+    // Enable/disable appropriate menu items
+    connectToCameraAction->setDisabled(false);
+    disconnectCameraAction->setDisabled(true);
+    processingMenu->setDisabled(true);
+} // initializeGUI()
+
+void MainWindow::setInitGUIState()
+{
+    // Set GUI in main window
+    grayscaleAction->setChecked(false);
+    smoothAction->setChecked(false);
+    dilateAction->setChecked(false);
+    erodeAction->setChecked(false);
+    flipAction->setChecked(false);
+    cannyAction->setChecked(false);
+    frameLabel->setText("No camera connected.");
+    imageBufferBar->setValue(0);
+    imageBufferLabel->setText("[000/000]");
+    captureRateLabel->setText("");
+    processingRateLabel->setText("");
+    deviceNumberLabel->setText("");
+    cameraResolutionLabel->setText("");
+    roiLabel->setText("");
+    mouseCursorPosLabel->setText("");
+    clearImageBufferButton->setDisabled(true);
+} // setInitGUIState()
+
+void MainWindow::signalSlotsInit()
+{
+    connect(connectToCameraAction, SIGNAL(triggered()), this, SLOT(connectToCamera()));
+    connect(disconnectCameraAction, SIGNAL(triggered()), this, SLOT(disconnectCamera()));
+    connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
+    connect(grayscaleAction, SIGNAL(toggled(bool)), this, SLOT(setGrayscale(bool)));
+    connect(smoothAction, SIGNAL(toggled(bool)), this, SLOT(setSmooth(bool)));
+    connect(dilateAction, SIGNAL(toggled(bool)), this, SLOT(setDilate(bool)));
+    connect(erodeAction, SIGNAL(toggled(bool)), this, SLOT(setErode(bool)));
+    connect(flipAction, SIGNAL(toggled(bool)), this, SLOT(setFlip(bool)));
+    connect(cannyAction, SIGNAL(toggled(bool)), this, SLOT(setCanny(bool)));
+    connect(settingsAction, SIGNAL(triggered()), this, SLOT(setProcessingSettings()));
+    connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
+    connect(clearImageBufferButton, SIGNAL(released()), this, SLOT(clearImageBuffer()));
+    connect(frameLabel, SIGNAL(onMouseMoveEvent()), this, SLOT(updateMouseCursorPosLabel()));
+    qRegisterMetaType<struct MouseData>("MouseData");
+    connect(this->frameLabel,SIGNAL(newMouseData(struct MouseData)),this,SLOT(newMouseData(struct MouseData)));
+} // signalSlotsInit()

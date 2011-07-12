@@ -50,6 +50,11 @@ class MainWindow : public QMainWindow, private Ui::MainWindow
 public:
     MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void initializeProcessingFlagsStructure();
+    void initializeTaskDataStructure();
+    void setInitGUIState();
+    void initializeGUI();
+    void signalSlotsInit();
 private:
     CameraConnectDialog *cameraConnectDialog;
     ProcessingSettingsDialog *processingSettingsDialog;

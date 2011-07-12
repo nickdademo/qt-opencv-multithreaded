@@ -34,8 +34,8 @@
 
 // Qt header files
 #include <QtGui>
-// Header file containing default values
-#include "DefaultValues.h"
+// Configuration header file
+#include "Config.h"
 
 CameraConnectDialog::CameraConnectDialog(QWidget *parent) : QDialog(parent)
 {

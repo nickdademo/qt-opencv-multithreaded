@@ -2,7 +2,7 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* ImageBuffer.h                                                        */
+/* MatToQImage.h                                                        */
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
@@ -30,35 +30,18 @@
 /*                                                                      */
 /************************************************************************/
 
-#ifndef IMAGEBUFFER_H
-#define IMAGEBUFFER_H
+#ifndef MATTOQIMAGE_H
+#define MATTOQIMAGE_H
 
 // Qt header files
-#include <QMutex>
-#include <QQueue>
-#include <QSemaphore>
+#include <QtGui>
+#include <QDebug>
 // OpenCV header files
+#include <opencv/cv.h>
 #include <opencv/highgui.h>
 
 using namespace cv;
 
-class ImageBuffer
-{
+QImage MatToQImage(const Mat&);
 
-public:
-    ImageBuffer(int size);
-    void addFrame(const Mat& frame);
-    Mat getFrame();
-    void clearBuffer();
-    int getSizeOfImageBuffer();
-private:
-    QMutex imageQueueProtect;
-    QQueue<Mat> imageQueue;
-    QSemaphore *freeSlots;
-    QSemaphore *usedSlots;
-    QSemaphore *clearBuffer1;
-    QSemaphore *clearBuffer2;
-    int bufferSize;
-};
-
-#endif // IMAGEBUFFER_H
+#endif // MATTOQIMAGE_H

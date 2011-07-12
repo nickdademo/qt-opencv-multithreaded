@@ -34,8 +34,8 @@
 
 // Qt header files
 #include <QtGui>
-// Header file containing default values
-#include "DefaultValues.h"
+// Configuration header file
+#include "Config.h"
 
 ProcessingSettingsDialog::ProcessingSettingsDialog(QWidget *parent) : QDialog(parent)
 {
@@ -81,14 +81,12 @@ void ProcessingSettingsDialog::updateStoredSettingsFromDialog()
     // Validate values in dialog before storing
     validateDialog();
     // Smooth
-    if(smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothBlurNoScaleButton)
-        processingSettings.smoothType=CV_BLUR_NO_SCALE;
-    else if(smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothBlurButton)
-        processingSettings.smoothType=CV_BLUR;
+    if(smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothBlurButton)
+        processingSettings.smoothType=0;
     else if(smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothGaussianButton)
-        processingSettings.smoothType=CV_GAUSSIAN;
+        processingSettings.smoothType=1;
     else if(smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothMedianButton)
-        processingSettings.smoothType=CV_MEDIAN;
+        processingSettings.smoothType=2;
     processingSettings.smoothParam1=smoothParam1Edit->text().toInt();
     processingSettings.smoothParam2=smoothParam2Edit->text().toInt();
     processingSettings.smoothParam3=smoothParam3Edit->text().toDouble();
@@ -98,16 +96,17 @@ void ProcessingSettingsDialog::updateStoredSettingsFromDialog()
     // Erode
     processingSettings.erodeNumberOfIterations=erodeIterationsEdit->text().toInt();
     // Flip
-    if(flipModeGroup->checkedButton()==(QAbstractButton*)flipXAxisButton)
-        processingSettings.flipMode=0;
-    else if(flipModeGroup->checkedButton()==(QAbstractButton*)flipYAxisButton)
-        processingSettings.flipMode=1;
-    else if(flipModeGroup->checkedButton()==(QAbstractButton*)flipBothAxesButton)
-        processingSettings.flipMode=-1;
+    if(flipCodeGroup->checkedButton()==(QAbstractButton*)flipXAxisButton)
+        processingSettings.flipCode=0;
+    else if(flipCodeGroup->checkedButton()==(QAbstractButton*)flipYAxisButton)
+        processingSettings.flipCode=1;
+    else if(flipCodeGroup->checkedButton()==(QAbstractButton*)flipBothAxesButton)
+        processingSettings.flipCode=-1;
     // Canny
     processingSettings.cannyThreshold1=cannyThresh1Edit->text().toDouble();
     processingSettings.cannyThreshold2=cannyThresh2Edit->text().toDouble();
     processingSettings.cannyApertureSize=cannyApertureSizeEdit->text().toInt();
+    processingSettings.cannyL2gradient=cannyL2NormCheckBox->isChecked();
     // Update processing flags in processingThread
     emit newProcessingSettings(processingSettings);
 } // updateStoredSettingsFromDialog()
@@ -115,13 +114,11 @@ void ProcessingSettingsDialog::updateStoredSettingsFromDialog()
 void ProcessingSettingsDialog::updateDialogSettingsFromStored()
 {
     // Smooth
-    if(processingSettings.smoothType==CV_BLUR_NO_SCALE)
-        smoothBlurNoScaleButton->setChecked(true);
-    else if(processingSettings.smoothType==CV_BLUR)
+    if(processingSettings.smoothType==0)
         smoothBlurButton->setChecked(true);
-    else if(processingSettings.smoothType==CV_GAUSSIAN)
+    else if(processingSettings.smoothType==1)
         smoothGaussianButton->setChecked(true);
-    else if(processingSettings.smoothType==CV_MEDIAN)
+    else if(processingSettings.smoothType==2)
         smoothMedianButton->setChecked(true);
     smoothParam1Edit->setText(QString::number(processingSettings.smoothParam1));
     smoothParam2Edit->setText(QString::number(processingSettings.smoothParam2));
@@ -132,16 +129,17 @@ void ProcessingSettingsDialog::updateDialogSettingsFromStored()
     // Erode
     erodeIterationsEdit->setText(QString::number(processingSettings.erodeNumberOfIterations));
     // Flip
-    if(processingSettings.flipMode==0)
+    if(processingSettings.flipCode==0)
         flipXAxisButton->setChecked(true);
-    else if(processingSettings.flipMode==1)
+    else if(processingSettings.flipCode==1)
         flipYAxisButton->setChecked(true);
-    else if(processingSettings.flipMode==-1)
+    else if(processingSettings.flipCode==-1)
         flipBothAxesButton->setChecked(true);
     // Canny
     cannyThresh1Edit->setText(QString::number(processingSettings.cannyThreshold1));
     cannyThresh2Edit->setText(QString::number(processingSettings.cannyThreshold2));
     cannyApertureSizeEdit->setText(QString::number(processingSettings.cannyApertureSize));
+    cannyL2NormCheckBox->setChecked(processingSettings.cannyL2gradient);
     // Enable/disable appropriate Smooth parameter inputs
     smoothTypeChange(smoothTypeGroup->checkedButton());
 } // updateDialogSettingsFromStored()
@@ -162,14 +160,14 @@ void ProcessingSettingsDialog::resetAllDialogToDefaults()
 
 void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
 {
-    if(input==(QAbstractButton*)smoothBlurNoScaleButton)
+    if(input==(QAbstractButton*)smoothBlurButton)
     {
         // smoothParam1Edit input string validation
         QRegExp rx1("[1-9]\\d{0,1}"); // Integers 1 to 99
         QRegExpValidator *validator1 = new QRegExpValidator(rx1, 0);
         smoothParam1Edit->setValidator(validator1);
         // smoothParam2Edit input string validation
-        QRegExp rx2("[0-9]\\d{0,1}"); // Integers 0 to 99
+        QRegExp rx2("[1-9]\\d{0,1}"); // Integers 1 to 99
         QRegExpValidator *validator2 = new QRegExpValidator(rx2, 0);
         smoothParam2Edit->setValidator(validator2);
         // Enable/disable appropriate parameter inputs
@@ -179,30 +177,14 @@ void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         smoothParam4Edit->setEnabled(false);
         // Set parameter range labels
         smoothParam1RangeLabel->setText("[1-99]");
-        smoothParam2RangeLabel->setText("[0-99]");
+        smoothParam2RangeLabel->setText("[1-99]");
         smoothParam3RangeLabel->setText("");
         smoothParam4RangeLabel->setText("");
-    }
-    else if(input==(QAbstractButton*)smoothBlurButton)
-    {
-        // smoothParam1Edit input string validation
-        QRegExp rx1("[1-9]\\d{0,1}"); // Integers 1 to 99
-        QRegExpValidator *validator1 = new QRegExpValidator(rx1, 0);
-        smoothParam1Edit->setValidator(validator1);
-        // smoothParam2Edit input string validation
-        QRegExp rx2("[0-9]\\d{0,1}"); // Integers 0 to 99
-        QRegExpValidator *validator2 = new QRegExpValidator(rx2, 0);
-        smoothParam2Edit->setValidator(validator2);
-        // Enable/disable appropriate parameter inputs
-        smoothParam1Edit->setEnabled(true);
-        smoothParam2Edit->setEnabled(true);
-        smoothParam3Edit->setEnabled(false);
-        smoothParam4Edit->setEnabled(false);
-        // Set parameter range labels
-        smoothParam1RangeLabel->setText("[1-99]");
-        smoothParam2RangeLabel->setText("[0-99]");
-        smoothParam3RangeLabel->setText("");
-        smoothParam4RangeLabel->setText("");
+        // Set parameter labels
+        smoothParam1Label->setText("Kernel Width");
+        smoothParam2Label->setText("Kernel Height");
+        smoothParam3Label->setText("");
+        smoothParam4Label->setText("");
     }
     else if(input==(QAbstractButton*)smoothGaussianButton)
     {
@@ -222,12 +204,17 @@ void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         smoothParam1Edit->setEnabled(true);
         smoothParam2Edit->setEnabled(true);
         smoothParam3Edit->setEnabled(true);
-        smoothParam4Edit->setEnabled(false);
+        smoothParam4Edit->setEnabled(true);
         // Set parameter range labels
         smoothParam1RangeLabel->setText("[0-99]");
         smoothParam2RangeLabel->setText("[0-99]");
         smoothParam3RangeLabel->setText("[0.00-99.99]");
-        smoothParam4RangeLabel->setText("");
+        smoothParam4RangeLabel->setText("[0.00-99.99]");
+        // Set parameter labels
+        smoothParam1Label->setText("Kernel Width");
+        smoothParam2Label->setText("Kernel Height");
+        smoothParam3Label->setText("Sigma X");
+        smoothParam4Label->setText("Sigma Y");
     }
     else if(input==(QAbstractButton*)smoothMedianButton)
     {
@@ -245,6 +232,11 @@ void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         smoothParam2RangeLabel->setText("");
         smoothParam3RangeLabel->setText("");
         smoothParam4RangeLabel->setText("");
+        // Set parameter labels
+        smoothParam1Label->setText("Kernel (Square)");
+        smoothParam2Label->setText("");
+        smoothParam3Label->setText("");
+        smoothParam4Label->setText("");
     }
 } // smoothTypeChange()
 
@@ -316,7 +308,7 @@ void ProcessingSettingsDialog::validateDialog()
     if(inputEmpty)
         QMessageBox::warning(this->parentWidget(),"WARNING:","One or more inputs empty.\n\nAutomatically set to default values.");
 
-    // Check for special parameter case when smoothing type is GAUSSIAN
+    // Check for special parameter cases when smoothing type is GAUSSIAN
     if((smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothGaussianButton)&&
        (smoothParam1Edit->text().toInt()==0)&&(smoothParam3Edit->text().toDouble()==0.00))
     {
@@ -324,17 +316,30 @@ void ProcessingSettingsDialog::validateDialog()
         smoothParam3Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_3));
         QMessageBox::warning(this->parentWidget(),"ERROR:","Parameters 1 and 3 cannot BOTH be zero when the smoothing type is GAUSSIAN.\n\nAutomatically set to default values.");
     }
+    if((smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothGaussianButton)&&
+       (smoothParam2Edit->text().toInt()==0)&&(smoothParam4Edit->text().toDouble()==0.00))
+    {
+        smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
+        smoothParam4Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_4));
+        QMessageBox::warning(this->parentWidget(),"ERROR:","Parameters 2 and 4 cannot BOTH be zero when the smoothing type is GAUSSIAN.\n\nAutomatically set to default values.");
+    }
+    // Ensure neither smoothing parameters 1 or 2 are ZERO (except in the GAUSSIAN case)
+    if((smoothTypeGroup->checkedButton()!=(QAbstractButton*)smoothGaussianButton)&&
+       ((smoothParam1Edit->text().toInt()==0)||(smoothParam2Edit->text().toDouble()==0)))
+    {
+        smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
+        smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
+        QMessageBox::warning(this->parentWidget(),"ERROR:","Parameters 1 or 2 cannot be zero for the current smoothing type.\n\nAutomatically set to default values.");
+    }
 } // validateDialog()
 
 void ProcessingSettingsDialog::resetSmoothDialogToDefaults()
 {
-    if(DEFAULT_SMOOTH_TYPE==CV_BLUR_NO_SCALE)
-        smoothBlurNoScaleButton->setChecked(true);
-    else if(DEFAULT_SMOOTH_TYPE==CV_BLUR)
+    if(DEFAULT_SMOOTH_TYPE==0)
         smoothBlurButton->setChecked(true);
-    else if(DEFAULT_SMOOTH_TYPE==CV_GAUSSIAN)
+    else if(DEFAULT_SMOOTH_TYPE==1)
         smoothGaussianButton->setChecked(true);
-    else if(DEFAULT_SMOOTH_TYPE==CV_MEDIAN)
+    else if(DEFAULT_SMOOTH_TYPE==2)
         smoothMedianButton->setChecked(true);
     smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
     smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
@@ -356,11 +361,11 @@ void ProcessingSettingsDialog::resetErodeDialogToDefaults()
 
 void ProcessingSettingsDialog::resetFlipDialogToDefaults()
 {
-    if(DEFAULT_FLIP_MODE==0)
+    if(DEFAULT_FLIP_CODE==0)
         flipXAxisButton->setChecked(true);
-    else if(DEFAULT_FLIP_MODE==1)
+    else if(DEFAULT_FLIP_CODE==1)
         flipYAxisButton->setChecked(true);
-    else if(DEFAULT_FLIP_MODE==-1)
+    else if(DEFAULT_FLIP_CODE==-1)
         flipBothAxesButton->setChecked(true);
 } // resetFlipDialogToDefaults()
 
@@ -369,4 +374,5 @@ void ProcessingSettingsDialog::resetCannyDialogToDefaults()
     cannyThresh1Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_1));
     cannyThresh2Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_2));
     cannyApertureSizeEdit->setText(QString::number(DEFAULT_CANNY_APERTURE_SIZE));
+    cannyL2NormCheckBox->setChecked(DEFAULT_CANNY_L2GRADIENT);
 } // resetCannyDialogToDefaults()

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>661</width>
+    <width>670</width>
     <height>633</height>
    </rect>
   </property>
@@ -34,8 +34,8 @@
      <rect>
       <x>10</x>
       <y>10</y>
-      <width>642</width>
-      <height>591</height>
+      <width>651</width>
+      <height>593</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -52,8 +52,8 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>640</width>
-         <height>480</height>
+         <width>642</width>
+         <height>482</height>
         </size>
        </property>
        <property name="mouseTracking">
@@ -177,6 +177,9 @@
              <pointsize>8</pointsize>
             </font>
            </property>
+           <property name="text">
+            <string/>
+           </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
            </property>
@@ -243,7 +246,7 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>16777215</width>
+             <width>40</width>
              <height>20</height>
             </size>
            </property>
@@ -251,6 +254,9 @@
             <font>
              <pointsize>8</pointsize>
             </font>
+           </property>
+           <property name="text">
+            <string/>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -315,7 +321,7 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>16777215</width>
+             <width>40</width>
              <height>20</height>
             </size>
            </property>
@@ -323,6 +329,9 @@
             <font>
              <pointsize>8</pointsize>
             </font>
+           </property>
+           <property name="text">
+            <string/>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
@@ -615,7 +624,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>661</width>
+     <width>670</width>
      <height>23</height>
     </rect>
    </property>

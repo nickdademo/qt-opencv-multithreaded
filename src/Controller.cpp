@@ -36,21 +36,32 @@
 // Qt header files
 #include <QtGui>
 
-Controller::Controller(int deviceNumber, int imageBufferSize) : imageBufferSize(imageBufferSize)
+Controller::Controller()
 {
-    // Create image buffer with user-defined size
-    imageBuffer = new ImageBuffer(imageBufferSize);
-    // Create capture thread with user-defined device number
-    captureThread = new CaptureThread(imageBuffer, deviceNumber);
-    // Create processing thread
-    processingThread = new ProcessingThread(imageBuffer,getInputSourceWidth(),getInputSourceHeight());
 } // Controller constructor
 
 Controller::~Controller()
 {
-    // Delete image buffer
-    delete imageBuffer;
 } // Controller destructor
+
+bool Controller::connectToCamera(int deviceNumber, int imageBufferSize)
+{
+    // Local variable
+    bool isOpened;
+    // Store imageBufferSize in private member
+    imageBufferSizeStore=imageBufferSize;
+    // Create image buffer with user-defined size
+    imageBuffer = new ImageBuffer(imageBufferSize);
+    // Create capture thread
+    captureThread = new CaptureThread(imageBuffer);
+    // Connect to camera
+    isOpened=captureThread->connectToCamera(deviceNumber);
+    // Create processing thread (if camera open was successful)
+    if(isOpened)
+        processingThread = new ProcessingThread(imageBuffer,captureThread->getInputSourceWidth(),captureThread->getInputSourceHeight());
+    // Return camera open result
+    return isOpened;
+} // connectToCamera()
 
 void Controller::disconnectCamera()
 {
@@ -62,11 +73,10 @@ void Controller::stopCaptureThread()
     qDebug() << "About to stop capture thread...";
     captureThread->stopCaptureThread();
     // Take one frame off a FULL queue to allow the capture thread to finish
-    if(imageBuffer->getSizeOfImageBuffer()==imageBufferSize)
+    if(imageBuffer->getSizeOfImageBuffer()==imageBufferSizeStore)
     {
-        IplImage* temp;
+        Mat temp;
         temp=imageBuffer->getFrame();
-        cvReleaseImage(&temp);
     }
     captureThread->wait();
     qDebug() << "Capture thread successfully stopped.";
@@ -96,13 +106,3 @@ void Controller::clearImageBuffer()
 {
     imageBuffer->clearBuffer();
 } // clearImageBuffer()
-
-int Controller::getInputSourceWidth()
-{
-    return captureThread->getInputSourceWidth();
-} // getInputSourceWidth()
-
-int Controller::getInputSourceHeight()
-{
-    return captureThread->getInputSourceHeight();
-} // getInputSourceHeight()
