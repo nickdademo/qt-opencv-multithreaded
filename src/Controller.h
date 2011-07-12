@@ -60,6 +60,7 @@ public:
     void deleteCaptureThread();
     void deleteProcessingThread();
     void clearImageBuffer();
+    void deleteImageBuffer();
 private:
     int imageBufferSizeStore;
 };

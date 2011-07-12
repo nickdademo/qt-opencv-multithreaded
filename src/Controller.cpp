@@ -106,3 +106,9 @@ void Controller::clearImageBuffer()
 {
     imageBuffer->clearBuffer();
 } // clearImageBuffer()
+
+void Controller::deleteImageBuffer()
+{
+    // Delete image buffer
+    delete imageBuffer;
+} // deleteImageBuffer()

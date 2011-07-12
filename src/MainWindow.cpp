@@ -89,6 +89,8 @@ MainWindow::~MainWindow()
             // Delete threads
             controller->deleteCaptureThread();
             controller->deleteProcessingThread();
+            // Delete image buffer
+            controller->deleteImageBuffer();
         }
     }
 } // MainWindow destructor
@@ -109,7 +111,7 @@ void MainWindow::connectToCamera()
         // Store device number in local variable
         deviceNumber=cameraConnectDialog->getDeviceNumber();
         // Connect to camera
-        if(isCameraConnected=controller->connectToCamera(deviceNumber,imageBufferSize))
+        if((isCameraConnected=controller->connectToCamera(deviceNumber,imageBufferSize)))
         {
             // Create connection between processing thread (emitter) and GUI thread (receiver/listener)
             connect(controller->processingThread,SIGNAL(newFrame(QImage)),this,SLOT(updateFrame(QImage)),Qt::UniqueConnection);
@@ -184,37 +186,42 @@ void MainWindow::disconnectCamera()
         {
             // Disconnect camera
             controller->disconnectCamera();
+            // Reset flag
+            isCameraConnected=false;
             // Delete threads
             controller->deleteCaptureThread();
             controller->deleteProcessingThread();
+            // Delete image buffer
+            controller->deleteImageBuffer();
+            // Enable/Disable appropriate menu items
+            connectToCameraAction->setDisabled(false);
+            disconnectCameraAction->setDisabled(true);
+            processingMenu->setDisabled(true);
+            // Set GUI in main window
+            grayscaleAction->setChecked(false);
+            smoothAction->setChecked(false);
+            dilateAction->setChecked(false);
+            erodeAction->setChecked(false);
+            flipAction->setChecked(false);
+            cannyAction->setChecked(false);
+            frameLabel->setText("No camera connected.");
+            imageBufferBar->setValue(0);
+            imageBufferLabel->setText("[000/000]");
+            captureRateLabel->setText("");
+            processingRateLabel->setText("");
+            deviceNumberLabel->setText("");
+            cameraResolutionLabel->setText("");
+            roiLabel->setText("");
+            mouseCursorPosLabel->setText("");
+            clearImageBufferButton->setDisabled(true);
         }
-        // Reset flag
-        isCameraConnected=false;
-        // Enable/Disable appropriate menu items
-        connectToCameraAction->setDisabled(false);
-        disconnectCameraAction->setDisabled(true);
-        processingMenu->setDisabled(true);
-        // Set GUI in main window
-        grayscaleAction->setChecked(false);
-        smoothAction->setChecked(false);
-        dilateAction->setChecked(false);
-        erodeAction->setChecked(false);
-        flipAction->setChecked(false);
-        cannyAction->setChecked(false);
-        frameLabel->setText("No camera connected.");
-        imageBufferBar->setValue(0);
-        imageBufferLabel->setText("[000/000]");
-        captureRateLabel->setText("");
-        processingRateLabel->setText("");
-        deviceNumberLabel->setText("");
-        cameraResolutionLabel->setText("");
-        roiLabel->setText("");
-        mouseCursorPosLabel->setText("");
-        clearImageBufferButton->setDisabled(true);
+        // Display error dialog
+        else
+            QMessageBox::warning(this,"ERROR:","Thread(s) could not be stopped. Camera was not disconnected.");
     }
-    // Display error dialog if camera could not be disconnected
+    // Display error dialog
     else
-        QMessageBox::warning(this,"ERROR:","Could not disconnect camera.");
+        QMessageBox::warning(this,"ERROR:","Camera already disconnected.");
 } // disconnectCamera()
 
 void MainWindow::about()
