@@ -345,6 +345,12 @@ void MainWindow::updateMouseCursorPosLabel()
     mouseCursorPosLabel->setText(QString("(")+QString::number(frameLabel->getMouseCursorPos().x())+
                                  QString(",")+QString::number(frameLabel->getMouseCursorPos().y())+
                                  QString(")"));
+    // Show ROI-adjusted cursor position if camera is connected
+    if(isCameraConnected)
+        mouseCursorPosLabel->setText(mouseCursorPosLabel->text()+
+                                     QString(" [")+QString::number(frameLabel->getMouseCursorPos().x()-(frameLabel->width()-controller->processingThread->getCurrentROI().width)/2)+
+                                     QString(",")+QString::number(frameLabel->getMouseCursorPos().y()-(frameLabel->height()-controller->processingThread->getCurrentROI().height)/2)+
+                                     QString("]"));
 } // updateMouseCursorPosLabel()
 
 void MainWindow::newMouseData(struct MouseData mouseData)
@@ -355,8 +361,8 @@ void MainWindow::newMouseData(struct MouseData mouseData)
     if(mouseData.leftButtonRelease)
     {
         // Copy box dimensions from mouseData to taskData
-        taskData.selectionBox.setX(mouseData.selectionBox.x());
-        taskData.selectionBox.setY(mouseData.selectionBox.y());
+        taskData.selectionBox.setX(mouseData.selectionBox.x()-((frameLabel->width()-controller->captureThread->getInputSourceWidth()))/2);
+        taskData.selectionBox.setY(mouseData.selectionBox.y()-((frameLabel->height()-controller->captureThread->getInputSourceHeight()))/2);
         taskData.selectionBox.setWidth(mouseData.selectionBox.width());
         taskData.selectionBox.setHeight(mouseData.selectionBox.height());
         // Check if selection box has NON-ZERO dimensions
