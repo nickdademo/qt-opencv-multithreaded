@@ -54,7 +54,7 @@ public:
     ImageBuffer *imageBuffer;
     ProcessingThread *processingThread;
     CaptureThread *captureThread;
-    bool connectToCamera(int,int,bool);
+    bool connectToCamera(int,int,bool,int,int);
     void disconnectCamera();
     void stopCaptureThread();
     void stopProcessingThread();

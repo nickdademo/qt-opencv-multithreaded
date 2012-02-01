@@ -49,64 +49,127 @@ CameraConnectDialog::CameraConnectDialog(QWidget *parent) : QDialog(parent)
     QRegExp rx2("[0-9]\\d{0,2}"); // Integers 0 to 999
     QRegExpValidator *validator2 = new QRegExpValidator(rx2, 0);
     imageBufferSizeEdit->setValidator(validator2);
-    // Set imageBufferSizeEdit to default value
-    imageBufferSizeEdit->setText(QString::number(DEFAULT_IMAGE_BUFFER_SIZE));
-    // Initially set deviceNumber, imageBufferSize and dropFrameCheckBox to defaults
-    deviceNumber=-1;
-    imageBufferSize=DEFAULT_IMAGE_BUFFER_SIZE;
-    dropFrameCheckBox->setChecked(false);
+    // Setup combo boxes
+    setupComboBoxes();
+    // Set to defaults
+    resetToDefaults();
+    // Connect button to slot
+    connect(resetToDefaultsPushButton,SIGNAL(released()),SLOT(resetToDefaults()));
 } // CameraConnectDialog constructor
 
-void CameraConnectDialog::setDeviceNumber()
+int CameraConnectDialog::getDeviceNumber()
 {
-    // "Any available camera"
-    if(anyCameraButton->isChecked())
-        deviceNumber=-1;
-    // "Device number"
+    if(cameraButtonGroup->checkedButton()==(QAbstractButton*)anyCameraButton)
+        return -1;
     else
     {
         // Set device number to default (any available camera) if field is blank
         if(deviceNumberEdit->text().isEmpty())
         {
             QMessageBox::warning(this->parentWidget(), "WARNING:","Device Number field blank.\nAutomatically set to 'any available camera'.");
-            deviceNumber=-1;
+            return -1;
         }
-        // User-specified camera
-        else
-            deviceNumber=deviceNumberEdit->text().toInt();
+        return deviceNumberEdit->text().toInt();
     }
-} // setDeviceNumber()
+} // getDeviceNumber()
 
-void CameraConnectDialog::setImageBufferSize()
+int CameraConnectDialog::getImageBufferSize()
 {
     // Set image buffer size to default if field is blank
     if(imageBufferSizeEdit->text().isEmpty())
     {
         QMessageBox::warning(this->parentWidget(), "WARNING:","Image Buffer Size field blank.\nAutomatically set to default value.");
-        imageBufferSize=DEFAULT_IMAGE_BUFFER_SIZE;
+        return DEFAULT_IMAGE_BUFFER_SIZE;
     }
     // Set image buffer size to default if field is zero
     else if(imageBufferSizeEdit->text().toInt()==0)
     {
         QMessageBox::warning(this->parentWidget(), "WARNING:","Image Buffer Size cannot be zero.\nAutomatically set to default value.");
-        imageBufferSize=DEFAULT_IMAGE_BUFFER_SIZE;;
+        return DEFAULT_IMAGE_BUFFER_SIZE;;
     }
     // Use image buffer size specified by user
     else
-        imageBufferSize=imageBufferSizeEdit->text().toInt();
-} // setImageBufferSize()
-
-int CameraConnectDialog::getDeviceNumber()
-{
-    return deviceNumber;
-} // getDeviceNumber()
-
-int CameraConnectDialog::getImageBufferSize()
-{
-    return imageBufferSize;
+        return imageBufferSizeEdit->text().toInt();
 } // getImageBufferSize()
 
 bool CameraConnectDialog::getDropFrameCheckBoxState()
 {
     return dropFrameCheckBox->isChecked();
 } // getDropFrameCheckBoxState()
+
+void CameraConnectDialog::setupComboBoxes()
+{
+    // Local variables
+    QStringList threadPriorities;
+    // Fill combo boxes
+    threadPriorities<<"Idle"<<"Lowest"<<"Low"<<"Normal"<<"High"<<"Highest"<<"Time Critical"<<"Inherit";
+    capturePrioComboBox->addItems(threadPriorities);
+    processingPrioComboBox->addItems(threadPriorities);
+    // Set to defaults
+
+} // setupComboBoxes()
+
+int CameraConnectDialog::getCaptureThreadPrio()
+{
+    return capturePrioComboBox->currentIndex();
+} // getCaptureThreadPrio()
+
+int CameraConnectDialog::getProcessingThreadPrio()
+{
+    return processingPrioComboBox->currentIndex();
+} // getProcessingThreadPrio()
+
+void CameraConnectDialog::resetToDefaults()
+{
+    // Default camera
+    if(DEFAULT_CAMERA_DEV_NO!=-1)
+    {
+        deviceNumberButton->setChecked(true);
+        deviceNumberEdit->setEnabled(true);
+        deviceNumberEdit->setText(QString::number(DEFAULT_CAMERA_DEV_NO));
+    }
+    else
+    {
+        anyCameraButton->setChecked(true);
+        deviceNumberEdit->setEnabled(false);
+        deviceNumberEdit->clear();
+    }
+    // Image buffer size
+    imageBufferSizeEdit->setText(QString::number(DEFAULT_IMAGE_BUFFER_SIZE));
+    // Drop frames
+    dropFrameCheckBox->setChecked(DEFAULT_DROP_FRAMES);
+    // Capture thread
+    if(DEFAULT_CAP_THREAD_PRIO==QThread::IdlePriority)
+        capturePrioComboBox->setCurrentIndex(0);
+    else if(DEFAULT_CAP_THREAD_PRIO==QThread::LowestPriority)
+        capturePrioComboBox->setCurrentIndex(1);
+    else if(DEFAULT_CAP_THREAD_PRIO==QThread::LowPriority)
+        capturePrioComboBox->setCurrentIndex(2);
+    else if(DEFAULT_CAP_THREAD_PRIO==QThread::NormalPriority)
+        capturePrioComboBox->setCurrentIndex(3);
+    else if(DEFAULT_CAP_THREAD_PRIO==QThread::HighPriority)
+        capturePrioComboBox->setCurrentIndex(4);
+    else if(DEFAULT_CAP_THREAD_PRIO==QThread::HighestPriority)
+        capturePrioComboBox->setCurrentIndex(5);
+    else if(DEFAULT_CAP_THREAD_PRIO==QThread::TimeCriticalPriority)
+        capturePrioComboBox->setCurrentIndex(6);
+    else if(DEFAULT_CAP_THREAD_PRIO==QThread::InheritPriority)
+        capturePrioComboBox->setCurrentIndex(7);
+    // Processing thread
+    if(DEFAULT_PROC_THREAD_PRIO==QThread::IdlePriority)
+        processingPrioComboBox->setCurrentIndex(0);
+    else if(DEFAULT_PROC_THREAD_PRIO==QThread::LowestPriority)
+        processingPrioComboBox->setCurrentIndex(1);
+    else if(DEFAULT_PROC_THREAD_PRIO==QThread::LowPriority)
+        processingPrioComboBox->setCurrentIndex(2);
+    else if(DEFAULT_PROC_THREAD_PRIO==QThread::NormalPriority)
+        processingPrioComboBox->setCurrentIndex(3);
+    else if(DEFAULT_PROC_THREAD_PRIO==QThread::HighPriority)
+        processingPrioComboBox->setCurrentIndex(4);
+    else if(DEFAULT_PROC_THREAD_PRIO==QThread::HighestPriority)
+        processingPrioComboBox->setCurrentIndex(5);
+    else if(DEFAULT_PROC_THREAD_PRIO==QThread::TimeCriticalPriority)
+        processingPrioComboBox->setCurrentIndex(6);
+    else if(DEFAULT_PROC_THREAD_PRIO==QThread::InheritPriority)
+        processingPrioComboBox->setCurrentIndex(7);
+} // resetToDefaults()

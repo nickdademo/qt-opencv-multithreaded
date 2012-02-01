@@ -46,7 +46,7 @@ Controller::~Controller()
 {
 } // Controller destructor
 
-bool Controller::connectToCamera(int deviceNumber, int imageBufferSize, bool dropFrame)
+bool Controller::connectToCamera(int deviceNumber, int imageBufferSize, bool dropFrame, int capThreadPrio, int procThreadPrio)
 {
     // Local variables
     bool isOpened=false;
@@ -62,20 +62,10 @@ bool Controller::connectToCamera(int deviceNumber, int imageBufferSize, bool dro
         // Create processing thread
         processingThread = new ProcessingThread(imageBuffer,captureThread->getInputSourceWidth(),captureThread->getInputSourceHeight());
         isCreatedProcessingThread=true;
-        /*
-        QThread::IdlePriority               0       scheduled only when no other threads are running.
-        QThread::LowestPriority             1       scheduled less often than LowPriority.
-        QThread::LowPriority                2       scheduled less often than NormalPriority.
-        QThread::NormalPriority             3       the default priority of the operating system.
-        QThread::HighPriority               4       scheduled more often than NormalPriority.
-        QThread::HighestPriority            5       scheduled more often than HighPriority.
-        QThread::TimeCriticalPriority       6       scheduled as often as possible.
-        QThread::InheritPriority            7       use the same priority as the creating thread. This is the default.
-        */
         // Start capturing frames from camera
-        captureThread->start(QThread::NormalPriority);
+        captureThread->start((QThread::Priority)capThreadPrio);
         // Start processing captured frames
-        processingThread->start(QThread::HighPriority);
+        processingThread->start((QThread::Priority)procThreadPrio);
     }
     else
     {

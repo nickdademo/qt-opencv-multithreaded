@@ -76,15 +76,15 @@ void MainWindow::connectToCamera()
     // If user presses OK button on dialog, connect to camera; else do nothing
     if(cameraConnectDialog->exec()==1)
     {
-        // Set private member variables in cameraConnectDialog to values in dialog
-        cameraConnectDialog->setDeviceNumber();
-        cameraConnectDialog->setImageBufferSize();
         // Store image buffer size in local variable
         imageBufferSize=cameraConnectDialog->getImageBufferSize();
         // Store device number in local variable
         deviceNumber=cameraConnectDialog->getDeviceNumber();
         // Connect to camera
-        if((isCameraConnected=controller->connectToCamera(deviceNumber,imageBufferSize,cameraConnectDialog->getDropFrameCheckBoxState())))
+        if((isCameraConnected=controller->connectToCamera(deviceNumber,imageBufferSize,
+                                                          cameraConnectDialog->getDropFrameCheckBoxState(),
+                                                          cameraConnectDialog->getCaptureThreadPrio(),
+                                                          cameraConnectDialog->getProcessingThreadPrio())))
         {
             // Create connection between frameLabel (emitter) and GUI thread (receiver/listener)
             connect(this->frameLabel,SIGNAL(newMouseData(struct MouseData)),this,SLOT(newMouseData(struct MouseData)));

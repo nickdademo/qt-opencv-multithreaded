@@ -46,9 +46,12 @@ public:
     int getDeviceNumber();
     int getImageBufferSize();
     bool getDropFrameCheckBoxState();
+    int getCaptureThreadPrio();
+    int getProcessingThreadPrio();
+public slots:
+    void resetToDefaults();
 private:
-    int deviceNumber;
-    int imageBufferSize;
+    void setupComboBoxes();
 };
 
 #endif // CAMERACONNECTDIALOG_H

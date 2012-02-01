@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>410</width>
-    <height>221</height>
+    <width>411</width>
+    <height>331</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -25,18 +25,18 @@
   <property name="windowTitle">
    <string>Connect to Camera</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>11</y>
+     <x>11</x>
+     <y>14</y>
      <width>391</width>
-     <height>201</height>
+     <height>301</height>
     </rect>
    </property>
-   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout_4">
     <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
+     <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <widget class="QLabel" name="label_1">
         <property name="font">
@@ -64,6 +64,9 @@
         <property name="checked">
          <bool>true</bool>
         </property>
+        <attribute name="buttonGroup">
+         <string>cameraButtonGroup</string>
+        </attribute>
        </widget>
       </item>
       <item>
@@ -78,6 +81,9 @@
           <property name="text">
            <string>Device Number:</string>
           </property>
+          <attribute name="buttonGroup">
+           <string>cameraButtonGroup</string>
+          </attribute>
          </widget>
         </item>
         <item>
@@ -170,6 +176,11 @@
             <height>16777215</height>
            </size>
           </property>
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+           </font>
+          </property>
          </widget>
         </item>
         <item>
@@ -213,17 +224,107 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QLabel" name="label_5">
+        <property name="font">
+         <font>
+          <pointsize>9</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Thread Priorities:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QLabel" name="label_6">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Capture Thread:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_7">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string>Processing Thread:</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <item>
+           <widget class="QComboBox" name="capturePrioComboBox">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="processingPrioComboBox">
+            <property name="font">
+             <font>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
      </layout>
     </item>
     <item>
-     <widget class="QDialogButtonBox" name="okCancelBox">
+     <widget class="Line" name="line">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <property name="standardButtons">
-       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-      </property>
      </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <item>
+       <widget class="QPushButton" name="resetToDefaultsPushButton">
+        <property name="text">
+         <string>Reset to Defaults</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDialogButtonBox" name="okCancelBox">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="standardButtons">
+         <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -233,7 +334,11 @@
   <tabstop>deviceNumberButton</tabstop>
   <tabstop>deviceNumberEdit</tabstop>
   <tabstop>imageBufferSizeEdit</tabstop>
+  <tabstop>dropFrameCheckBox</tabstop>
+  <tabstop>capturePrioComboBox</tabstop>
+  <tabstop>processingPrioComboBox</tabstop>
   <tabstop>okCancelBox</tabstop>
+  <tabstop>resetToDefaultsPushButton</tabstop>
  </tabstops>
  <resources/>
  <connections>
@@ -302,4 +407,7 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="cameraButtonGroup"/>
+ </buttongroups>
 </ui>

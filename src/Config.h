@@ -36,26 +36,37 @@
 // OpenCV header files
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
+// Qt header files
+#include <QtGui>
 
 // Queue lengths for FPS statistics
 #define DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH 8
 #define DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH 8
 
+// Camera device number
+#define DEFAULT_CAMERA_DEV_NO -1
 // Image buffer size
 #define DEFAULT_IMAGE_BUFFER_SIZE 1
-// SMOOTH
+// Drop frames
+#define DEFAULT_DROP_FRAMES false
+// Thread priorities
+#define DEFAULT_CAP_THREAD_PRIO QThread::NormalPriority
+#define DEFAULT_PROC_THREAD_PRIO QThread::HighPriority
+
+// IMAGE PROCESSING
+// Smooth
 #define DEFAULT_SMOOTH_TYPE 0 // Options: [BLUR=0,GAUSSIAN=1,MEDIAN=2]
 #define DEFAULT_SMOOTH_PARAM_1 3
 #define DEFAULT_SMOOTH_PARAM_2 3
 #define DEFAULT_SMOOTH_PARAM_3 0
 #define DEFAULT_SMOOTH_PARAM_4 0
-// DILATE
+// Dilate
 #define DEFAULT_DILATE_ITERATIONS 1
-// ERODE
+// Erode
 #define DEFAULT_ERODE_ITERATIONS 1
-// FLIP
+// Flip
 #define DEFAULT_FLIP_CODE 0 // Options: [x-axis=0,y-axis=1,both axes=-1]
-// CANNY
+// Canny
 #define DEFAULT_CANNY_THRESHOLD_1 10
 #define DEFAULT_CANNY_THRESHOLD_2 100
 #define DEFAULT_CANNY_APERTURE_SIZE 3

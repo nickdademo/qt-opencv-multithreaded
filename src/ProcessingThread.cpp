@@ -254,10 +254,13 @@ void ProcessingThread::setROI()
 } // setROI()
 
 void ProcessingThread::resetROI()
-{
-    // Reset ROI to original
-    currentROI=originalROI;
-    qDebug() << "ROI successfully RESET.";
+{ 
+    // Reset ROI to original if not already
+    if((currentROI.x!=originalROI.x)&&(currentROI.y!=originalROI.y)&&(currentROI.width!=originalROI.width)&&(currentROI.height!=originalROI.height))
+    {
+        currentROI=originalROI;
+        qDebug() << "ROI successfully RESET.";
+    }
     // Reset flag to FALSE
     resetROIFlag=false;
 } // resetROI()
