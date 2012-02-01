@@ -2,11 +2,9 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* ProcessingSettingsDialog.h                                           */
-/*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -29,35 +27,3 @@
 /* SOFTWARE.                                                            */
 /*                                                                      */
 /************************************************************************/
-
-#ifndef PROCESSINGSETTINGSDIALOG_H
-#define PROCESSINGSETTINGSDIALOG_H
-
-#include "ui_ProcessingSettingsDialog.h"
-#include "Structures.h"
-
-class ProcessingSettingsDialog : public QDialog, private Ui::ProcessingSettingsDialog
-{
-    Q_OBJECT
-
-public:
-    ProcessingSettingsDialog(QWidget *parent = 0);
-    void updateDialogSettingsFromStored();
-private:
-    ProcessingSettings processingSettings;
-public slots:
-    void resetAllDialogToDefaults();
-    void updateStoredSettingsFromDialog();
-private slots:
-    void resetSmoothDialogToDefaults();
-    void resetDilateDialogToDefaults();
-    void resetErodeDialogToDefaults();
-    void resetFlipDialogToDefaults();
-    void resetCannyDialogToDefaults();
-    void validateDialog();
-    void smoothTypeChange(QAbstractButton*);
-signals:
-    void newProcessingSettings(struct ProcessingSettings p_settings);
-};
-
-#endif // PROCESSINGSETTINGSDIALOG_H

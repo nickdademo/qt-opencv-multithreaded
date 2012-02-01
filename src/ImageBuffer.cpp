@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -35,27 +35,49 @@
 // Qt header files
 #include <QDebug>
 
-ImageBuffer::ImageBuffer(int bufferSize) : bufferSize(bufferSize)
+ImageBuffer::ImageBuffer(int bufferSize, bool dropFrame) : bufferSize(bufferSize), dropFrame(dropFrame)
 {
     // Semaphore initializations
     freeSlots = new QSemaphore(bufferSize);
     usedSlots = new QSemaphore(0);
     clearBuffer1 = new QSemaphore(1);
     clearBuffer2 = new QSemaphore(1);
+    // Save value of dropFrame to private member
+    this->dropFrame=dropFrame;
 } // ImageBuffer constructor
 
 void ImageBuffer::addFrame(const Mat& frame)
 {
-    // Acquire semaphores
+    // Acquire semaphore
     clearBuffer1->acquire();
-    freeSlots->acquire();
-    // Add frame to queue
-    imageQueueProtect.lock();
-        imageQueue.enqueue(frame);
-    imageQueueProtect.unlock();
-    // Release semaphores
+    // If frame dropping is enabled, do not block if buffer is full
+    if(dropFrame)
+    {
+        // Try and acquire semaphore to add frame
+        if(freeSlots->tryAcquire())
+        {
+            // Add frame to queue
+            imageQueueProtect.lock();
+                imageQueue.enqueue(frame);
+            imageQueueProtect.unlock();
+            // Release semaphore
+            usedSlots->release();
+        }
+    }
+    // If buffer is full, wait on semaphore
+    else
+    {
+        // Acquire semaphore
+        freeSlots->acquire();
+        // Add frame to queue
+        imageQueueProtect.lock();
+            imageQueue.enqueue(frame);
+        imageQueueProtect.unlock();
+        // Release semaphore
+        usedSlots->release();
+    }
+    // Release semaphore
     clearBuffer1->release();
-    usedSlots->release();
 } // addFrame()
 
 Mat ImageBuffer::getFrame()
@@ -91,16 +113,8 @@ void ImageBuffer::clearBuffer()
         freeSlots->acquire(bufferSize);
         // Reset usedSlots to zero
         usedSlots->acquire(imageQueue.size());
-        // Clear buffer by dequeuing items
-        while(imageQueue.size()!=0)
-        {
-            // Temporary data
-            Mat temp;
-            // Dequeue frame
-            temp=imageQueue.dequeue();
-            // Release frame
-            temp.release();
-        }
+        // Clear buffer
+        imageQueue.clear();
         // Release all slots
         freeSlots->release(bufferSize);
         // Allow getFrame() to resume

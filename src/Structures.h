@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -36,8 +36,8 @@
 // Qt header files
 #include <QtGui>
 
-// ProcessingSettings structure definition
-struct ProcessingSettings{
+// ImageProcessingSettings structure definition
+struct ImageProcessingSettings{
     int smoothType;
     int smoothParam1;
     int smoothParam2;
@@ -52,8 +52,8 @@ struct ProcessingSettings{
     bool cannyL2gradient;
 };
 
-// ProcessingFlags structure definition
-struct ProcessingFlags{
+// ImageProcessingFlags structure definition
+struct ImageProcessingFlags{
     bool grayscaleOn;
     bool smoothOn;
     bool dilateOn;

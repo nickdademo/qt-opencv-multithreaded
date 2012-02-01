@@ -35,7 +35,7 @@
       <x>10</x>
       <y>10</y>
       <width>651</width>
-      <height>611</height>
+      <height>628</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -529,7 +529,7 @@
      <x>0</x>
      <y>0</y>
      <width>671</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="mainMenu">
@@ -547,9 +547,9 @@
     </property>
     <addaction name="aboutAction"/>
    </widget>
-   <widget class="QMenu" name="processingMenu">
+   <widget class="QMenu" name="imageProcessingMenu">
     <property name="title">
-     <string>Processing</string>
+     <string>Image Processing</string>
     </property>
     <addaction name="grayscaleAction"/>
     <addaction name="smoothAction"/>
@@ -558,10 +558,10 @@
     <addaction name="flipAction"/>
     <addaction name="cannyAction"/>
     <addaction name="separator"/>
-    <addaction name="settingsAction"/>
+    <addaction name="imageProcessingSettingsAction"/>
    </widget>
    <addaction name="mainMenu"/>
-   <addaction name="processingMenu"/>
+   <addaction name="imageProcessingMenu"/>
    <addaction name="aboutMenu"/>
   </widget>
   <action name="connectToCameraAction">
@@ -632,7 +632,7 @@
     <string>6. Canny</string>
    </property>
   </action>
-  <action name="settingsAction">
+  <action name="imageProcessingSettingsAction">
    <property name="text">
     <string>Settings...</string>
    </property>

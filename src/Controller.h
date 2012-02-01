@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -35,6 +35,7 @@
 
 #include "CaptureThread.h"
 #include "ProcessingThread.h"
+#include "Structures.h"
 
 // Qt header files
 #include <QtGui>
@@ -53,7 +54,7 @@ public:
     ImageBuffer *imageBuffer;
     ProcessingThread *processingThread;
     CaptureThread *captureThread;
-    bool connectToCamera(int,int);
+    bool connectToCamera(int,int,bool);
     void disconnectCamera();
     void stopCaptureThread();
     void stopProcessingThread();
@@ -62,7 +63,9 @@ public:
     void clearImageBuffer();
     void deleteImageBuffer();
 private:
-    int imageBufferSizeStore;
+    bool isCreatedProcessingThread;
+    bool isCreatedControlThread;
+    int imageBufferSize;
 };
 
 #endif // CONTROLLER_H

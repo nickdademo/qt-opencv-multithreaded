@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -38,34 +38,73 @@
 
 Controller::Controller()
 {
+    // Initialize flag
+    isCreatedProcessingThread=false;
 } // Controller constructor
 
 Controller::~Controller()
 {
 } // Controller destructor
 
-bool Controller::connectToCamera(int deviceNumber, int imageBufferSize)
+bool Controller::connectToCamera(int deviceNumber, int imageBufferSize, bool dropFrame)
 {
-    // Local variable
-    bool isOpened;
+    // Local variables
+    bool isOpened=false;
     // Store imageBufferSize in private member
-    imageBufferSizeStore=imageBufferSize;
-    // Create image buffer with user-defined size
-    imageBuffer = new ImageBuffer(imageBufferSize);
+    this->imageBufferSize=imageBufferSize;
+    // Create image buffer with user-defined settings
+    imageBuffer = new ImageBuffer(imageBufferSize,dropFrame);
     // Create capture thread
     captureThread = new CaptureThread(imageBuffer);
-    // Connect to camera
-    isOpened=captureThread->connectToCamera(deviceNumber);
-    // Create processing thread (if camera open was successful)
-    if(isOpened)
+    // Attempt to connect to camera
+    if((isOpened=captureThread->connectToCamera(deviceNumber)))
+    {
+        // Create processing thread
         processingThread = new ProcessingThread(imageBuffer,captureThread->getInputSourceWidth(),captureThread->getInputSourceHeight());
+        isCreatedProcessingThread=true;
+        /*
+        QThread::IdlePriority               0       scheduled only when no other threads are running.
+        QThread::LowestPriority             1       scheduled less often than LowPriority.
+        QThread::LowPriority                2       scheduled less often than NormalPriority.
+        QThread::NormalPriority             3       the default priority of the operating system.
+        QThread::HighPriority               4       scheduled more often than NormalPriority.
+        QThread::HighestPriority            5       scheduled more often than HighPriority.
+        QThread::TimeCriticalPriority       6       scheduled as often as possible.
+        QThread::InheritPriority            7       use the same priority as the creating thread. This is the default.
+        */
+        // Start capturing frames from camera
+        captureThread->start(QThread::NormalPriority);
+        // Start processing captured frames
+        processingThread->start(QThread::HighPriority);
+    }
+    else
+    {
+        // Delete capture thread
+        deleteCaptureThread();
+        // Delete image buffer
+        deleteImageBuffer();
+    }
     // Return camera open result
     return isOpened;
 } // connectToCamera()
 
 void Controller::disconnectCamera()
 {
+    // Stop processing thread
+    if(processingThread->isRunning())
+        stopProcessingThread();
+    // Stop capture thread
+    if(captureThread->isRunning())
+        stopCaptureThread();
+    // Clear image buffer
+    clearImageBuffer();
+    // Disconnect camera
     captureThread->disconnectCamera();
+    // Delete threads
+    deleteCaptureThread();
+    deleteProcessingThread();
+    // Delete image buffer
+    deleteImageBuffer();
 } // disconnectCamera()
 
 void Controller::stopCaptureThread()
@@ -73,11 +112,8 @@ void Controller::stopCaptureThread()
     qDebug() << "About to stop capture thread...";
     captureThread->stopCaptureThread();
     // Take one frame off a FULL queue to allow the capture thread to finish
-    if(imageBuffer->getSizeOfImageBuffer()==imageBufferSizeStore)
-    {
-        Mat temp;
-        temp=imageBuffer->getFrame();
-    }
+    if(imageBuffer->getSizeOfImageBuffer()==imageBufferSize)
+        Mat temp=imageBuffer->getFrame();
     captureThread->wait();
     qDebug() << "Capture thread successfully stopped.";
 } // stopCaptureThread()
@@ -100,6 +136,8 @@ void Controller::deleteProcessingThread()
 {
     // Delete thread
     delete processingThread;
+    // Set flag
+    isCreatedProcessingThread=false;
 } // deleteProcessingThread()
 
 void Controller::clearImageBuffer()

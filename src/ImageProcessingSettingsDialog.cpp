@@ -2,11 +2,11 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* ProcessingSettingsDialog.cpp                                         */
+/* ImageProcessingSettingsDialog.cpp                                    */
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -30,14 +30,14 @@
 /*                                                                      */
 /************************************************************************/
 
-#include "ProcessingSettingsDialog.h"
+#include "ImageProcessingSettingsDialog.h"
 
 // Qt header files
 #include <QtGui>
 // Configuration header file
 #include "Config.h"
 
-ProcessingSettingsDialog::ProcessingSettingsDialog(QWidget *parent) : QDialog(parent)
+ImageProcessingSettingsDialog::ImageProcessingSettingsDialog(QWidget *parent) : QDialog(parent)
 {
     // Setup dialog
     setupUi(this);
@@ -72,79 +72,79 @@ ProcessingSettingsDialog::ProcessingSettingsDialog(QWidget *parent) : QDialog(pa
     cannyApertureSizeEdit->setValidator(validator9);
     // Set dialog values to defaults
     resetAllDialogToDefaults();
-    // Update processing settings in processingSettings structure and processingThread
+    // Update image processing settings in imageProcessingSettings structure and processingThread
     updateStoredSettingsFromDialog();
-} // ProcessingSettingsDialog constructor
+} // ImageProcessingSettingsDialog constructor
 
-void ProcessingSettingsDialog::updateStoredSettingsFromDialog()
+void ImageProcessingSettingsDialog::updateStoredSettingsFromDialog()
 {
     // Validate values in dialog before storing
     validateDialog();
     // Smooth
     if(smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothBlurButton)
-        processingSettings.smoothType=0;
+        imageProcessingSettings.smoothType=0;
     else if(smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothGaussianButton)
-        processingSettings.smoothType=1;
+        imageProcessingSettings.smoothType=1;
     else if(smoothTypeGroup->checkedButton()==(QAbstractButton*)smoothMedianButton)
-        processingSettings.smoothType=2;
-    processingSettings.smoothParam1=smoothParam1Edit->text().toInt();
-    processingSettings.smoothParam2=smoothParam2Edit->text().toInt();
-    processingSettings.smoothParam3=smoothParam3Edit->text().toDouble();
-    processingSettings.smoothParam4=smoothParam4Edit->text().toDouble();
+        imageProcessingSettings.smoothType=2;
+    imageProcessingSettings.smoothParam1=smoothParam1Edit->text().toInt();
+    imageProcessingSettings.smoothParam2=smoothParam2Edit->text().toInt();
+    imageProcessingSettings.smoothParam3=smoothParam3Edit->text().toDouble();
+    imageProcessingSettings.smoothParam4=smoothParam4Edit->text().toDouble();
     // Dilate
-    processingSettings.dilateNumberOfIterations=dilateIterationsEdit->text().toInt();
+    imageProcessingSettings.dilateNumberOfIterations=dilateIterationsEdit->text().toInt();
     // Erode
-    processingSettings.erodeNumberOfIterations=erodeIterationsEdit->text().toInt();
+    imageProcessingSettings.erodeNumberOfIterations=erodeIterationsEdit->text().toInt();
     // Flip
     if(flipCodeGroup->checkedButton()==(QAbstractButton*)flipXAxisButton)
-        processingSettings.flipCode=0;
+        imageProcessingSettings.flipCode=0;
     else if(flipCodeGroup->checkedButton()==(QAbstractButton*)flipYAxisButton)
-        processingSettings.flipCode=1;
+        imageProcessingSettings.flipCode=1;
     else if(flipCodeGroup->checkedButton()==(QAbstractButton*)flipBothAxesButton)
-        processingSettings.flipCode=-1;
+        imageProcessingSettings.flipCode=-1;
     // Canny
-    processingSettings.cannyThreshold1=cannyThresh1Edit->text().toDouble();
-    processingSettings.cannyThreshold2=cannyThresh2Edit->text().toDouble();
-    processingSettings.cannyApertureSize=cannyApertureSizeEdit->text().toInt();
-    processingSettings.cannyL2gradient=cannyL2NormCheckBox->isChecked();
-    // Update processing flags in processingThread
-    emit newProcessingSettings(processingSettings);
+    imageProcessingSettings.cannyThreshold1=cannyThresh1Edit->text().toDouble();
+    imageProcessingSettings.cannyThreshold2=cannyThresh2Edit->text().toDouble();
+    imageProcessingSettings.cannyApertureSize=cannyApertureSizeEdit->text().toInt();
+    imageProcessingSettings.cannyL2gradient=cannyL2NormCheckBox->isChecked();
+    // Update image processing flags in processingThread
+    emit newImageProcessingSettings(imageProcessingSettings);
 } // updateStoredSettingsFromDialog()
 
-void ProcessingSettingsDialog::updateDialogSettingsFromStored()
+void ImageProcessingSettingsDialog::updateDialogSettingsFromStored()
 {
     // Smooth
-    if(processingSettings.smoothType==0)
+    if(imageProcessingSettings.smoothType==0)
         smoothBlurButton->setChecked(true);
-    else if(processingSettings.smoothType==1)
+    else if(imageProcessingSettings.smoothType==1)
         smoothGaussianButton->setChecked(true);
-    else if(processingSettings.smoothType==2)
+    else if(imageProcessingSettings.smoothType==2)
         smoothMedianButton->setChecked(true);
-    smoothParam1Edit->setText(QString::number(processingSettings.smoothParam1));
-    smoothParam2Edit->setText(QString::number(processingSettings.smoothParam2));
-    smoothParam3Edit->setText(QString::number(processingSettings.smoothParam3));
-    smoothParam4Edit->setText(QString::number(processingSettings.smoothParam4));
+    smoothParam1Edit->setText(QString::number(imageProcessingSettings.smoothParam1));
+    smoothParam2Edit->setText(QString::number(imageProcessingSettings.smoothParam2));
+    smoothParam3Edit->setText(QString::number(imageProcessingSettings.smoothParam3));
+    smoothParam4Edit->setText(QString::number(imageProcessingSettings.smoothParam4));
     // Dilate
-    dilateIterationsEdit->setText(QString::number(processingSettings.dilateNumberOfIterations));
+    dilateIterationsEdit->setText(QString::number(imageProcessingSettings.dilateNumberOfIterations));
     // Erode
-    erodeIterationsEdit->setText(QString::number(processingSettings.erodeNumberOfIterations));
+    erodeIterationsEdit->setText(QString::number(imageProcessingSettings.erodeNumberOfIterations));
     // Flip
-    if(processingSettings.flipCode==0)
+    if(imageProcessingSettings.flipCode==0)
         flipXAxisButton->setChecked(true);
-    else if(processingSettings.flipCode==1)
+    else if(imageProcessingSettings.flipCode==1)
         flipYAxisButton->setChecked(true);
-    else if(processingSettings.flipCode==-1)
+    else if(imageProcessingSettings.flipCode==-1)
         flipBothAxesButton->setChecked(true);
     // Canny
-    cannyThresh1Edit->setText(QString::number(processingSettings.cannyThreshold1));
-    cannyThresh2Edit->setText(QString::number(processingSettings.cannyThreshold2));
-    cannyApertureSizeEdit->setText(QString::number(processingSettings.cannyApertureSize));
-    cannyL2NormCheckBox->setChecked(processingSettings.cannyL2gradient);
+    cannyThresh1Edit->setText(QString::number(imageProcessingSettings.cannyThreshold1));
+    cannyThresh2Edit->setText(QString::number(imageProcessingSettings.cannyThreshold2));
+    cannyApertureSizeEdit->setText(QString::number(imageProcessingSettings.cannyApertureSize));
+    cannyL2NormCheckBox->setChecked(imageProcessingSettings.cannyL2gradient);
     // Enable/disable appropriate Smooth parameter inputs
     smoothTypeChange(smoothTypeGroup->checkedButton());
 } // updateDialogSettingsFromStored()
 
-void ProcessingSettingsDialog::resetAllDialogToDefaults()
+void ImageProcessingSettingsDialog::resetAllDialogToDefaults()
 {
     // Smooth
     resetSmoothDialogToDefaults();
@@ -158,7 +158,7 @@ void ProcessingSettingsDialog::resetAllDialogToDefaults()
     resetCannyDialogToDefaults();
 } // resetAllDialogToDefaults()
 
-void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
+void ImageProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
 {
     if(input==(QAbstractButton*)smoothBlurButton)
     {
@@ -240,7 +240,7 @@ void ProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
     }
 } // smoothTypeChange()
 
-void ProcessingSettingsDialog::validateDialog()
+void ImageProcessingSettingsDialog::validateDialog()
 {
     // Local variables
     bool inputEmpty=false;
@@ -333,7 +333,7 @@ void ProcessingSettingsDialog::validateDialog()
     }
 } // validateDialog()
 
-void ProcessingSettingsDialog::resetSmoothDialogToDefaults()
+void ImageProcessingSettingsDialog::resetSmoothDialogToDefaults()
 {
     if(DEFAULT_SMOOTH_TYPE==0)
         smoothBlurButton->setChecked(true);
@@ -349,17 +349,17 @@ void ProcessingSettingsDialog::resetSmoothDialogToDefaults()
     smoothTypeChange(smoothTypeGroup->checkedButton());
 } // resetSmoothDialogToDefaults()
 
-void ProcessingSettingsDialog::resetDilateDialogToDefaults()
+void ImageProcessingSettingsDialog::resetDilateDialogToDefaults()
 {
     dilateIterationsEdit->setText(QString::number(DEFAULT_DILATE_ITERATIONS));
 } // resetDilateDialogToDefaults()
 
-void ProcessingSettingsDialog::resetErodeDialogToDefaults()
+void ImageProcessingSettingsDialog::resetErodeDialogToDefaults()
 {
     erodeIterationsEdit->setText(QString::number(DEFAULT_ERODE_ITERATIONS));
 } // resetErodeDialogToDefaults()
 
-void ProcessingSettingsDialog::resetFlipDialogToDefaults()
+void ImageProcessingSettingsDialog::resetFlipDialogToDefaults()
 {
     if(DEFAULT_FLIP_CODE==0)
         flipXAxisButton->setChecked(true);
@@ -369,7 +369,7 @@ void ProcessingSettingsDialog::resetFlipDialogToDefaults()
         flipBothAxesButton->setChecked(true);
 } // resetFlipDialogToDefaults()
 
-void ProcessingSettingsDialog::resetCannyDialogToDefaults()
+void ImageProcessingSettingsDialog::resetCannyDialogToDefaults()
 {
     cannyThresh1Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_1));
     cannyThresh2Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_2));

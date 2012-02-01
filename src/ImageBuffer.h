@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -46,7 +46,7 @@ class ImageBuffer
 {
 
 public:
-    ImageBuffer(int size);
+    ImageBuffer(int size, bool dropFrame);
     void addFrame(const Mat& frame);
     Mat getFrame();
     void clearBuffer();
@@ -59,6 +59,7 @@ private:
     QSemaphore *clearBuffer1;
     QSemaphore *clearBuffer2;
     int bufferSize;
+    bool dropFrame;
 };
 
 #endif // IMAGEBUFFER_H

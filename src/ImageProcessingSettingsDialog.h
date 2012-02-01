@@ -2,7 +2,7 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* MainWindow.h                                                         */
+/* ImageProcessingSettingsDialog.h                                      */
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
@@ -30,61 +30,34 @@
 /*                                                                      */
 /************************************************************************/
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef IMAGEPROCESSINGSETTINGSDIALOG_H
+#define IMAGEPROCESSINGSETTINGSDIALOG_H
 
-#include "ui_MainWindow.h"
+#include "ui_ImageProcessingSettingsDialog.h"
 #include "Structures.h"
 
-#define QUOTE_(x) #x
-#define QUOTE(x) QUOTE_(x)
-
-class CameraConnectDialog;
-class ImageProcessingSettingsDialog;
-class Controller;
-
-class MainWindow : public QMainWindow, private Ui::MainWindow
+class ImageProcessingSettingsDialog : public QDialog, private Ui::ImageProcessingSettingsDialog
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = 0);
-    ~MainWindow();
-    void initializeImageProcessingFlagsStructure();
-    void initializeTaskDataStructure();
-    void setInitialGUIState();
-    void signalSlotsInit();
+    ImageProcessingSettingsDialog(QWidget *parent = 0);
+    void updateDialogSettingsFromStored();
 private:
-    CameraConnectDialog *cameraConnectDialog;
-    ImageProcessingSettingsDialog *imageProcessingSettingsDialog;
-    Controller *controller;
-    ImageProcessingFlags imageProcessingFlags;
-    TaskData taskData;
-    QString appVersion;
-    int sourceWidth;
-    int sourceHeight;
-    int deviceNumber;
-    int imageBufferSize;
-    bool isCameraConnected;
+    ImageProcessingSettings imageProcessingSettings;
 public slots:
-    void connectToCamera();
-    void disconnectCamera();
-    void about();
-    void clearImageBuffer();
-    void setGrayscale(bool);
-    void setSmooth(bool);
-    void setDilate(bool);
-    void setErode(bool);
-    void setFlip(bool);
-    void setCanny(bool);
-    void setImageProcessingSettings();
-    void updateMouseCursorPosLabel();
-    void newMouseData(struct MouseData);
+    void resetAllDialogToDefaults();
+    void updateStoredSettingsFromDialog();
 private slots:
-    void updateFrame(const QImage &frame);
+    void resetSmoothDialogToDefaults();
+    void resetDilateDialogToDefaults();
+    void resetErodeDialogToDefaults();
+    void resetFlipDialogToDefaults();
+    void resetCannyDialogToDefaults();
+    void validateDialog();
+    void smoothTypeChange(QAbstractButton *);
 signals:
-    void newImageProcessingFlags(struct ImageProcessingFlags imageProcessingFlags);
-    void newTaskData(struct TaskData taskData);
+    void newImageProcessingSettings(struct ImageProcessingSettings p_settings);
 };
 
-#endif // MAINWINDOW_H
+#endif // IMAGEPROCESSINGSETTINGSDIALOG_H

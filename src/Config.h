@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -36,6 +36,10 @@
 // OpenCV header files
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
+
+// Queue lengths for FPS statistics
+#define DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH 8
+#define DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH 8
 
 // Image buffer size
 #define DEFAULT_IMAGE_BUFFER_SIZE 1

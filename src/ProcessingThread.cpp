@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -42,8 +42,9 @@
 // Configuration header file
 #include "Config.h"
 
-ProcessingThread::ProcessingThread(ImageBuffer *imageBuffer, int inputSourceWidth, int inputSourceHeight)
-                                   : QThread(), imageBuffer(imageBuffer), inputSourceWidth(inputSourceWidth),
+ProcessingThread::ProcessingThread(ImageBuffer *imageBuffer, int inputSourceWidth, int inputSourceHeight) : QThread(),
+                                   imageBuffer(imageBuffer),
+                                   inputSourceWidth(inputSourceWidth),
                                    inputSourceHeight(inputSourceHeight)
 {
     // Create images
@@ -192,10 +193,10 @@ void ProcessingThread::run()
         // PERFORM IMAGE PROCESSING ABOVE //
         ////////////////////////////////////
 
-        //// Convert Mat to QImage: Show grayscale frame [if either Grayscale or Canny processing modes are ON]
+        // Convert Mat to QImage: Show grayscale frame [if either Grayscale or Canny processing modes are ON]
         if(grayscaleOn||cannyOn)
             frame=MatToQImage(currentFrameCopyGrayscale);
-        //// Convert Mat to QImage: Show BGR frame
+        // Convert Mat to QImage: Show BGR frame
         else
             frame=MatToQImage(currentFrameCopy);
         updateMembersMutex.unlock();
@@ -203,7 +204,7 @@ void ProcessingThread::run()
         // Update statistics
         updateFPS(processingTime);
         currentSizeOfBuffer=imageBuffer->getSizeOfImageBuffer();
-        // Inform controller of new frame (QImage)
+        // Inform GUI thread of new frame (QImage)
         emit newFrame(frame);
     }
     qDebug() << "Stopping processing thread...";
@@ -218,18 +219,21 @@ void ProcessingThread::updateFPS(int timeElapsed)
         // Increment sample number
         sampleNo++;
     }
-    // Maximum size of queue is 16
-    if(fps.size() > 16)
+    // Maximum size of queue is DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH
+    if(fps.size()>DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH)
         fps.dequeue();
-    // Update FPS value every 16 samples
-    if((fps.size()==16)&&(sampleNo==16))
+    // Update FPS value every DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH samples
+    if((fps.size()==DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH)&&(sampleNo==DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH))
     {
         // Empty queue and store sum
         while(!fps.empty())
             fpsSum+=fps.dequeue();
-        avgFPS=fpsSum/16; // Calculate average FPS
-        fpsSum=0; // Reset sum
-        sampleNo=0; // Reset sample number
+        // Calculate average FPS
+        avgFPS=fpsSum/DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH;
+        // Reset sum
+        fpsSum=0;
+        // Reset sample number
+        sampleNo=0;
     }
 } // updateFPS()
 
@@ -245,7 +249,7 @@ void ProcessingThread::setROI()
     // Save selection as new (current) ROI
     currentROI=selectionBox;
     qDebug() << "ROI successfully SET.";
-    // Reset setROIOn flag to FALSE
+    // Reset flag to FALSE
     setROIFlag=false;
 } // setROI()
 
@@ -254,37 +258,37 @@ void ProcessingThread::resetROI()
     // Reset ROI to original
     currentROI=originalROI;
     qDebug() << "ROI successfully RESET.";
-    // Reset resetROIOn flag to FALSE
+    // Reset flag to FALSE
     resetROIFlag=false;
 } // resetROI()
 
-void ProcessingThread::updateProcessingFlags(struct ProcessingFlags processingFlags)
+void ProcessingThread::updateImageProcessingFlags(struct ImageProcessingFlags imageProcessingFlags)
 {
     QMutexLocker locker(&updateMembersMutex);
-    this->grayscaleOn=processingFlags.grayscaleOn;
-    this->smoothOn=processingFlags.smoothOn;
-    this->dilateOn=processingFlags.dilateOn;
-    this->erodeOn=processingFlags.erodeOn;
-    this->flipOn=processingFlags.flipOn;
-    this->cannyOn=processingFlags.cannyOn;
-} // updateProcessingFlags()
+    this->grayscaleOn=imageProcessingFlags.grayscaleOn;
+    this->smoothOn=imageProcessingFlags.smoothOn;
+    this->dilateOn=imageProcessingFlags.dilateOn;
+    this->erodeOn=imageProcessingFlags.erodeOn;
+    this->flipOn=imageProcessingFlags.flipOn;
+    this->cannyOn=imageProcessingFlags.cannyOn;
+} // updateImageProcessingFlags()
 
-void ProcessingThread::updateProcessingSettings(struct ProcessingSettings processingSettings)
+void ProcessingThread::updateImageProcessingSettings(struct ImageProcessingSettings imageProcessingSettings)
 {
     QMutexLocker locker(&updateMembersMutex);
-    this->smoothType=processingSettings.smoothType;
-    this->smoothParam1=processingSettings.smoothParam1;
-    this->smoothParam2=processingSettings.smoothParam2;
-    this->smoothParam3=processingSettings.smoothParam3;
-    this->smoothParam4=processingSettings.smoothParam4;
-    this->dilateNumberOfIterations=processingSettings.dilateNumberOfIterations;
-    this->erodeNumberOfIterations=processingSettings.erodeNumberOfIterations;
-    this->flipCode=processingSettings.flipCode;
-    this->cannyThreshold1=processingSettings.cannyThreshold1;
-    this->cannyThreshold2=processingSettings.cannyThreshold2;
-    this->cannyApertureSize=processingSettings.cannyApertureSize;
-    this->cannyL2gradient=processingSettings.cannyL2gradient;
-} // updateProcessingSettings()
+    this->smoothType=imageProcessingSettings.smoothType;
+    this->smoothParam1=imageProcessingSettings.smoothParam1;
+    this->smoothParam2=imageProcessingSettings.smoothParam2;
+    this->smoothParam3=imageProcessingSettings.smoothParam3;
+    this->smoothParam4=imageProcessingSettings.smoothParam4;
+    this->dilateNumberOfIterations=imageProcessingSettings.dilateNumberOfIterations;
+    this->erodeNumberOfIterations=imageProcessingSettings.erodeNumberOfIterations;
+    this->flipCode=imageProcessingSettings.flipCode;
+    this->cannyThreshold1=imageProcessingSettings.cannyThreshold1;
+    this->cannyThreshold2=imageProcessingSettings.cannyThreshold2;
+    this->cannyApertureSize=imageProcessingSettings.cannyApertureSize;
+    this->cannyL2gradient=imageProcessingSettings.cannyL2gradient;
+} // updateImageProcessingSettings()
 
 void ProcessingThread::updateTaskData(struct TaskData taskData)
 {

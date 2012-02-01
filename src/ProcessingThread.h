@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -87,7 +87,7 @@ private:
     bool erodeOn;
     bool flipOn;
     bool cannyOn;
-    // Processing settings
+    // Image processing settings
     int smoothType;
     int smoothParam1;
     int smoothParam2;
@@ -107,8 +107,8 @@ private:
 protected:
     void run();
 private slots:
-    void updateProcessingFlags(struct ProcessingFlags);
-    void updateProcessingSettings(struct ProcessingSettings);
+    void updateImageProcessingFlags(struct ImageProcessingFlags);
+    void updateImageProcessingSettings(struct ImageProcessingSettings);
     void updateTaskData(struct TaskData);
 signals:
     void newFrame(const QImage &frame);

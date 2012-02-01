@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -51,9 +51,10 @@ CameraConnectDialog::CameraConnectDialog(QWidget *parent) : QDialog(parent)
     imageBufferSizeEdit->setValidator(validator2);
     // Set imageBufferSizeEdit to default value
     imageBufferSizeEdit->setText(QString::number(DEFAULT_IMAGE_BUFFER_SIZE));
-    // Initially set deviceNumber and imageBufferSize to defaults
+    // Initially set deviceNumber, imageBufferSize and dropFrameCheckBox to defaults
     deviceNumber=-1;
     imageBufferSize=DEFAULT_IMAGE_BUFFER_SIZE;
+    dropFrameCheckBox->setChecked(false);
 } // CameraConnectDialog constructor
 
 void CameraConnectDialog::setDeviceNumber()
@@ -104,3 +105,8 @@ int CameraConnectDialog::getImageBufferSize()
 {
     return imageBufferSize;
 } // getImageBufferSize()
+
+bool CameraConnectDialog::getDropFrameCheckBoxState()
+{
+    return dropFrameCheckBox->isChecked();
+} // getDropFrameCheckBoxState()

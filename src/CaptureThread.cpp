@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2011 Nick D'Ademo                                      */
+/* Copyright (c) 2012 Nick D'Ademo                                      */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -35,8 +35,11 @@
 
 // Qt header files
 #include <QDebug>
+// Configuration header file
+#include "Config.h"
 
-CaptureThread::CaptureThread(ImageBuffer *imageBuffer) : QThread(), imageBuffer(imageBuffer)
+CaptureThread::CaptureThread(ImageBuffer *imageBuffer) : QThread(),
+                             imageBuffer(imageBuffer)
 {
     // Initialize variables
     stopped=false;
@@ -102,18 +105,21 @@ void CaptureThread::updateFPS(int timeElapsed)
         // Increment sample number
         sampleNo++;
     }
-    // Maximum size of queue is 16
-    if(fps.size() > 16)
+    // Maximum size of queue is DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH
+    if(fps.size()>DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH)
         fps.dequeue();
-    // Update FPS value every 16 samples
-    if((fps.size()==16)&&(sampleNo==16))
+    // Update FPS value every DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH samples
+    if((fps.size()==DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH)&&(sampleNo==DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH))
     {
         // Empty queue and store sum
         while(!fps.empty())
             fpsSum+=fps.dequeue();
-        avgFPS=fpsSum/16; // Calculate average FPS
-        fpsSum=0; // Reset sum
-        sampleNo=0; // Reset sample number
+        // Calculate average FPS
+        avgFPS=fpsSum/DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH;
+        // Reset sum
+        fpsSum=0;
+        // Reset sample number
+        sampleNo=0;
     }
 } // updateFPS()
 
