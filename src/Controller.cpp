@@ -38,8 +38,6 @@
 
 Controller::Controller()
 {
-    // Initialize flag
-    isCreatedProcessingThread=false;
 } // Controller constructor
 
 Controller::~Controller()
@@ -61,7 +59,6 @@ bool Controller::connectToCamera(int deviceNumber, int imageBufferSize, bool dro
     {
         // Create processing thread
         processingThread = new ProcessingThread(imageBuffer,captureThread->getInputSourceWidth(),captureThread->getInputSourceHeight());
-        isCreatedProcessingThread=true;
         // Start capturing frames from camera
         captureThread->start((QThread::Priority)capThreadPrio);
         // Start processing captured frames
@@ -126,8 +123,6 @@ void Controller::deleteProcessingThread()
 {
     // Delete thread
     delete processingThread;
-    // Set flag
-    isCreatedProcessingThread=false;
 } // deleteProcessingThread()
 
 void Controller::clearImageBuffer()

@@ -63,8 +63,6 @@ public:
     void clearImageBuffer();
     void deleteImageBuffer();
 private:
-    bool isCreatedProcessingThread;
-    bool isCreatedControlThread;
     int imageBufferSize;
 };
 
