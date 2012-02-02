@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ProcessingSettingsDialog</class>
- <widget class="QDialog" name="ProcessingSettingsDialog">
+ <class>ImageProcessingSettingsDialog</class>
+ <widget class="QDialog" name="ImageProcessingSettingsDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>Processing Settings</string>
+   <string>Image Processing Settings</string>
   </property>
   <widget class="QWidget" name="layoutWidget1">
    <property name="geometry">
@@ -1275,7 +1275,7 @@
   <connection>
    <sender>okCancelBox</sender>
    <signal>accepted()</signal>
-   <receiver>ProcessingSettingsDialog</receiver>
+   <receiver>ImageProcessingSettingsDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -1291,7 +1291,7 @@
   <connection>
    <sender>okCancelBox</sender>
    <signal>rejected()</signal>
-   <receiver>ProcessingSettingsDialog</receiver>
+   <receiver>ImageProcessingSettingsDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
