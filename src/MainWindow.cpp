@@ -100,10 +100,11 @@ void MainWindow::connectToCamera()
             // Set data to defaults in processingThread
             emit newImageProcessingFlags(imageProcessingFlags);
             emit newTaskData(taskData);
+            imageProcessingSettingsDialog->updateStoredSettingsFromDialog();
             // Setup imageBufferBar in main window with minimum and maximum values
             imageBufferBar->setMinimum(0);
             imageBufferBar->setMaximum(imageBufferSize);
-            // Enable/Disable appropriate GUI items
+            // Enable/disable appropriate GUI items
             connectToCameraAction->setEnabled(false);
             disconnectCameraAction->setEnabled(true);
             imageProcessingSettingsAction->setEnabled(true);
