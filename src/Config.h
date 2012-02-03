@@ -39,7 +39,7 @@
 // Qt header files
 #include <QtGui>
 
-// Queue lengths for FPS statistics
+// FPS statistics queue lengths
 #define DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH 32
 #define DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH 32
 
@@ -47,7 +47,7 @@
 #define DEFAULT_CAMERA_DEV_NO -1
 // Image buffer size
 #define DEFAULT_IMAGE_BUFFER_SIZE 1
-// Drop frames
+// Drop frame if image/frame buffer is full
 #define DEFAULT_DROP_FRAMES false
 // Thread priorities
 #define DEFAULT_CAP_THREAD_PRIO QThread::NormalPriority
