@@ -65,8 +65,8 @@ private:
     int inputSourceWidth;
     int inputSourceHeight;
     int currentSizeOfBuffer;
-    Mat currentFrameCopy;
-    Mat currentFrameCopyGrayscale;
+    Mat currentFrame;
+    Mat currentFrameGrayscale;
     Rect originalROI;
     Rect currentROI;
     QImage frame;
@@ -80,7 +80,7 @@ private:
     QMutex updateMembersMutex;
     Size frameSize;
     Point framePoint;
-    // Processing flags
+    // Image processing flags
     bool grayscaleOn;
     bool smoothOn;
     bool dilateOn;

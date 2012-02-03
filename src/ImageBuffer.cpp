@@ -95,7 +95,7 @@ Mat ImageBuffer::getFrame()
     freeSlots->release();
     clearBuffer2->release();
     // Return frame to caller
-    return tempFrame;
+    return tempFrame.clone();
 } // getFrame()
 
 void ImageBuffer::clearBuffer()

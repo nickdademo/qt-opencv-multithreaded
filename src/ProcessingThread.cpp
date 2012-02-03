@@ -47,16 +47,12 @@ ProcessingThread::ProcessingThread(ImageBuffer *imageBuffer, int inputSourceWidt
                                    inputSourceWidth(inputSourceWidth),
                                    inputSourceHeight(inputSourceHeight)
 {
-    // Create images
-    currentFrameCopy.create(Size(inputSourceWidth,inputSourceHeight),CV_8UC3);
-    currentFrameCopyGrayscale.create(Size(inputSourceWidth,inputSourceHeight),CV_8UC1);
     // Initialize variables
     stopped=false;
     sampleNo=0;
     fpsSum=0;
     avgFPS=0;
     fps.clear();
-    // Initialize currentROI variable
     currentROI=Rect(0,0,inputSourceWidth,inputSourceHeight);
     // Store original ROI
     originalROI=currentROI;
@@ -88,19 +84,15 @@ void ProcessingThread::run()
         processingTime=t.elapsed();
         // Start timer (used to calculate processing rate)
         t.start();
-        // Get frame from queue
-        Mat currentFrame=imageBuffer->getFrame();
-        // Make copy of current frame (processing will be performed on this copy)
-        currentFrame.copyTo(currentFrameCopy);
-        // Set ROI of currentFrameCopy
-        currentFrameCopy.locateROI(frameSize,framePoint);
-        currentFrameCopy.adjustROI(-currentROI.y,-(frameSize.height-currentROI.height-currentROI.y),
-                                   -currentROI.x,-(frameSize.width-currentROI.width-currentROI.x));
+
+        // Get frame from queue, store in currentFrame, set ROI
+        currentFrame=Mat(imageBuffer->getFrame(),currentROI);
 
         updateMembersMutex.lock();
         ///////////////////
         // PERFORM TASKS //
         ///////////////////
+        // Note: ROI changes will take effect on next frame
         if(resetROIFlag)
             resetROI();
         else if(setROIFlag)
@@ -108,86 +100,83 @@ void ProcessingThread::run()
         ////////////////////////////////////
         // PERFORM IMAGE PROCESSING BELOW //
         ////////////////////////////////////
-        else
+        // Grayscale conversion
+        if(grayscaleOn)
+            cvtColor(currentFrame,currentFrameGrayscale,CV_BGR2GRAY);
+        // Smooth (in-place operations)
+        if(smoothOn)
         {
-            // Grayscale conversion
             if(grayscaleOn)
-                cvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
-            // Smooth (in-place operations)
-            if(smoothOn)
             {
-                if(grayscaleOn)
+                switch(smoothType)
                 {
-                    switch(smoothType)
-                    {
-                        // BLUR
-                        case 0:
-                            blur(currentFrameCopyGrayscale,currentFrameCopyGrayscale,Size(smoothParam1,smoothParam2));
-                            break;
-                        // GAUSSIAN
-                        case 1:
-                            GaussianBlur(currentFrameCopyGrayscale,currentFrameCopyGrayscale,Size(smoothParam1,smoothParam2),smoothParam3,smoothParam4);
-                            break;
-                        // MEDIAN
-                        case 2:
-                            medianBlur(currentFrameCopyGrayscale,currentFrameCopyGrayscale,smoothParam1);
-                            break;
-                    }
-                }
-                else
-                {
-                    switch(smoothType)
-                    {
-                        // BLUR
-                        case 0:
-                            blur(currentFrameCopy,currentFrameCopy,Size(smoothParam1,smoothParam2));
-                            break;
-                        // GAUSSIAN
-                        case 1:
-                            GaussianBlur(currentFrameCopy,currentFrameCopy,Size(smoothParam1,smoothParam2),smoothParam3,smoothParam4);
-                            break;
-                        // MEDIAN
-                        case 2:
-                            medianBlur(currentFrameCopy,currentFrameCopy,smoothParam1);
-                            break;
-                    }
+                    // BLUR
+                    case 0:
+                        blur(currentFrameGrayscale,currentFrameGrayscale,Size(smoothParam1,smoothParam2));
+                        break;
+                    // GAUSSIAN
+                    case 1:
+                        GaussianBlur(currentFrameGrayscale,currentFrameGrayscale,Size(smoothParam1,smoothParam2),smoothParam3,smoothParam4);
+                        break;
+                    // MEDIAN
+                    case 2:
+                        medianBlur(currentFrameGrayscale,currentFrameGrayscale,smoothParam1);
+                        break;
                 }
             }
-            // Dilate
-            if(dilateOn)
+            else
             {
-                if(grayscaleOn)
-                    dilate(currentFrameCopyGrayscale,currentFrameCopyGrayscale,Mat(),Point(-1,-1),dilateNumberOfIterations);
-                else
-                    dilate(currentFrameCopy,currentFrameCopy,Mat(),Point(-1,-1),dilateNumberOfIterations);
+                switch(smoothType)
+                {
+                    // BLUR
+                    case 0:
+                        blur(currentFrame,currentFrame,Size(smoothParam1,smoothParam2));
+                        break;
+                    // GAUSSIAN
+                    case 1:
+                        GaussianBlur(currentFrame,currentFrame,Size(smoothParam1,smoothParam2),smoothParam3,smoothParam4);
+                        break;
+                    // MEDIAN
+                    case 2:
+                        medianBlur(currentFrame,currentFrame,smoothParam1);
+                        break;
+                }
             }
-            // Erode
-            if(erodeOn)
-            {
-                if(grayscaleOn)
-                    erode(currentFrameCopyGrayscale,currentFrameCopyGrayscale,Mat(),Point(-1,-1),erodeNumberOfIterations);
-                else
-                    erode(currentFrameCopy,currentFrameCopy,Mat(),Point(-1,-1),erodeNumberOfIterations);
-            }
-            // Flip
-            if(flipOn)
-            {
-                if(grayscaleOn)
-                    flip(currentFrameCopyGrayscale,currentFrameCopyGrayscale,flipCode);
-                else
-                    flip(currentFrameCopy,currentFrameCopy,flipCode);
-            }
-            // Canny edge detection
-            if(cannyOn)
-            {
-                // Frame must be converted to grayscale first if grayscale conversion is OFF
-                if(!grayscaleOn)
-                    cvtColor(currentFrameCopy,currentFrameCopyGrayscale,CV_BGR2GRAY);
+        }
+        // Dilate
+        if(dilateOn)
+        {
+            if(grayscaleOn)
+                dilate(currentFrameGrayscale,currentFrameGrayscale,Mat(),Point(-1,-1),dilateNumberOfIterations);
+            else
+                dilate(currentFrame,currentFrame,Mat(),Point(-1,-1),dilateNumberOfIterations);
+        }
+        // Erode
+        if(erodeOn)
+        {
+            if(grayscaleOn)
+                erode(currentFrameGrayscale,currentFrameGrayscale,Mat(),Point(-1,-1),erodeNumberOfIterations);
+            else
+                erode(currentFrame,currentFrame,Mat(),Point(-1,-1),erodeNumberOfIterations);
+        }
+        // Flip
+        if(flipOn)
+        {
+            if(grayscaleOn)
+                flip(currentFrameGrayscale,currentFrameGrayscale,flipCode);
+            else
+                flip(currentFrame,currentFrame,flipCode);
+        }
+        // Canny edge detection
+        if(cannyOn)
+        {
+            // Frame must be converted to grayscale first if grayscale conversion is OFF
+            if(!grayscaleOn)
+                cvtColor(currentFrame,currentFrameGrayscale,CV_BGR2GRAY);
 
-                Canny(currentFrameCopyGrayscale,currentFrameCopyGrayscale,
-                      cannyThreshold1,cannyThreshold2,
-                      cannyApertureSize,cannyL2gradient);
-            }
+            Canny(currentFrameGrayscale,currentFrameGrayscale,
+                  cannyThreshold1,cannyThreshold2,
+                  cannyApertureSize,cannyL2gradient);
         }
         ////////////////////////////////////
         // PERFORM IMAGE PROCESSING ABOVE //
@@ -195,10 +184,10 @@ void ProcessingThread::run()
 
         // Convert Mat to QImage: Show grayscale frame [if either Grayscale or Canny processing modes are ON]
         if(grayscaleOn||cannyOn)
-            frame=MatToQImage(currentFrameCopyGrayscale);
+            frame=MatToQImage(currentFrameGrayscale);
         // Convert Mat to QImage: Show BGR frame
         else
-            frame=MatToQImage(currentFrameCopy);
+            frame=MatToQImage(currentFrame);
         updateMembersMutex.unlock();
 
         // Update statistics
