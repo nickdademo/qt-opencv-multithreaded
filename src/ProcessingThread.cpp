@@ -170,20 +170,21 @@ void ProcessingThread::run()
         // Canny edge detection
         if(cannyOn)
         {
-            // Frame must be converted to grayscale first if grayscale conversion is OFF
             if(!grayscaleOn)
-                cvtColor(currentFrame,currentFrameGrayscale,CV_BGR2GRAY);
-
-            Canny(currentFrameGrayscale,currentFrameGrayscale,
-                  cannyThreshold1,cannyThreshold2,
-                  cannyApertureSize,cannyL2gradient);
+                Canny(currentFrame,currentFrame,
+                      cannyThreshold1,cannyThreshold2,
+                      cannyApertureSize,cannyL2gradient);
+            else
+                Canny(currentFrameGrayscale,currentFrameGrayscale,
+                      cannyThreshold1,cannyThreshold2,
+                      cannyApertureSize,cannyL2gradient);
         }
         ////////////////////////////////////
         // PERFORM IMAGE PROCESSING ABOVE //
         ////////////////////////////////////
 
-        // Convert Mat to QImage: Show grayscale frame [if either Grayscale or Canny processing modes are ON]
-        if(grayscaleOn||cannyOn)
+        // Convert Mat to QImage: Show grayscale frame [if Grayscale mode is ON]
+        if(grayscaleOn)
             frame=MatToQImage(currentFrameGrayscale);
         // Convert Mat to QImage: Show BGR frame
         else
