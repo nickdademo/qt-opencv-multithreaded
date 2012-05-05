@@ -106,16 +106,16 @@ void CaptureThread::updateFPS(int timeElapsed)
         sampleNo++;
     }
     // Maximum size of queue is DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH
-    if(fps.size()>DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH)
+    if(fps.size()>CAPTURE_FPS_STAT_QUEUE_LENGTH)
         fps.dequeue();
     // Update FPS value every DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH samples
-    if((fps.size()==DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH)&&(sampleNo==DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH))
+    if((fps.size()==CAPTURE_FPS_STAT_QUEUE_LENGTH)&&(sampleNo==CAPTURE_FPS_STAT_QUEUE_LENGTH))
     {
         // Empty queue and store sum
         while(!fps.empty())
             fpsSum+=fps.dequeue();
         // Calculate average FPS
-        avgFPS=fpsSum/DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH;
+        avgFPS=fpsSum/CAPTURE_FPS_STAT_QUEUE_LENGTH;
         // Reset sum
         fpsSum=0;
         // Reset sample number

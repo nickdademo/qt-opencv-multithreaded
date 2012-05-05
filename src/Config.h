@@ -40,8 +40,8 @@
 #include <QtGui>
 
 // FPS statistics queue lengths
-#define DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH 32
-#define DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH 32
+#define PROCESSING_FPS_STAT_QUEUE_LENGTH 32
+#define CAPTURE_FPS_STAT_QUEUE_LENGTH 32
 
 // Camera device number
 #define DEFAULT_CAMERA_DEV_NO -1
