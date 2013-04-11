@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Image Processing Settings</string>
   </property>
   <widget class="QWidget" name="layoutWidget1">
    <property name="geometry">
@@ -1281,7 +1281,7 @@
   </connection>
  </connections>
  <buttongroups>
-  <buttongroup name="smoothTypeGroup"/>
   <buttongroup name="flipCodeGroup"/>
+  <buttongroup name="smoothTypeGroup"/>
  </buttongroups>
 </ui>
