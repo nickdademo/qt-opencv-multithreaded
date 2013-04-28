@@ -5,7 +5,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = qt-opencv-multithreaded
 TEMPLATE = app
 
-DEFINES += APP_VERSION=\\\"1.3.0\\\"
+DEFINES += APP_VERSION=\\\"1.3.1\\\"
 
 SOURCES += main.cpp \
     MainWindow.cpp \

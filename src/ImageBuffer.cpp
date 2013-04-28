@@ -32,19 +32,21 @@
 
 #include "ImageBuffer.h"
 
-ImageBuffer::ImageBuffer(int bufferSize) : bufferSize(bufferSize)
+ImageBuffer::ImageBuffer(int size)
 {
+    // Save buffer size
+    bufferSize = size;
     // Create semaphores
     freeSlots = new QSemaphore(bufferSize);
     usedSlots = new QSemaphore(0);
-    clearBuffer1 = new QSemaphore(1);
-    clearBuffer2 = new QSemaphore(1);
+    clearBuffer_addFrame = new QSemaphore(1);
+    clearBuffer_getFrame = new QSemaphore(1);
 }
 
 void ImageBuffer::addFrame(const Mat& frame, bool dropFrameIfFull)
 {
     // Acquire semaphore
-    clearBuffer1->acquire();
+    clearBuffer_addFrame->acquire();
     // If frame dropping is enabled, do not block if buffer is full
     if(dropFrameIfFull)
     {
@@ -72,7 +74,7 @@ void ImageBuffer::addFrame(const Mat& frame, bool dropFrameIfFull)
         usedSlots->release();
     }
     // Release semaphore
-    clearBuffer1->release();
+    clearBuffer_addFrame->release();
 }
 
 Mat ImageBuffer::getFrame()
@@ -80,7 +82,7 @@ Mat ImageBuffer::getFrame()
     // Local variable(s)
     Mat frame;
     // Acquire semaphores
-    clearBuffer2->acquire();
+    clearBuffer_getFrame->acquire();
     usedSlots->acquire();
     // Take frame from queue
     imageQueueProtect.lock();
@@ -88,7 +90,7 @@ Mat ImageBuffer::getFrame()
     imageQueueProtect.unlock();
     // Release semaphores
     freeSlots->release();
-    clearBuffer2->release();
+    clearBuffer_getFrame->release();
     // Return frame to caller
     return frame.clone();
 }
@@ -99,9 +101,9 @@ bool ImageBuffer::clear()
     if(imageQueue.size()>0)
     {
         // Stop adding frames to buffer
-        clearBuffer1->acquire();
+        clearBuffer_addFrame->acquire();
         // Stop taking frames from buffer
-        clearBuffer2->acquire();
+        clearBuffer_getFrame->acquire();
         // Release all remaining slots in queue
         freeSlots->release(imageQueue.size());
         // Acquire all queue slots
@@ -113,9 +115,9 @@ bool ImageBuffer::clear()
         // Release all slots
         freeSlots->release(bufferSize);
         // Allow getFrame() to resume
-        clearBuffer2->release();
+        clearBuffer_getFrame->release();
         // Allow addFrame() to resume
-        clearBuffer1->release();
+        clearBuffer_addFrame->release();
         return true;
     }
     else

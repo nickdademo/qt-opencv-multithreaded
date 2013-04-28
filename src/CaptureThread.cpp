@@ -59,6 +59,7 @@ void CaptureThread::run()
         doStopMutex.unlock();
         /////////////////////////////////
         /////////////////////////////////
+
         // Save capture time
         captureTime=t.elapsed();
         // Start timer (used to calculate capture rate)
@@ -74,8 +75,10 @@ void CaptureThread::run()
 
 bool CaptureThread::connectToCamera(int deviceNumber)
 {
-    // Open camera and return result
-    return cap.open(deviceNumber);
+    // Open camera
+    bool camOpenResult = cap.open(deviceNumber);
+    // Return result
+    return camOpenResult;
 }
 
 bool CaptureThread::disconnectCamera()

@@ -58,8 +58,8 @@ class ImageBuffer
         QQueue<Mat> imageQueue;
         QSemaphore *freeSlots;
         QSemaphore *usedSlots;
-        QSemaphore *clearBuffer1;
-        QSemaphore *clearBuffer2;
+        QSemaphore *clearBuffer_addFrame;
+        QSemaphore *clearBuffer_getFrame;
         int bufferSize;
 };
 

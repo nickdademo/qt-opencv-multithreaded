@@ -59,6 +59,7 @@ class MainWindow : public QMainWindow
         QMap<int, int> deviceIDMap;
         int getNextCameraID();
         bool removeIDFromMap(QMap<int, int>& map, int tabIndex);
+        void updateMapValues(QMap<int, int>& map, int tabIndex);
         void setTabCloseToolTips(QTabWidget *tabs, QString tooltip);
 
     public slots:

@@ -68,7 +68,7 @@ void MainWindow::connectToCamera()
     // Get next camera ID
     int nextCameraID = getNextCameraID();
     // Get next tab index
-    int nextTabIndex = nextCameraID==1 ? 0 : ui->tabWidget->count();
+    int nextTabIndex = (cameraIDMap.size()==0) ? 0 : ui->tabWidget->count();
     // Show dialog
     CameraConnectDialog *cameraConnectDialog = new CameraConnectDialog();
     if(cameraConnectDialog->exec()==QDialog::Accepted)
@@ -94,7 +94,7 @@ void MainWindow::connectToCamera()
                 // Allow tabs to be closed
                 ui->tabWidget->setTabsClosable(true);
                 // If start tab, remove
-                if(nextCameraID==1)
+                if(nextTabIndex==0)
                     ui->tabWidget->removeTab(0);
                 // Add tab
                 ui->tabWidget->addTab(cameraView, tabLabel + " [" + QString::number(nextCameraID) + "]");
@@ -111,11 +111,9 @@ void MainWindow::connectToCamera()
                 delete cameraView;
             }
         }
+        // Display error message
         else
-        {
-            // Display error message
             QMessageBox::warning(this,"ERROR:","Could not connect to camera. Already connected.");
-        }
     }
     // Delete dialog
     delete cameraConnectDialog;
@@ -142,6 +140,12 @@ void MainWindow::disconnectCamera(int index)
     // Remove from maps
     removeIDFromMap(cameraIDMap, index);
     removeIDFromMap(deviceIDMap, index);
+    // Update maps (if tab closed is not last)
+    if(index!=(nTabs-1))
+    {
+        updateMapValues(cameraIDMap, index);
+        updateMapValues(deviceIDMap, index);
+    }
 }
 
 void MainWindow::showAboutDialog()
@@ -172,6 +176,17 @@ bool MainWindow::removeIDFromMap(QMap<int, int>& map, int tabIndex)
          }
     }
     return false;
+}
+
+void MainWindow::updateMapValues(QMap<int, int>& map, int tabIndex)
+{
+    QMutableMapIterator<int, int> i(map);
+    while (i.hasNext())
+    {
+        i.next();
+        if(i.value()>tabIndex)
+            i.setValue(i.value()-1);
+    }
 }
 
 void MainWindow::setTabCloseToolTips(QTabWidget *tabs, QString tooltip)
