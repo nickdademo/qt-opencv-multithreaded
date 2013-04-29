@@ -39,6 +39,8 @@
 // Local
 #include "CameraConnectDialog.h"
 #include "CameraView.h"
+#include "ImageBuffer.h"
+#include "SharedImageBuffer.h"
 
 namespace Ui {
     class MainWindow;
@@ -55,10 +57,9 @@ class MainWindow : public QMainWindow
     private:
         Ui::MainWindow *ui;
         QPushButton *connectToCameraButton;
-        QMap<int, int> cameraIDMap;
-        QMap<int, int> deviceIDMap;
-        int getNextCameraID();
-        bool removeIDFromMap(QMap<int, int>& map, int tabIndex);
+        QMap<int, int> deviceNumberMap;
+        SharedImageBuffer *sharedImageBuffer;
+        bool removeFromMapByTabIndex(QMap<int, int>& map, int tabIndex);
         void updateMapValues(QMap<int, int>& map, int tabIndex);
         void setTabCloseToolTips(QTabWidget *tabs, QString tooltip);
 

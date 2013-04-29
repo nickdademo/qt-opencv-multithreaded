@@ -40,7 +40,7 @@
 // OpenCV
 #include "opencv/highgui.h"
 // Local
-#include "ImageBuffer.h"
+#include "SharedImageBuffer.h"
 #include "Config.h"
 
 using namespace cv;
@@ -52,18 +52,19 @@ class CaptureThread : public QThread
     Q_OBJECT
 
     public:
-        CaptureThread(ImageBuffer *buffer, bool dropFrameIfBufferFull);
+        CaptureThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber, bool dropFrameIfBufferFull);
         void stop();
-        bool connectToCamera(int);
+        bool connectToCamera();
         bool disconnectCamera();
         bool isCameraConnected();
         int getAverageFPS();
         int getInputSourceWidth();
         int getInputSourceHeight();
+        int getNFramesCaptured();
 
     private:
         void updateFPS(int);
-        ImageBuffer *imageBuffer;
+        SharedImageBuffer *sharedImageBuffer;
         VideoCapture cap;
         Mat grabbedFrame;
         QTime t;
@@ -75,9 +76,14 @@ class CaptureThread : public QThread
         int sampleNumber;
         int fpsSum;
         bool dropFrameIfBufferFull;
+        int nFramesCaptured;
+        int deviceNumber;
 
     protected:
         void run();
+
+    signals:
+        void updateStatisticsInGUI();
 };
 
 #endif // CAPTURETHREAD_H

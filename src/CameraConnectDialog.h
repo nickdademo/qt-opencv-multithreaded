@@ -47,7 +47,7 @@ class CameraConnectDialog : public QDialog
     Q_OBJECT
     
     public:
-        explicit CameraConnectDialog(QWidget *parent = 0);
+        explicit CameraConnectDialog(QWidget *parent=0, bool isStreamSyncEnabled=false);
         ~CameraConnectDialog();
         void setDeviceNumber();
         void setImageBufferSize();
@@ -57,6 +57,7 @@ class CameraConnectDialog : public QDialog
         int getCaptureThreadPrio();
         int getProcessingThreadPrio();
         QString getTabLabel();
+        bool getEnableFrameProcessingCheckBoxState();
 
     private:
         Ui::CameraConnectDialog *ui;

@@ -2,7 +2,7 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* ImageBuffer.h                                                        */
+/* SharedImageBuffer.cpp                                                */
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
@@ -30,38 +30,82 @@
 /*                                                                      */
 /************************************************************************/
 
-#ifndef IMAGEBUFFER_H
-#define IMAGEBUFFER_H
+#include "SharedImageBuffer.h"
 
-// Qt
-#include <QMutex>
-#include <QQueue>
-#include <QSemaphore>
-#include <QDebug>
-// OpenCV
-#include <opencv/highgui.h>
-
-using namespace cv;
-
-class ImageBuffer
+SharedImageBuffer::SharedImageBuffer()
 {
-    public:
-        ImageBuffer(int size);
-        void addFrame(const Mat& frame, bool dropFrameIfFull=false);
-        Mat getFrame();
-        int getSize();
-        int getMaxSize();
-        bool clear();
-        bool isFull();
+    // Initialize variables(s)
+    nArrived=0;
+    doSync=false;
+}
 
-    private:
-        QMutex imageQueueProtect;
-        QQueue<Mat> imageQueue;
-        QSemaphore *freeSlots;
-        QSemaphore *usedSlots;
-        QSemaphore *clearBuffer_addFrame;
-        QSemaphore *clearBuffer_getFrame;
-        int bufferSize;
-};
+void SharedImageBuffer::add(int deviceNumber, ImageBuffer* imageBuffer, bool sync)
+{
+    if(sync)
+        syncSet.insert(deviceNumber);
+    imageBufferMap[deviceNumber]=imageBuffer;
+}
 
-#endif // IMAGEBUFFER_H
+ImageBuffer* SharedImageBuffer::getByDeviceNumber(int deviceNumber)
+{
+    return imageBufferMap[deviceNumber];
+}
+
+void SharedImageBuffer::removeByDeviceNumber(int deviceNumber)
+{
+    imageBufferMap.remove(deviceNumber);
+    // Also remove from syncSet if present
+    if(syncSet.contains(deviceNumber))
+    {
+        syncSet.remove(deviceNumber);
+        wc.wakeAll();
+    }
+}
+
+void SharedImageBuffer::sync(int deviceNumber)
+{
+    mutex.lock();
+    // Only perform sync if it is enabled for specified device/stream
+    if(syncSet.contains(deviceNumber))
+    {
+        // Increment arrived count
+        nArrived++;
+        // We are the last to arrive: wake all
+        if(doSync && (nArrived==syncSet.size()))
+        {
+            // Wake all waiting threads
+            wc.wakeAll();
+        }
+        // Still waiting for other streams to arrive: wait
+        else
+            wc.wait(&mutex);
+        // Decrement arrived count
+        nArrived--;
+    }
+    mutex.unlock();
+}
+
+void SharedImageBuffer::wakeAll()
+{
+    wc.wakeAll();
+}
+
+void SharedImageBuffer::setSyncEnabled(bool enable)
+{
+    doSync=enable;
+}
+
+bool SharedImageBuffer::isSyncEnabledForDeviceNumber(int deviceNumber)
+{
+    return syncSet.contains(deviceNumber);
+}
+
+bool SharedImageBuffer::getSyncEnabled()
+{
+    return doSync;
+}
+
+bool SharedImageBuffer::containsImageBufferForDeviceNumber(int deviceNumber)
+{
+    return imageBufferMap.contains(deviceNumber);
+}

@@ -44,6 +44,7 @@
 #include "Config.h"
 #include "ImageBuffer.h"
 #include "MatToQImage.h"
+#include "SharedImageBuffer.h"
 
 using namespace cv;
 
@@ -52,7 +53,7 @@ class ProcessingThread : public QThread
     Q_OBJECT
 
     public:
-        ProcessingThread(ImageBuffer *imageBuffer);
+        ProcessingThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber);
         QRect getCurrentROI();
         void stop();
         int getAverageFPS();
@@ -62,7 +63,7 @@ class ProcessingThread : public QThread
         void updateFPS(int);
         void setROI();
         void resetROI();
-        ImageBuffer *imageBuffer;
+        SharedImageBuffer *sharedImageBuffer;
         Mat currentFrame;
         Mat currentFrameGrayscale;
         Rect currentROI;
@@ -81,6 +82,8 @@ class ProcessingThread : public QThread
         int sampleNumber;
         int averageFPS;
         int nFramesProcessed;
+        int deviceNumber;
+        bool enableFrameProcessing;
 
     protected:
         void run();
@@ -92,6 +95,7 @@ class ProcessingThread : public QThread
 
     signals:
         void newFrame(const QImage &frame);
+        void updateStatisticsInGUI();
 };
 
 #endif // PROCESSINGTHREAD_H

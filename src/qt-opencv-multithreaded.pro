@@ -16,7 +16,8 @@ SOURCES += main.cpp \
     ImageBuffer.cpp \
     CaptureThread.cpp \
     CameraConnectDialog.cpp \
-    ImageProcessingSettingsDialog.cpp
+    ImageProcessingSettingsDialog.cpp \
+    SharedImageBuffer.cpp
 
 HEADERS  += \
     MainWindow.h \
@@ -29,7 +30,8 @@ HEADERS  += \
     ImageBuffer.h \
     CaptureThread.h \
     CameraConnectDialog.h \
-    ImageProcessingSettingsDialog.h
+    ImageProcessingSettingsDialog.h \
+    SharedImageBuffer.h
 
 FORMS    += \
     MainWindow.ui \

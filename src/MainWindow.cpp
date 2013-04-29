@@ -56,6 +56,8 @@ MainWindow::MainWindow(QWidget *parent) :
     // Connect other signals/slots
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
     connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
+    // Create SharedImageBuffer object
+    sharedImageBuffer = new SharedImageBuffer();
 }
 
 MainWindow::~MainWindow()
@@ -65,58 +67,97 @@ MainWindow::~MainWindow()
 
 void MainWindow::connectToCamera()
 {
-    // Get next camera ID
-    int nextCameraID = getNextCameraID();
-    // Get next tab index
-    int nextTabIndex = (cameraIDMap.size()==0) ? 0 : ui->tabWidget->count();
-    // Show dialog
-    CameraConnectDialog *cameraConnectDialog = new CameraConnectDialog();
-    if(cameraConnectDialog->exec()==QDialog::Accepted)
+    // We cannot connect to a camera if devices are already connected and stream synchronization is in progress
+    if(ui->actionSynchronizeStreams->isChecked() && deviceNumberMap.size()>0 && sharedImageBuffer->getSyncEnabled())
     {
-        // Save user-defined device number
-        int deviceNumber = cameraConnectDialog->getDeviceNumber();
-        // Check if this camera is already connected
-        if(!deviceIDMap.contains(deviceNumber))
-        {
-            CameraView *cameraView = new CameraView(ui->tabWidget, nextCameraID);
-            // Attempt to connect to camera
-            if(cameraView->connectToCamera(deviceNumber,
-                                           cameraConnectDialog->getImageBufferSize(),
-                                           cameraConnectDialog->getDropFrameCheckBoxState(),
-                                           cameraConnectDialog->getCaptureThreadPrio(),
-                                           cameraConnectDialog->getProcessingThreadPrio()))
-            {
-                // Add to maps
-                cameraIDMap[nextCameraID] = nextTabIndex;
-                deviceIDMap[deviceNumber] = nextTabIndex;
-                // Save tab label
-                QString tabLabel = cameraConnectDialog->getTabLabel();
-                // Allow tabs to be closed
-                ui->tabWidget->setTabsClosable(true);
-                // If start tab, remove
-                if(nextTabIndex==0)
-                    ui->tabWidget->removeTab(0);
-                // Add tab
-                ui->tabWidget->addTab(cameraView, tabLabel + " [" + QString::number(nextCameraID) + "]");
-                ui->tabWidget->setCurrentWidget(cameraView);
-                // Set tooltips
-                setTabCloseToolTips(ui->tabWidget, "Disconnect Camera");
-            }
-            // Could not connect to camera
-            else
-            {
-                // Display error message
-                QMessageBox::warning(this,"ERROR:","Could not connect to camera. Please check device number.");
-                // Explicitly delete widget
-                delete cameraView;
-            }
-        }
-        // Display error message
-        else
-            QMessageBox::warning(this,"ERROR:","Could not connect to camera. Already connected.");
+        // Prompt user
+        QMessageBox::warning(this, tr("qt-opencv-multithreaded"),
+                                    tr("Stream synchronization is in progress.\n\n"
+                                       "Please close all currently open streams before attempting to open a new stream."),
+                                        QMessageBox::Ok);
     }
-    // Delete dialog
-    delete cameraConnectDialog;
+    // Attempt to connect to camera
+    else
+    {
+        // Get next tab index
+        int nextTabIndex = (deviceNumberMap.size()==0) ? 0 : ui->tabWidget->count();
+        // Show dialog
+        CameraConnectDialog *cameraConnectDialog = new CameraConnectDialog(this, ui->actionSynchronizeStreams->isChecked());
+        if(cameraConnectDialog->exec()==QDialog::Accepted)
+        {
+            // Save user-defined device number
+            int deviceNumber = cameraConnectDialog->getDeviceNumber();
+            // Check if this camera is already connected
+            if(!deviceNumberMap.contains(deviceNumber))
+            {
+                // Create ImageBuffer with user-defined size
+                ImageBuffer *imageBuffer = new ImageBuffer(cameraConnectDialog->getImageBufferSize());
+                // Add created ImageBuffer to SharedImageBuffer object
+                sharedImageBuffer->add(deviceNumber, imageBuffer, ui->actionSynchronizeStreams->isChecked());
+                // Create CameraView
+                CameraView *cameraView = new CameraView(ui->tabWidget, deviceNumber, sharedImageBuffer);
+
+                // Check if stream synchronization is enabled
+                if(ui->actionSynchronizeStreams->isChecked())
+                {
+                    // Prompt user
+                    int ret = QMessageBox::question(this, tr("qt-opencv-multithreaded"),
+                                                    tr("Stream synchronization is enabled.\n\n"
+                                                       "Do you want to start processing?\n\n"
+                                                       "Choose 'No' if you would like to open additional streams."),
+                                                    QMessageBox::Yes | QMessageBox::No,
+                                                    QMessageBox::Yes);
+                    // Start processing
+                    if(ret==QMessageBox::Yes)
+                        sharedImageBuffer->setSyncEnabled(true);
+                    // Defer processing
+                    else
+                        sharedImageBuffer->setSyncEnabled(false);
+                }
+
+                // Attempt to connect to camera
+                if(cameraView->connectToCamera(cameraConnectDialog->getDropFrameCheckBoxState(),
+                                               cameraConnectDialog->getCaptureThreadPrio(),
+                                               cameraConnectDialog->getProcessingThreadPrio(),
+                                               cameraConnectDialog->getEnableFrameProcessingCheckBoxState()))
+                {
+                    // Add to map
+                    deviceNumberMap[deviceNumber] = nextTabIndex;
+                    // Save tab label
+                    QString tabLabel = cameraConnectDialog->getTabLabel();
+                    // Allow tabs to be closed
+                    ui->tabWidget->setTabsClosable(true);
+                    // If start tab, remove
+                    if(nextTabIndex==0)
+                        ui->tabWidget->removeTab(0);
+                    // Add tab
+                    ui->tabWidget->addTab(cameraView, tabLabel + " [" + QString::number(deviceNumber) + "]");
+                    ui->tabWidget->setCurrentWidget(cameraView);
+                    // Set tooltips
+                    setTabCloseToolTips(ui->tabWidget, "Disconnect Camera");
+                    // Prevent user from enabling/disabling stream synchronization after a camera has been connected
+                    ui->actionSynchronizeStreams->setEnabled(false);
+                }
+                // Could not connect to camera
+                else
+                {
+                    // Display error message
+                    QMessageBox::warning(this,"ERROR:","Could not connect to camera. Please check device number.");
+                    // Explicitly delete widget
+                    delete cameraView;
+                    // Remove from shared buffer
+                    sharedImageBuffer->removeByDeviceNumber(deviceNumber);
+                    // Explicitly delete ImageBuffer object
+                    delete imageBuffer;
+                }
+            }
+            // Display error message
+            else
+                QMessageBox::warning(this,"ERROR:","Could not connect to camera. Already connected.");
+        }
+        // Delete dialog
+        delete cameraConnectDialog;
+    }
 }
 
 void MainWindow::disconnectCamera(int index)
@@ -136,16 +177,13 @@ void MainWindow::disconnectCamera(int index)
         newTab->setAlignment(Qt::AlignCenter);
         ui->tabWidget->addTab(newTab, "");
         ui->tabWidget->setTabsClosable(false);
+        ui->actionSynchronizeStreams->setEnabled(true);
     }
-    // Remove from maps
-    removeIDFromMap(cameraIDMap, index);
-    removeIDFromMap(deviceIDMap, index);
-    // Update maps (if tab closed is not last)
+    // Remove from map
+    removeFromMapByTabIndex(deviceNumberMap, index);
+    // Update map (if tab closed is not last)
     if(index!=(nTabs-1))
-    {
-        updateMapValues(cameraIDMap, index);
-        updateMapValues(deviceIDMap, index);
-    }
+        updateMapValues(deviceNumberMap, index);
 }
 
 void MainWindow::showAboutDialog()
@@ -153,17 +191,7 @@ void MainWindow::showAboutDialog()
     QMessageBox::information(this, "About", QString("Created by Nick D'Ademo\n\nContact: nickdademo@gmail.com\nWebsite: www.nickdademo.com\n\nVersion: %1").arg(APP_VERSION));
 }
 
-int MainWindow::getNextCameraID()
-{
-    for(int i=1; i<=cameraIDMap.size()+1; i++)
-    {
-        if(!cameraIDMap.contains(i))
-            return i;
-    }
-    return 1;
-}
-
-bool MainWindow::removeIDFromMap(QMap<int, int>& map, int tabIndex)
+bool MainWindow::removeFromMapByTabIndex(QMap<int, int>& map, int tabIndex)
 {
     QMutableMapIterator<int, int> i(map);
     while (i.hasNext())

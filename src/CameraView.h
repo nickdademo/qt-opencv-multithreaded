@@ -38,9 +38,9 @@
 // Local
 #include "CaptureThread.h"
 #include "ProcessingThread.h"
-#include "ImageBuffer.h"
 #include "ImageProcessingSettingsDialog.h"
 #include "Structures.h"
+#include "SharedImageBuffer.h"
 
 namespace Ui {
     class CameraView;
@@ -51,20 +51,20 @@ class CameraView : public QMainWindow
     Q_OBJECT
     
     public:
-        explicit CameraView(QWidget *parent, int id);
+        explicit CameraView(QWidget *parent, int deviceNumber, SharedImageBuffer *sharedImageBuffer);
         ~CameraView();
-        bool connectToCamera(int deviceNumber, int imageBufferSize, bool dropFrame, int capThreadPrio, int procThreadPrio);
+        bool connectToCamera(bool dropFrame, int capThreadPrio, int procThreadPrio, bool createProcThread);
 
     private:
         Ui::CameraView *ui;
-        ImageBuffer *imageBuffer;
         ProcessingThread *processingThread;
         CaptureThread *captureThread;
+        SharedImageBuffer *sharedImageBuffer;
         ImageProcessingSettingsDialog *imageProcessingSettingsDialog;
         ImageProcessingFlags imageProcessingFlags;
         void stopCaptureThread();
         void stopProcessingThread();
-        int id;
+        int deviceNumber;
         bool isCameraConnected;
 
     public slots:
@@ -81,6 +81,8 @@ class CameraView : public QMainWindow
 
     private slots:
         void updateFrame(const QImage &frame);
+        void updateProcessingThreadStats();
+        void updateCaptureThreadStats();
 
     signals:
         void newImageProcessingFlags(struct ImageProcessingFlags imageProcessingFlags);

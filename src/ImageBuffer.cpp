@@ -101,24 +101,32 @@ bool ImageBuffer::clear()
     if(imageQueue.size()>0)
     {
         // Stop adding frames to buffer
-        clearBuffer_addFrame->acquire();
-        // Stop taking frames from buffer
-        clearBuffer_getFrame->acquire();
-        // Release all remaining slots in queue
-        freeSlots->release(imageQueue.size());
-        // Acquire all queue slots
-        freeSlots->acquire(bufferSize);
-        // Reset usedSlots to zero
-        usedSlots->acquire(imageQueue.size());
-        // Clear buffer
-        imageQueue.clear();
-        // Release all slots
-        freeSlots->release(bufferSize);
-        // Allow getFrame() to resume
-        clearBuffer_getFrame->release();
-        // Allow addFrame() to resume
-        clearBuffer_addFrame->release();
-        return true;
+        if(clearBuffer_addFrame->tryAcquire())
+        {
+            // Stop taking frames from buffer
+            if(clearBuffer_getFrame->tryAcquire())
+            {
+                // Release all remaining slots in queue
+                freeSlots->release(imageQueue.size());
+                // Acquire all queue slots
+                freeSlots->acquire(bufferSize);
+                // Reset usedSlots to zero
+                usedSlots->acquire(imageQueue.size());
+                // Clear buffer
+                imageQueue.clear();
+                // Release all slots
+                freeSlots->release(bufferSize);
+                // Allow getFrame() to resume
+                clearBuffer_getFrame->release();
+            }
+            else
+                return false;
+            // Allow addFrame() to resume
+            clearBuffer_addFrame->release();
+            return true;
+        }
+        else
+            return false;
     }
     else
         return false;
@@ -132,4 +140,9 @@ int ImageBuffer::getSize()
 int ImageBuffer::getMaxSize()
 {
     return bufferSize;
+}
+
+bool ImageBuffer::isFull()
+{
+    return imageQueue.size()==bufferSize;
 }

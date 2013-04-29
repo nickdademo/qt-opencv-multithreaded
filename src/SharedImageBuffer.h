@@ -2,7 +2,7 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* ImageBuffer.h                                                        */
+/* SharedImageBuffer.h                                                  */
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
@@ -30,38 +30,38 @@
 /*                                                                      */
 /************************************************************************/
 
-#ifndef IMAGEBUFFER_H
-#define IMAGEBUFFER_H
+#ifndef SHAREDIMAGEBUFFER_H
+#define SHAREDIMAGEBUFFER_H
 
 // Qt
+#include <QMap>
+#include <QSet>
+#include <QWaitCondition>
 #include <QMutex>
-#include <QQueue>
-#include <QSemaphore>
-#include <QDebug>
-// OpenCV
-#include <opencv/highgui.h>
+// Local
+#include <ImageBuffer.h>
 
-using namespace cv;
-
-class ImageBuffer
+class SharedImageBuffer
 {
     public:
-        ImageBuffer(int size);
-        void addFrame(const Mat& frame, bool dropFrameIfFull=false);
-        Mat getFrame();
-        int getSize();
-        int getMaxSize();
-        bool clear();
-        bool isFull();
+        SharedImageBuffer();
+        void add(int deviceNumber, ImageBuffer *imageBuffer, bool sync=false);
+        ImageBuffer* getByDeviceNumber(int deviceNumber);
+        void removeByDeviceNumber(int deviceNumber);
+        void sync(int deviceNumber);
+        void wakeAll();
+        void setSyncEnabled(bool enable);
+        bool isSyncEnabledForDeviceNumber(int deviceNumber);
+        bool getSyncEnabled();
+        bool containsImageBufferForDeviceNumber(int deviceNumber);
 
     private:
-        QMutex imageQueueProtect;
-        QQueue<Mat> imageQueue;
-        QSemaphore *freeSlots;
-        QSemaphore *usedSlots;
-        QSemaphore *clearBuffer_addFrame;
-        QSemaphore *clearBuffer_getFrame;
-        int bufferSize;
+        QMap<int, ImageBuffer*> imageBufferMap;
+        QSet<int> syncSet;
+        QWaitCondition wc;
+        QMutex mutex;
+        int nArrived;
+        bool doSync;
 };
 
-#endif // IMAGEBUFFER_H
+#endif // SHAREDIMAGEBUFFER_H

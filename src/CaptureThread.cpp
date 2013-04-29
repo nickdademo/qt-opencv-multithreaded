@@ -32,9 +32,13 @@
 
 #include "CaptureThread.h"
 
-CaptureThread::CaptureThread(ImageBuffer *imageBuffer, bool dropFrameIfBufferFull) : QThread(), imageBuffer(imageBuffer)
+CaptureThread::CaptureThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber, bool dropFrameIfBufferFull) : QThread(), sharedImageBuffer(sharedImageBuffer)
 {
+    // Save passed parameters
     this->dropFrameIfBufferFull=dropFrameIfBufferFull;
+    this->deviceNumber=deviceNumber;
+    // Initialize variables(s)
+    nFramesCaptured=0;
     doStop=false;
     sampleNumber=0;
     fpsSum=0;
@@ -50,7 +54,7 @@ void CaptureThread::run()
         // Stop thread if doStop=TRUE //
         ////////////////////////////////
         doStopMutex.lock();
-        if (doStop)
+        if(doStop)
         {
             doStop=false;
             doStopMutex.unlock();
@@ -64,16 +68,24 @@ void CaptureThread::run()
         captureTime=t.elapsed();
         // Start timer (used to calculate capture rate)
         t.start();
+
+        // Synchronize with other streams (if enabled for this stream)
+        sharedImageBuffer->sync(deviceNumber);
+
         // Capture and add frame to buffer
         cap>>grabbedFrame;
-        imageBuffer->addFrame(grabbedFrame, dropFrameIfBufferFull);
+        sharedImageBuffer->getByDeviceNumber(deviceNumber)->addFrame(grabbedFrame, dropFrameIfBufferFull);
+
         // Update statistics
         updateFPS(captureTime);
+        nFramesCaptured++;
+        // Inform GUI of updated statistics
+        emit updateStatisticsInGUI();
     }
     qDebug() << "Stopping capture thread...";
 }
 
-bool CaptureThread::connectToCamera(int deviceNumber)
+bool CaptureThread::connectToCamera()
 {
     // Open camera
     bool camOpenResult = cap.open(deviceNumber);
@@ -92,9 +104,7 @@ bool CaptureThread::disconnectCamera()
     }
     // Camera is NOT connected
     else
-    {
         return false;
-    }
 }
 
 void CaptureThread::updateFPS(int timeElapsed)
@@ -149,4 +159,9 @@ int CaptureThread::getInputSourceWidth()
 int CaptureThread::getInputSourceHeight()
 {
     return cap.get(CV_CAP_PROP_FRAME_HEIGHT);
+}
+
+int CaptureThread::getNFramesCaptured()
+{
+    return nFramesCaptured;
 }

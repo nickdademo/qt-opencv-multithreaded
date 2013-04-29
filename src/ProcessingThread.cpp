@@ -32,8 +32,11 @@
 
 #include "ProcessingThread.h"
 
-ProcessingThread::ProcessingThread(ImageBuffer *imageBuffer) : QThread(), imageBuffer(imageBuffer)
+ProcessingThread::ProcessingThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber) : QThread(), sharedImageBuffer(sharedImageBuffer)
 {
+    // Save Device Number
+    this->deviceNumber=deviceNumber;
+    // Initialize members
     doStop=false;
     sampleNumber=0;
     fpsSum=0;
@@ -50,7 +53,7 @@ void ProcessingThread::run()
         // Stop thread if doStop=TRUE //
         ////////////////////////////////
         doStopMutex.lock();
-        if (doStop)
+        if(doStop)
         {
             doStop=false;
             doStopMutex.unlock();
@@ -67,7 +70,15 @@ void ProcessingThread::run()
 
         processingMutex.lock();
         // Get frame from queue, store in currentFrame, set ROI
-        currentFrame=Mat(imageBuffer->getFrame(), currentROI);
+        currentFrame=Mat(sharedImageBuffer->getByDeviceNumber(deviceNumber)->getFrame(), currentROI);
+
+        // Example of how to grab a frame from another stream (where x=Device Number)
+        // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
+        /*
+        if(sharedImageBuffer->containsImageBufferForDeviceNumber(1))
+            Mat frameFromAnotherStream = sharedImageBuffer->getByDeviceNumber(1)->getFrame();
+        */
+
         ////////////////////////////////////
         // PERFORM IMAGE PROCESSING BELOW //
         ////////////////////////////////////
@@ -130,11 +141,14 @@ void ProcessingThread::run()
         frame=MatToQImage(imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame);
         processingMutex.unlock();
 
+        // Inform GUI thread of new frame (QImage)
+        emit newFrame(frame);
+
         // Update statistics
         updateFPS(processingTime);
         nFramesProcessed++;
-        // Inform GUI thread of new frame (QImage)
-        emit newFrame(frame);
+        // Inform GUI of updated statistics
+        emit updateStatisticsInGUI();
     }
     qDebug() << "Stopping processing thread...";
 }

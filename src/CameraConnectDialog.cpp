@@ -33,7 +33,7 @@
 #include "CameraConnectDialog.h"
 #include "ui_CameraConnectDialog.h"
 
-CameraConnectDialog::CameraConnectDialog(QWidget *parent) :
+CameraConnectDialog::CameraConnectDialog(QWidget *parent, bool isStreamSyncEnabled) :
     QDialog(parent),
     ui(new Ui::CameraConnectDialog)
 {  
@@ -54,6 +54,8 @@ CameraConnectDialog::CameraConnectDialog(QWidget *parent) :
     ui->processingPrioComboBox->addItems(threadPriorities);
     // Set dialog to defaults
     resetToDefaults();
+    // Enable/disable checkbox
+    ui->enableFrameProcessingCheckBox->setEnabled(isStreamSyncEnabled);
     // Connect button to slot
     connect(ui->resetToDefaultsPushButton,SIGNAL(released()),SLOT(resetToDefaults()));
 }
@@ -94,11 +96,6 @@ int CameraConnectDialog::getImageBufferSize()
         return ui->imageBufferSizeEdit->text().toInt();
 }
 
-QString CameraConnectDialog::getTabLabel()
-{
-    return ui->tabLabelEdit->text();
-}
-
 bool CameraConnectDialog::getDropFrameCheckBoxState()
 {
     return ui->dropFrameCheckBox->isChecked();
@@ -112,6 +109,16 @@ int CameraConnectDialog::getCaptureThreadPrio()
 int CameraConnectDialog::getProcessingThreadPrio()
 {
     return ui->processingPrioComboBox->currentIndex();
+}
+
+QString CameraConnectDialog::getTabLabel()
+{
+    return ui->tabLabelEdit->text();
+}
+
+bool CameraConnectDialog::getEnableFrameProcessingCheckBoxState()
+{
+    return ui->enableFrameProcessingCheckBox->isChecked();
 }
 
 void CameraConnectDialog::resetToDefaults()
@@ -156,4 +163,8 @@ void CameraConnectDialog::resetToDefaults()
         ui->processingPrioComboBox->setCurrentIndex(6);
     else if(DEFAULT_PROC_THREAD_PRIO==QThread::InheritPriority)
         ui->processingPrioComboBox->setCurrentIndex(7);
+    // Tab label
+    ui->tabLabelEdit->setText("");
+    // Enable Frame Processing checkbox
+    ui->enableFrameProcessingCheckBox->setChecked(true);
 }
