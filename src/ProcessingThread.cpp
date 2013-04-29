@@ -76,7 +76,12 @@ void ProcessingThread::run()
         // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
         /*
         if(sharedImageBuffer->containsImageBufferForDeviceNumber(x))
-            Mat frameFromAnotherStream = sharedImageBuffer->getByDeviceNumber(x)->getFrame();
+        {
+            // Grab frame from another stream (connected to camera with Device Number=x)
+            Mat frameFromAnotherStream = Mat(sharedImageBuffer->getByDeviceNumber(x)->getFrame(), currentROI);
+            // Linear blend images together using OpenCV and save the result to currentFrame. Note: beta=1-alpha
+            addWeighted(frameFromAnotherStream, 0.5, currentFrame, 0.5, 0.0, currentFrame);
+        }
         */
 
         ////////////////////////////////////
