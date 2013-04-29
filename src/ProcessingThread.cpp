@@ -75,8 +75,8 @@ void ProcessingThread::run()
         // Example of how to grab a frame from another stream (where x=Device Number)
         // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
         /*
-        if(sharedImageBuffer->containsImageBufferForDeviceNumber(1))
-            Mat frameFromAnotherStream = sharedImageBuffer->getByDeviceNumber(1)->getFrame();
+        if(sharedImageBuffer->containsImageBufferForDeviceNumber(x))
+            Mat frameFromAnotherStream = sharedImageBuffer->getByDeviceNumber(x)->getFrame();
         */
 
         ////////////////////////////////////
