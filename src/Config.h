@@ -35,9 +35,6 @@
 
 // Qt
 #include <QtWidgets>
-// OpenCV
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
 
 // FPS statistics queue lengths
 #define PROCESSING_FPS_STAT_QUEUE_LENGTH    32

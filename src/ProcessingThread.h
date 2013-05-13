@@ -56,8 +56,6 @@ class ProcessingThread : public QThread
         ProcessingThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber);
         QRect getCurrentROI();
         void stop();
-        int getAverageFPS();
-        int getNFramesProcessed();
 
     private:
         void updateFPS(int);
@@ -76,12 +74,11 @@ class ProcessingThread : public QThread
         Point framePoint;
         struct ImageProcessingFlags imgProcFlags;
         struct ImageProcessingSettings imgProcSettings;
+        struct ThreadStatisticsData statsData;
         volatile bool doStop;
         int processingTime;
         int fpsSum;
         int sampleNumber;
-        int averageFPS;
-        int nFramesProcessed;
         int deviceNumber;
         bool enableFrameProcessing;
 
@@ -95,7 +92,7 @@ class ProcessingThread : public QThread
 
     signals:
         void newFrame(const QImage &frame);
-        void updateStatisticsInGUI();
+        void updateStatisticsInGUI(struct ThreadStatisticsData);
 };
 
 #endif // PROCESSINGTHREAD_H

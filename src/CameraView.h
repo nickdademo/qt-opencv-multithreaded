@@ -78,11 +78,12 @@ class CameraView : public QMainWindow
         void setErode(bool);
         void setFlip(bool);
         void setCanny(bool);
+        void setScaledContents(bool);
 
     private slots:
         void updateFrame(const QImage &frame);
-        void updateProcessingThreadStats();
-        void updateCaptureThreadStats();
+        void updateProcessingThreadStats(struct ThreadStatisticsData statData);
+        void updateCaptureThreadStats(struct ThreadStatisticsData statData);
 
     signals:
         void newImageProcessingFlags(struct ImageProcessingFlags imageProcessingFlags);

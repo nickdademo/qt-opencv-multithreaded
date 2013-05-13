@@ -40,3 +40,5 @@ FORMS    += \
     ImageProcessingSettingsDialog.ui
 
 LIBS += `pkg-config opencv --cflags --libs`
+
+QMAKE_CXXFLAGS += -Wall

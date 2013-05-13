@@ -34,7 +34,7 @@
 #define SHAREDIMAGEBUFFER_H
 
 // Qt
-#include <QMap>
+#include <QHash>
 #include <QSet>
 #include <QWaitCondition>
 #include <QMutex>
@@ -56,7 +56,7 @@ class SharedImageBuffer
         bool containsImageBufferForDeviceNumber(int deviceNumber);
 
     private:
-        QMap<int, ImageBuffer*> imageBufferMap;
+        QHash<int, ImageBuffer*> imageBufferMap;
         QSet<int> syncSet;
         QWaitCondition wc;
         QMutex mutex;

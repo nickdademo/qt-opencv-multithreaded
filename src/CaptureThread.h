@@ -42,6 +42,7 @@
 // Local
 #include "SharedImageBuffer.h"
 #include "Config.h"
+#include "Structures.h"
 
 using namespace cv;
 
@@ -57,10 +58,8 @@ class CaptureThread : public QThread
         bool connectToCamera();
         bool disconnectCamera();
         bool isCameraConnected();
-        int getAverageFPS();
         int getInputSourceWidth();
         int getInputSourceHeight();
-        int getNFramesCaptured();
 
     private:
         void updateFPS(int);
@@ -70,20 +69,19 @@ class CaptureThread : public QThread
         QTime t;
         QMutex doStopMutex;
         QQueue<int> fps;
+        struct ThreadStatisticsData statsData;
         volatile bool doStop;
         int captureTime;
-        int averageFPS;
         int sampleNumber;
         int fpsSum;
         bool dropFrameIfBufferFull;
-        int nFramesCaptured;
         int deviceNumber;
 
     protected:
         void run();
 
     signals:
-        void updateStatisticsInGUI();
+        void updateStatisticsInGUI(struct ThreadStatisticsData);
 };
 
 #endif // CAPTURETHREAD_H

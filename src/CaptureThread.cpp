@@ -38,12 +38,12 @@ CaptureThread::CaptureThread(SharedImageBuffer *sharedImageBuffer, int deviceNum
     this->dropFrameIfBufferFull=dropFrameIfBufferFull;
     this->deviceNumber=deviceNumber;
     // Initialize variables(s)
-    nFramesCaptured=0;
     doStop=false;
     sampleNumber=0;
     fpsSum=0;
-    averageFPS=0;
     fps.clear();
+    statsData.averageFPS=0;
+    statsData.nFramesProcessed=0;
 }
 
 void CaptureThread::run()
@@ -78,9 +78,9 @@ void CaptureThread::run()
 
         // Update statistics
         updateFPS(captureTime);
-        nFramesCaptured++;
+        statsData.nFramesProcessed++;
         // Inform GUI of updated statistics
-        emit updateStatisticsInGUI();
+        emit updateStatisticsInGUI(statsData);
     }
     qDebug() << "Stopping capture thread...";
 }
@@ -126,7 +126,7 @@ void CaptureThread::updateFPS(int timeElapsed)
         while(!fps.empty())
             fpsSum+=fps.dequeue();
         // Calculate average FPS
-        averageFPS=fpsSum/CAPTURE_FPS_STAT_QUEUE_LENGTH;
+        statsData.averageFPS=fpsSum/CAPTURE_FPS_STAT_QUEUE_LENGTH;
         // Reset sum
         fpsSum=0;
         // Reset sample number
@@ -136,14 +136,8 @@ void CaptureThread::updateFPS(int timeElapsed)
 
 void CaptureThread::stop()
 {
-    doStopMutex.lock();
+    QMutexLocker locker(&doStopMutex);
     doStop=true;
-    doStopMutex.unlock();
-}
-
-int CaptureThread::getAverageFPS()
-{
-    return averageFPS;
 }
 
 bool CaptureThread::isCameraConnected()
@@ -159,9 +153,4 @@ int CaptureThread::getInputSourceWidth()
 int CaptureThread::getInputSourceHeight()
 {
     return cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-}
-
-int CaptureThread::getNFramesCaptured()
-{
-    return nFramesCaptured;
 }

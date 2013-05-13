@@ -100,10 +100,10 @@ bool ImageBuffer::clear()
     // Check if buffer contains frames
     if(imageQueue.size()>0)
     {
-        // Stop adding frames to buffer
+        // Stop adding frames to buffer (will return false if a frame is currently being added to the buffer)
         if(clearBuffer_addFrame->tryAcquire())
         {
-            // Stop taking frames from buffer
+            // Stop taking frames from buffer (will return false if a frame is currently being taken from the buffer)
             if(clearBuffer_getFrame->tryAcquire())
             {
                 // Release all remaining slots in queue

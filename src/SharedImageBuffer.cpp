@@ -41,8 +41,14 @@ SharedImageBuffer::SharedImageBuffer()
 
 void SharedImageBuffer::add(int deviceNumber, ImageBuffer* imageBuffer, bool sync)
 {
+    // Device stream is to be synchronized
     if(sync)
+    {
+        mutex.lock();
         syncSet.insert(deviceNumber);
+        mutex.unlock();
+    }
+    // Add image buffer to map
     imageBufferMap[deviceNumber]=imageBuffer;
 }
 
@@ -53,29 +59,30 @@ ImageBuffer* SharedImageBuffer::getByDeviceNumber(int deviceNumber)
 
 void SharedImageBuffer::removeByDeviceNumber(int deviceNumber)
 {
+    // Remove buffer for device from imageBufferMap
     imageBufferMap.remove(deviceNumber);
-    // Also remove from syncSet if present
+
+    // Also remove from syncSet (if present)
+    mutex.lock();
     if(syncSet.contains(deviceNumber))
     {
         syncSet.remove(deviceNumber);
         wc.wakeAll();
     }
+    mutex.unlock();
 }
 
 void SharedImageBuffer::sync(int deviceNumber)
 {
+    // Only perform sync if enabled for specified device/stream
     mutex.lock();
-    // Only perform sync if it is enabled for specified device/stream
     if(syncSet.contains(deviceNumber))
     {
         // Increment arrived count
         nArrived++;
-        // We are the last to arrive: wake all
+        // We are the last to arrive: wake all waiting threads
         if(doSync && (nArrived==syncSet.size()))
-        {
-            // Wake all waiting threads
             wc.wakeAll();
-        }
         // Still waiting for other streams to arrive: wait
         else
             wc.wait(&mutex);
@@ -87,6 +94,7 @@ void SharedImageBuffer::sync(int deviceNumber)
 
 void SharedImageBuffer::wakeAll()
 {
+    QMutexLocker locker(&mutex);
     wc.wakeAll();
 }
 

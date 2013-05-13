@@ -40,9 +40,9 @@ ProcessingThread::ProcessingThread(SharedImageBuffer *sharedImageBuffer, int dev
     doStop=false;
     sampleNumber=0;
     fpsSum=0;
-    averageFPS=0;
-    nFramesProcessed=0;
     fps.clear();
+    statsData.averageFPS=0;
+    statsData.nFramesProcessed=0;
 }
 
 void ProcessingThread::run()
@@ -72,13 +72,13 @@ void ProcessingThread::run()
         // Get frame from queue, store in currentFrame, set ROI
         currentFrame=Mat(sharedImageBuffer->getByDeviceNumber(deviceNumber)->getFrame(), currentROI);
 
-        // Example of how to grab a frame from another stream (where x=Device Number)
+        // Example of how to grab a frame from another stream (where Device Number=1)
         // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
         /*
-        if(sharedImageBuffer->containsImageBufferForDeviceNumber(x))
+        if(sharedImageBuffer->containsImageBufferForDeviceNumber(1))
         {
-            // Grab frame from another stream (connected to camera with Device Number=x)
-            Mat frameFromAnotherStream = Mat(sharedImageBuffer->getByDeviceNumber(x)->getFrame(), currentROI);
+            // Grab frame from another stream (connected to camera with Device Number=1)
+            Mat frameFromAnotherStream = Mat(sharedImageBuffer->getByDeviceNumber(1)->getFrame(), currentROI);
             // Linear blend images together using OpenCV and save the result to currentFrame. Note: beta=1-alpha
             addWeighted(frameFromAnotherStream, 0.5, currentFrame, 0.5, 0.0, currentFrame);
         }
@@ -123,7 +123,7 @@ void ProcessingThread::run()
         if(imgProcFlags.erodeOn)
         {
             erode(imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame, imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame,
-                  Mat(),Point(-1, -1), imgProcSettings.erodeNumberOfIterations);
+                  Mat(), Point(-1, -1), imgProcSettings.erodeNumberOfIterations);
         }
         // Flip
         if(imgProcFlags.flipOn)
@@ -151,9 +151,9 @@ void ProcessingThread::run()
 
         // Update statistics
         updateFPS(processingTime);
-        nFramesProcessed++;
+        statsData.nFramesProcessed++;
         // Inform GUI of updated statistics
-        emit updateStatisticsInGUI();
+        emit updateStatisticsInGUI(statsData);
     }
     qDebug() << "Stopping processing thread...";
 }
@@ -179,7 +179,7 @@ void ProcessingThread::updateFPS(int timeElapsed)
         while(!fps.empty())
             fpsSum+=fps.dequeue();
         // Calculate average FPS
-        averageFPS=fpsSum/PROCESSING_FPS_STAT_QUEUE_LENGTH;
+        statsData.averageFPS=fpsSum/PROCESSING_FPS_STAT_QUEUE_LENGTH;
         // Reset sum
         fpsSum=0;
         // Reset sample number
@@ -189,9 +189,8 @@ void ProcessingThread::updateFPS(int timeElapsed)
 
 void ProcessingThread::stop()
 {
-    doStopMutex.lock();
+    QMutexLocker locker(&doStopMutex);
     doStop=true;
-    doStopMutex.unlock();
 }
 
 void ProcessingThread::updateImageProcessingFlags(struct ImageProcessingFlags imgProcFlags)
@@ -231,17 +230,7 @@ void ProcessingThread::setROI(QRect roi)
     currentROI.height = roi.height();
 }
 
-int ProcessingThread::getAverageFPS()
-{
-    return averageFPS;
-}
-
 QRect ProcessingThread::getCurrentROI()
 {
     return QRect(currentROI.x, currentROI.y, currentROI.width, currentROI.height);
-}
-
-int ProcessingThread::getNFramesProcessed()
-{
-    return nFramesProcessed;
 }
