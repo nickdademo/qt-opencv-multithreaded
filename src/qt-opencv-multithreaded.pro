@@ -13,7 +13,6 @@ SOURCES += main.cpp \
     FrameLabel.cpp \
     CameraView.cpp \
     ProcessingThread.cpp \
-    ImageBuffer.cpp \
     CaptureThread.cpp \
     CameraConnectDialog.cpp \
     ImageProcessingSettingsDialog.cpp \
