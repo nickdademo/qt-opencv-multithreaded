@@ -105,7 +105,7 @@ CameraView::~CameraView()
     delete ui;
 }
 
-bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, int procThreadPrio, bool enableFrameProcessing)
+bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, int procThreadPrio, bool enableFrameProcessing, int width, int height)
 {
     // Set frame label text
     if(sharedImageBuffer->isSyncEnabledForDeviceNumber(deviceNumber))
@@ -114,7 +114,7 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         ui->frameLabel->setText("Connecting to camera...");
 
     // Create capture thread
-    captureThread = new CaptureThread(sharedImageBuffer, deviceNumber, dropFrameIfBufferFull);
+    captureThread = new CaptureThread(sharedImageBuffer, deviceNumber, dropFrameIfBufferFull, width, height);
     // Attempt to connect to camera
     if(captureThread->connectToCamera())
     {
@@ -145,7 +145,7 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
 
         // Setup imageBufferBar with minimum and maximum values
         ui->imageBufferBar->setMinimum(0);
-        ui->imageBufferBar->setMaximum(sharedImageBuffer->getByDeviceNumber(deviceNumber)->getMaxSize());
+        ui->imageBufferBar->setMaximum(sharedImageBuffer->getByDeviceNumber(deviceNumber)->maxSize());
         // Enable/disable appropriate GUI items
         ui->imageProcessingMenu->setEnabled(enableFrameProcessing);
         ui->imageProcessingSettingsAction->setEnabled(enableFrameProcessing);
@@ -173,7 +173,7 @@ void CameraView::stopCaptureThread()
     sharedImageBuffer->wakeAll(); // This allows the thread to be stopped if it is in a wait-state
     // Take one frame off a FULL queue to allow the capture thread to finish
     if(sharedImageBuffer->getByDeviceNumber(deviceNumber)->isFull())
-        sharedImageBuffer->getByDeviceNumber(deviceNumber)->getFrame();
+        sharedImageBuffer->getByDeviceNumber(deviceNumber)->get();
     captureThread->wait();
     qDebug() << "[" << deviceNumber << "] Capture thread successfully stopped.";
 }
@@ -182,6 +182,7 @@ void CameraView::stopProcessingThread()
 {
     qDebug() << "[" << deviceNumber << "] About to stop processing thread...";
     processingThread->stop();
+    sharedImageBuffer->wakeAll(); // This allows the thread to be stopped if it is in a wait-state
     processingThread->wait();
     qDebug() << "[" << deviceNumber << "] Processing thread successfully stopped.";
 }
@@ -189,10 +190,10 @@ void CameraView::stopProcessingThread()
 void CameraView::updateCaptureThreadStats(struct ThreadStatisticsData statData)
 {
     // Show [number of images in buffer / image buffer size] in imageBufferLabel
-    ui->imageBufferLabel->setText(QString("[")+QString::number(sharedImageBuffer->getByDeviceNumber(deviceNumber)->getSize())+
-                                  QString("/")+QString::number(sharedImageBuffer->getByDeviceNumber(deviceNumber)->getMaxSize())+QString("]"));
+    ui->imageBufferLabel->setText(QString("[")+QString::number(sharedImageBuffer->getByDeviceNumber(deviceNumber)->size())+
+                                  QString("/")+QString::number(sharedImageBuffer->getByDeviceNumber(deviceNumber)->maxSize())+QString("]"));
     // Show percentage of image bufffer full in imageBufferBar
-    ui->imageBufferBar->setValue(sharedImageBuffer->getByDeviceNumber(deviceNumber)->getSize());
+    ui->imageBufferBar->setValue(sharedImageBuffer->getByDeviceNumber(deviceNumber)->size());
 
     // Show processing rate in captureRateLabel
     ui->captureRateLabel->setText(QString::number(statData.averageFPS)+" fps");

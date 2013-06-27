@@ -52,6 +52,8 @@ class CameraConnectDialog : public QDialog
         void setDeviceNumber();
         void setImageBufferSize();
         int getDeviceNumber();
+        int getResolutionWidth();
+        int getResolutionHeight();
         int getImageBufferSize();
         bool getDropFrameCheckBoxState();
         int getCaptureThreadPrio();

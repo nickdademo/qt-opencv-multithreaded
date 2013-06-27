@@ -47,6 +47,14 @@ CameraConnectDialog::CameraConnectDialog(QWidget *parent, bool isStreamSyncEnabl
     QRegExp rx2("^[0-9]{1,3}$"); // Integers 0 to 999
     QRegExpValidator *validator2 = new QRegExpValidator(rx2, 0);
     ui->imageBufferSizeEdit->setValidator(validator2);
+    // resWEdit (resolution: width) input validation
+    QRegExp rx3("^[0-9]{1,4}$"); // Integers 0 to 9999
+    QRegExpValidator *validator3 = new QRegExpValidator(rx3, 0);
+    ui->resWEdit->setValidator(validator3);
+    // resHEdit (resolution: height) input validation
+    QRegExp rx4("^[0-9]{1,4}$"); // Integers 0 to 9999
+    QRegExpValidator *validator4 = new QRegExpValidator(rx4, 0);
+    ui->resHEdit->setValidator(validator4);
     // Setup combo boxes
     QStringList threadPriorities;
     threadPriorities<<"Idle"<<"Lowest"<<"Low"<<"Normal"<<"High"<<"Highest"<<"Time Critical"<<"Inherit";
@@ -75,6 +83,24 @@ int CameraConnectDialog::getDeviceNumber()
     }
     else
         return ui->deviceNumberEdit->text().toInt();
+}
+
+int CameraConnectDialog::getResolutionWidth()
+{
+    // Return -1 if field is blank
+    if(ui->resWEdit->text().isEmpty())
+        return -1;
+    else
+        return ui->resWEdit->text().toInt();
+}
+
+int CameraConnectDialog::getResolutionHeight()
+{
+    // Return -1 if field is blank
+    if(ui->resHEdit->text().isEmpty())
+        return -1;
+    else
+        return ui->resHEdit->text().toInt();
 }
 
 int CameraConnectDialog::getImageBufferSize()
@@ -125,6 +151,9 @@ void CameraConnectDialog::resetToDefaults()
 {
     // Default camera
     ui->deviceNumberEdit->clear();
+    // Resolution
+    ui->resWEdit->clear();
+    ui->resHEdit->clear();
     // Image buffer size
     ui->imageBufferSizeEdit->setText(QString::number(DEFAULT_IMAGE_BUFFER_SIZE));
     // Drop frames

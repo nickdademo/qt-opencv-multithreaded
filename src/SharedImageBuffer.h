@@ -38,15 +38,20 @@
 #include <QSet>
 #include <QWaitCondition>
 #include <QMutex>
+// OpenCV
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
 // Local
-#include <ImageBuffer.h>
+#include <Buffer.h>
+
+using namespace cv;
 
 class SharedImageBuffer
 {
     public:
         SharedImageBuffer();
-        void add(int deviceNumber, ImageBuffer *imageBuffer, bool sync=false);
-        ImageBuffer* getByDeviceNumber(int deviceNumber);
+        void add(int deviceNumber, Buffer<Mat> *imageBuffer, bool sync=false);
+        Buffer<Mat>* getByDeviceNumber(int deviceNumber);
         void removeByDeviceNumber(int deviceNumber);
         void sync(int deviceNumber);
         void wakeAll();
@@ -56,7 +61,7 @@ class SharedImageBuffer
         bool containsImageBufferForDeviceNumber(int deviceNumber);
 
     private:
-        QHash<int, ImageBuffer*> imageBufferMap;
+        QHash<int, Buffer<Mat>*> imageBufferMap;
         QSet<int> syncSet;
         QWaitCondition wc;
         QMutex mutex;

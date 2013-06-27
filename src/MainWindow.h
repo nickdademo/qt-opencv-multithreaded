@@ -39,7 +39,7 @@
 // Local
 #include "CameraConnectDialog.h"
 #include "CameraView.h"
-#include "ImageBuffer.h"
+#include "Buffer.h"
 #include "SharedImageBuffer.h"
 
 namespace Ui {
@@ -58,6 +58,7 @@ class MainWindow : public QMainWindow
         Ui::MainWindow *ui;
         QPushButton *connectToCameraButton;
         QMap<int, int> deviceNumberMap;
+        QMap<int, CameraView*> cameraViewMap;
         SharedImageBuffer *sharedImageBuffer;
         bool removeFromMapByTabIndex(QMap<int, int>& map, int tabIndex);
         void updateMapValues(QMap<int, int>& map, int tabIndex);

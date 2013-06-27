@@ -5,7 +5,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = qt-opencv-multithreaded
 TEMPLATE = app
 
-DEFINES += APP_VERSION=\\\"1.3.1\\\"
+DEFINES += APP_VERSION=\\\"1.3.2-dev\\\"
 
 SOURCES += main.cpp \
     MainWindow.cpp \
@@ -27,11 +27,11 @@ HEADERS  += \
     Structures.h \
     CameraView.h \
     ProcessingThread.h \
-    ImageBuffer.h \
     CaptureThread.h \
     CameraConnectDialog.h \
     ImageProcessingSettingsDialog.h \
-    SharedImageBuffer.h
+    SharedImageBuffer.h \
+    Buffer.h
 
 FORMS    += \
     MainWindow.ui \

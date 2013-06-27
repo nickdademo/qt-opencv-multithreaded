@@ -42,7 +42,7 @@
 // Local
 #include "Structures.h"
 #include "Config.h"
-#include "ImageBuffer.h"
+#include "Buffer.h"
 #include "MatToQImage.h"
 #include "SharedImageBuffer.h"
 

@@ -32,11 +32,13 @@
 
 #include "CaptureThread.h"
 
-CaptureThread::CaptureThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber, bool dropFrameIfBufferFull) : QThread(), sharedImageBuffer(sharedImageBuffer)
+CaptureThread::CaptureThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber, bool dropFrameIfBufferFull, int width, int height) : QThread(), sharedImageBuffer(sharedImageBuffer)
 {
     // Save passed parameters
     this->dropFrameIfBufferFull=dropFrameIfBufferFull;
     this->deviceNumber=deviceNumber;
+    this->width = width;
+    this->height = height;
     // Initialize variables(s)
     doStop=false;
     sampleNumber=0;
@@ -74,7 +76,7 @@ void CaptureThread::run()
 
         // Capture and add frame to buffer
         cap>>grabbedFrame;
-        sharedImageBuffer->getByDeviceNumber(deviceNumber)->addFrame(grabbedFrame, dropFrameIfBufferFull);
+        sharedImageBuffer->getByDeviceNumber(deviceNumber)->add(grabbedFrame, dropFrameIfBufferFull);
 
         // Update statistics
         updateFPS(captureTime);
@@ -89,6 +91,11 @@ bool CaptureThread::connectToCamera()
 {
     // Open camera
     bool camOpenResult = cap.open(deviceNumber);
+    // Set resolution
+    if(width != -1)
+        cap.set(CV_CAP_PROP_FRAME_WIDTH, width);
+    if(height != -1)
+        cap.set(CV_CAP_PROP_FRAME_HEIGHT, height);
     // Return result
     return camOpenResult;
 }

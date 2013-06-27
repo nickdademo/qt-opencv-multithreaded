@@ -70,7 +70,7 @@ void ProcessingThread::run()
 
         processingMutex.lock();
         // Get frame from queue, store in currentFrame, set ROI
-        currentFrame=Mat(sharedImageBuffer->getByDeviceNumber(deviceNumber)->getFrame(), currentROI);
+        currentFrame=Mat(sharedImageBuffer->getByDeviceNumber(deviceNumber)->get(), currentROI);
 
         // Example of how to grab a frame from another stream (where Device Number=1)
         // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
