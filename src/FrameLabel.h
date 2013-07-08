@@ -33,6 +33,14 @@
 #ifndef FRAMELABEL_H
 #define FRAMELABEL_H
 
+// Qt
+#include <QtGui/QPainter>
+#include <QtGui/QMouseEvent>
+#include <QtCore/QObject>
+#include <QtCore/QPoint>
+#include <QtCore/QRect>
+#include <QLabel>
+#include <QMenu>
 // Local
 #include "Structures.h"
 
@@ -44,8 +52,10 @@ class FrameLabel : public QLabel
         FrameLabel(QWidget *parent = 0);
         void setMouseCursorPos(QPoint);
         QPoint getMouseCursorPos();
+        QMenu *menu;
 
     private:
+        void createContextMenu();
         MouseData mouseData;
         QPoint startPoint;
         QPoint mouseCursorPos;

@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connectToCameraButton->setFocus();
     // Connect other signals/slots
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
-    connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(close()));
+    connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
     // Create SharedImageBuffer object
     sharedImageBuffer = new SharedImageBuffer();
 }

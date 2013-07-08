@@ -1,4 +1,8 @@
-QT       += core gui
+QT += core gui
+
+QT_CONFIG -= no-pkg-config
+CONFIG += link_pkgconfig
+PKGCONFIG += opencv
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -18,7 +22,7 @@ SOURCES += main.cpp \
     ImageProcessingSettingsDialog.cpp \
     SharedImageBuffer.cpp
 
-HEADERS  += \
+HEADERS += \
     MainWindow.h \
     Config.h \
     MatToQImage.h \
@@ -32,12 +36,8 @@ HEADERS  += \
     SharedImageBuffer.h \
     Buffer.h
 
-FORMS    += \
+FORMS += \
     MainWindow.ui \
     CameraView.ui \
     CameraConnectDialog.ui \
     ImageProcessingSettingsDialog.ui
-
-LIBS += `pkg-config opencv --cflags --libs`
-
-QMAKE_CXXFLAGS += -Wall

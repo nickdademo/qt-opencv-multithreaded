@@ -34,7 +34,7 @@
 #define CAMERAVIEW_H
 
 // Qt
-#include <QMainWindow>
+#include <QWidget>
 // Local
 #include "CaptureThread.h"
 #include "ProcessingThread.h"
@@ -46,10 +46,10 @@ namespace Ui {
     class CameraView;
 }
 
-class CameraView : public QMainWindow
+class CameraView : public QWidget
 {
     Q_OBJECT
-    
+
     public:
         explicit CameraView(QWidget *parent, int deviceNumber, SharedImageBuffer *sharedImageBuffer);
         ~CameraView();
@@ -72,18 +72,12 @@ class CameraView : public QMainWindow
         void newMouseData(struct MouseData mouseData);
         void updateMouseCursorPosLabel();
         void clearImageBuffer();
-        void setGrayscale(bool);
-        void setSmooth(bool);
-        void setDilate(bool);
-        void setErode(bool);
-        void setFlip(bool);
-        void setCanny(bool);
-        void setScaledContents(bool);
 
     private slots:
         void updateFrame(const QImage &frame);
         void updateProcessingThreadStats(struct ThreadStatisticsData statData);
         void updateCaptureThreadStats(struct ThreadStatisticsData statData);
+        void handleContextMenuAction(QAction *action);
 
     signals:
         void newImageProcessingFlags(struct ImageProcessingFlags imageProcessingFlags);

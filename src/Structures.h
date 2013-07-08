@@ -34,7 +34,7 @@
 #define STRUCTURES_H
 
 // Qt
-#include <QtWidgets>
+#include <QtCore/QRect>
 
 struct ImageProcessingSettings{
     int smoothType;

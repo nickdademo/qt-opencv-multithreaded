@@ -34,8 +34,9 @@
 #define PROCESSINGTHREAD_H
 
 // Qt
-#include <QThread>
-#include <QDebug>
+#include <QtCore/QThread>
+#include <QtCore/QTime>
+#include <QtCore/QQueue>
 // OpenCV
 #include <opencv/cv.h>
 #include <opencv/highgui.h>

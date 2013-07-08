@@ -41,6 +41,7 @@ FrameLabel::FrameLabel(QWidget *parent) : QLabel(parent)
     drawBox=false;
     mouseData.leftButtonRelease=false;
     mouseData.rightButtonRelease=false;
+    createContextMenu();
 }
 
 void FrameLabel::mouseMoveEvent(QMouseEvent *ev)
@@ -101,12 +102,8 @@ void FrameLabel::mouseReleaseEvent(QMouseEvent *ev)
             drawBox=false;
         else
         {
-            // Set rightButtonRelease flag to TRUE
-            mouseData.rightButtonRelease=true;
-            // Inform main window of event
-            emit newMouseData(mouseData);
-            // Set rightButtonRelease flag to FALSE
-            mouseData.rightButtonRelease=false;
+            // Show context menu
+            menu->exec(ev->globalPos());
         }
     }
 }
@@ -134,4 +131,53 @@ void FrameLabel::paintEvent(QPaintEvent *ev)
         painter.setPen(Qt::blue);
         painter.drawRect(*box);
     }
+}
+
+void FrameLabel::createContextMenu()
+{
+    // Create top-level menu object
+    menu = new QMenu(this);
+    // Add actions
+    QAction *action;
+    action = new QAction(this);
+    action->setText(tr("Reset ROI"));
+    menu->addAction(action);
+    action = new QAction(this);
+    action->setText(tr("Scale to Fit Frame"));
+    action->setCheckable(true);
+    menu->addAction(action);
+    menu->addSeparator();
+    // Create image processing menu object
+    QMenu* menu_imgProc = new QMenu(this);
+    menu_imgProc->setTitle("Image Processing");
+    menu->addMenu(menu_imgProc);
+    // Add actions
+    action = new QAction(this);
+    action->setText(tr("Grayscale"));
+    action->setCheckable(true);
+    menu_imgProc->addAction(action);
+    action = new QAction(this);
+    action->setText(tr("Smooth"));
+    action->setCheckable(true);
+    menu_imgProc->addAction(action);
+    action = new QAction(this);
+    action->setText(tr("Dilate"));
+    action->setCheckable(true);
+    menu_imgProc->addAction(action);
+    action = new QAction(this);
+    action->setText(tr("Erode"));
+    action->setCheckable(true);
+    menu_imgProc->addAction(action);
+    action = new QAction(this);
+    action->setText(tr("Flip"));
+    action->setCheckable(true);
+    menu_imgProc->addAction(action);
+    action = new QAction(this);
+    action->setText(tr("Canny"));
+    action->setCheckable(true);
+    menu_imgProc->addAction(action);
+    menu_imgProc->addSeparator();
+    action = new QAction(this);
+    action->setText(tr("Settings..."));
+    menu_imgProc->addAction(action);
 }

@@ -34,7 +34,7 @@
 #include "ui_CameraView.h"
 
 CameraView::CameraView(QWidget *parent, int deviceNumber, SharedImageBuffer *sharedImageBuffer) :
-    QMainWindow(parent),
+    QWidget(parent),
     ui(new Ui::CameraView),
     sharedImageBuffer(sharedImageBuffer)
 {
@@ -45,12 +45,6 @@ CameraView::CameraView(QWidget *parent, int deviceNumber, SharedImageBuffer *sha
     // Initialize internal flag
     isCameraConnected=false;
     // Set initial GUI state
-    // Menu (disabled)
-    ui->imageProcessingMenu->setDisabled(true);
-    QList<QAction*> actions = ui->imageProcessingMenu->actions();
-    for(int i=0; i<actions.size(); i++)
-        actions.at(i)->setChecked(false);
-    // Window
     ui->frameLabel->setText("No camera connected.");
     ui->imageBufferBar->setValue(0);
     ui->imageBufferLabel->setText("[000/000]");
@@ -70,16 +64,9 @@ CameraView::CameraView(QWidget *parent, int deviceNumber, SharedImageBuffer *sha
     imageProcessingFlags.cannyOn=false;
     // Connect signals/slots
     connect(ui->frameLabel, SIGNAL(onMouseMoveEvent()), this, SLOT(updateMouseCursorPosLabel()));
-    connect(ui->actionGrayscale, SIGNAL(toggled(bool)), this, SLOT(setGrayscale(bool)));
-    connect(ui->actionSmooth, SIGNAL(toggled(bool)), this, SLOT(setSmooth(bool)));
-    connect(ui->actionDilate, SIGNAL(toggled(bool)), this, SLOT(setDilate(bool)));
-    connect(ui->actionErode, SIGNAL(toggled(bool)), this, SLOT(setErode(bool)));
-    connect(ui->actionFlip, SIGNAL(toggled(bool)), this, SLOT(setFlip(bool)));
-    connect(ui->actionCanny, SIGNAL(toggled(bool)), this, SLOT(setCanny(bool)));
-    connect(ui->imageProcessingSettingsAction, SIGNAL(triggered()), this, SLOT(setImageProcessingSettings()));
     connect(ui->clearImageBufferButton, SIGNAL(released()), this, SLOT(clearImageBuffer()));
-    connect(ui->actionScaleToFitFrame, SIGNAL(toggled(bool)), this, SLOT(setScaledContents(bool)));
-    // Register
+    connect(ui->frameLabel->menu, SIGNAL(triggered(QAction*)), this, SLOT(handleContextMenuAction(QAction*)));
+    // Register type
     qRegisterMetaType<struct ThreadStatisticsData>("ThreadStatisticsData");
 }
 
@@ -147,8 +134,8 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         ui->imageBufferBar->setMinimum(0);
         ui->imageBufferBar->setMaximum(sharedImageBuffer->getByDeviceNumber(deviceNumber)->maxSize());
         // Enable/disable appropriate GUI items
-        ui->imageProcessingMenu->setEnabled(enableFrameProcessing);
-        ui->imageProcessingSettingsAction->setEnabled(enableFrameProcessing);
+        //ui->imageProcessingMenu->setEnabled(enableFrameProcessing);
+        //ui->imageProcessingSettingsAction->setEnabled(enableFrameProcessing);
         // Enable "Clear Image Buffer" push button
         ui->clearImageBufferButton->setEnabled(true);
         // Set text in labels
@@ -301,54 +288,44 @@ void CameraView::newMouseData(struct MouseData mouseData)
                 emit setROI(selectionBox);
         }
     }
-    // Reset ROI
-    else if(mouseData.rightButtonRelease)
+}
+
+void CameraView::handleContextMenuAction(QAction *action)
+{
+    if(action->text()=="Reset ROI")
         emit setROI(QRect(0, 0, captureThread->getInputSourceWidth(), captureThread->getInputSourceHeight()));
-}
-
-void CameraView::setGrayscale(bool input)
-{
-    imageProcessingFlags.grayscaleOn=input;
-    // Update image processing flags in processing thread
-    emit newImageProcessingFlags(imageProcessingFlags);
-}
-
-void CameraView::setSmooth(bool input)
-{
-    imageProcessingFlags.smoothOn=input;
-    // Update image processing flags in pprocessing thread
-    emit newImageProcessingFlags(imageProcessingFlags);
-}
-
-void CameraView::setDilate(bool input)
-{
-    imageProcessingFlags.dilateOn=input;
-    // Update image processing flags in processing thread
-    emit newImageProcessingFlags(imageProcessingFlags);
-}
-
-void CameraView::setErode(bool input)
-{
-    imageProcessingFlags.erodeOn=input;
-    // Update image processing flags in processing thread
-    emit newImageProcessingFlags(imageProcessingFlags);
-}
-
-void CameraView::setFlip(bool input)
-{
-    imageProcessingFlags.flipOn=input;
-    // Update image processing flags in processing thread
-    emit newImageProcessingFlags(imageProcessingFlags);
-}
-
-void CameraView::setCanny(bool input)
-{
-    imageProcessingFlags.cannyOn=input;
-    // Update image processing flags in processing thread
-    emit newImageProcessingFlags(imageProcessingFlags);
-}
-
-void CameraView::setScaledContents(bool input)
-{
-    ui->frameLabel->setScaledContents(input);
+    else if(action->text()=="Scale to Fit Frame")
+        ui->frameLabel->setScaledContents(action->isChecked());
+    else if(action->text()=="Grayscale")
+    {
+        imageProcessingFlags.grayscaleOn=action->isChecked();
+        emit newImageProcessingFlags(imageProcessingFlags);
+    }
+    else if(action->text()=="Smooth")
+    {
+        imageProcessingFlags.smoothOn=action->isChecked();
+        emit newImageProcessingFlags(imageProcessingFlags);
+    }
+    else if(action->text()=="Dilate")
+    {
+        imageProcessingFlags.dilateOn=action->isChecked();
+        emit newImageProcessingFlags(imageProcessingFlags);
+    }
+    else if(action->text()=="Erode")
+    {
+        imageProcessingFlags.erodeOn=action->isChecked();
+        emit newImageProcessingFlags(imageProcessingFlags);
+    }
+    else if(action->text()=="Flip")
+    {
+        imageProcessingFlags.flipOn=action->isChecked();
+        emit newImageProcessingFlags(imageProcessingFlags);
+    }
+    else if(action->text()=="Canny")
+    {
+        imageProcessingFlags.cannyOn=action->isChecked();
+        emit newImageProcessingFlags(imageProcessingFlags);
+    }
+    else if(action->text()=="Settings...")
+        setImageProcessingSettings();
 }
