@@ -35,7 +35,7 @@
 
 // Qt
 #include <QMainWindow>
-#include <QtWidgets>
+#include <QPushButton>
 // Local
 #include "CameraConnectDialog.h"
 #include "CameraView.h"

@@ -34,9 +34,8 @@
 #define CAPTURETHREAD_H
 
 // Qt
-#include <QThread>
-#include <QtWidgets>
-#include <QDebug>
+#include <QtCore/QTime>
+#include <QtCore/QThread>
 // OpenCV
 #include "opencv/highgui.h"
 // Local

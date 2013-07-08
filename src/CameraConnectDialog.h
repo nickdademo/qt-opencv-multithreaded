@@ -34,7 +34,7 @@
 #define CAMERACONNECTDIALOG_H
 
 // Qt
-#include <QtWidgets>
+#include <QDialog>
 // Local
 #include "Config.h"
 

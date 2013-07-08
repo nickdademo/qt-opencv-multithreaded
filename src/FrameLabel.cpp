@@ -31,6 +31,9 @@
 /************************************************************************/
 
 #include "FrameLabel.h"
+// Qt
+#include <QtGui/QPainter>
+#include <QtGui/QMouseEvent>
 
 FrameLabel::FrameLabel(QWidget *parent) : QLabel(parent)
 {

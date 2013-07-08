@@ -33,8 +33,6 @@
 #ifndef CAMERAVIEW_H
 #define CAMERAVIEW_H
 
-// Qt
-#include <QWidget>
 // Local
 #include "CaptureThread.h"
 #include "ProcessingThread.h"

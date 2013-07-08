@@ -34,8 +34,6 @@
 #define FRAMELABEL_H
 
 // Qt
-#include <QtGui/QPainter>
-#include <QtGui/QMouseEvent>
 #include <QtCore/QObject>
 #include <QtCore/QPoint>
 #include <QtCore/QRect>

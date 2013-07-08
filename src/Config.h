@@ -33,9 +33,6 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-// Qt
-#include <QtWidgets>
-
 // FPS statistics queue lengths
 #define PROCESSING_FPS_STAT_QUEUE_LENGTH    32
 #define CAPTURE_FPS_STAT_QUEUE_LENGTH       32

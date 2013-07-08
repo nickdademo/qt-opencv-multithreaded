@@ -32,6 +32,9 @@
 
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
+// Qt
+#include <QLabel>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),

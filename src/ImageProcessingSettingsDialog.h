@@ -34,7 +34,8 @@
 #define IMAGEPROCESSINGSETTINGSDIALOG_H
 
 // Qt
-#include <QtWidgets>
+#include <QDialog>
+#include <QAbstractButton>
 // Local
 #include "Structures.h"
 #include "Config.h"

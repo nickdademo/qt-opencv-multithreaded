@@ -32,6 +32,8 @@
 
 #include "CameraView.h"
 #include "ui_CameraView.h"
+// Qt
+#include <QMessageBox>
 
 CameraView::CameraView(QWidget *parent, int deviceNumber, SharedImageBuffer *sharedImageBuffer) :
     QWidget(parent),

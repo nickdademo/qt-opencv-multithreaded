@@ -41,3 +41,5 @@ FORMS += \
     CameraView.ui \
     CameraConnectDialog.ui \
     ImageProcessingSettingsDialog.ui
+
+QMAKE_CXXFLAGS += -Wall

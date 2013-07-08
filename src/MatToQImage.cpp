@@ -31,6 +31,8 @@
 /************************************************************************/
 
 #include "MatToQImage.h"
+// Qt
+#include <QDebug>
 
 QImage MatToQImage(const Mat& mat)
 {

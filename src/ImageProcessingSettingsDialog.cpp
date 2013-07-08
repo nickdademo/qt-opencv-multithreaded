@@ -32,6 +32,8 @@
 
 #include "ImageProcessingSettingsDialog.h"
 #include "ui_ImageProcessingSettingsDialog.h"
+// Qt
+#include <QMessageBox>
 
 ImageProcessingSettingsDialog::ImageProcessingSettingsDialog(QWidget *parent) :
     QDialog(parent),
