@@ -74,8 +74,13 @@ void CaptureThread::run()
         // Synchronize with other streams (if enabled for this stream)
         sharedImageBuffer->sync(deviceNumber);
 
-        // Capture and add frame to buffer
-        cap>>grabbedFrame;
+        // Capture frame (if available)
+        if (!cap.grab())
+            continue;
+
+        // Retrieve frame
+        cap.retrieve(grabbedFrame);
+        // Add frame to buffer
         sharedImageBuffer->getByDeviceNumber(deviceNumber)->add(grabbedFrame, dropFrameIfBufferFull);
 
         // Update statistics

@@ -88,8 +88,12 @@ void ProcessingThread::run()
         // PERFORM IMAGE PROCESSING BELOW //
         ////////////////////////////////////
         // Grayscale conversion
-        if(imgProcFlags.grayscaleOn)
+        if(imgProcFlags.grayscaleOn && (currentFrame.channels() == 3 || currentFrame.channels() == 4))
             cvtColor(currentFrame, currentFrameGrayscale, CV_BGR2GRAY);
+
+        // Create frame reference
+        Mat &currentFrameRef = (imgProcFlags.grayscaleOn && (currentFrame.channels() == 3 || currentFrame.channels() == 4)) ? currentFrameGrayscale : currentFrame;
+
         // Smooth (in-place operations)
         if(imgProcFlags.smoothOn)
         {
@@ -97,18 +101,18 @@ void ProcessingThread::run()
             {
                 // BLUR
                 case 0:
-                    blur(imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame, imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame,
+                    blur(currentFrameRef, currentFrameRef,
                          Size(imgProcSettings.smoothParam1, imgProcSettings.smoothParam2));
                     break;
                 // GAUSSIAN
                 case 1:
-                    GaussianBlur(imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame, imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame,
+                    GaussianBlur(currentFrameRef, currentFrameRef,
                                  Size(imgProcSettings.smoothParam1, imgProcSettings.smoothParam2),
                                  imgProcSettings.smoothParam3, imgProcSettings.smoothParam4);
                     break;
                 // MEDIAN
                 case 2:
-                    medianBlur(imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame, imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame,
+                    medianBlur(currentFrameRef, currentFrameRef,
                                imgProcSettings.smoothParam1);
                     break;
             }
@@ -116,25 +120,25 @@ void ProcessingThread::run()
         // Dilate
         if(imgProcFlags.dilateOn)
         {
-            dilate(imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame, imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame,
+            dilate(currentFrameRef, currentFrameRef,
                    Mat(), Point(-1, -1), imgProcSettings.dilateNumberOfIterations);
         }
         // Erode
         if(imgProcFlags.erodeOn)
         {
-            erode(imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame, imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame,
+            erode(currentFrameRef, currentFrameRef,
                   Mat(), Point(-1, -1), imgProcSettings.erodeNumberOfIterations);
         }
         // Flip
         if(imgProcFlags.flipOn)
         {
-            flip(imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame, imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame,
+            flip(currentFrameRef, currentFrameRef,
                  imgProcSettings.flipCode);
         }
         // Canny edge detection
         if(imgProcFlags.cannyOn)
         {
-            Canny(imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame, imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame,
+            Canny(currentFrameRef, currentFrameRef,
                   imgProcSettings.cannyThreshold1, imgProcSettings.cannyThreshold2,
                   imgProcSettings.cannyApertureSize, imgProcSettings.cannyL2gradient);
         }
@@ -143,7 +147,7 @@ void ProcessingThread::run()
         ////////////////////////////////////
 
         // Convert Mat to QImage
-        frame=MatToQImage(imgProcFlags.grayscaleOn ? currentFrameGrayscale : currentFrame);
+        frame=MatToQImage(currentFrameRef);
         processingMutex.unlock();
 
         // Inform GUI thread of new frame (QImage)
