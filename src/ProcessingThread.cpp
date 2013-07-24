@@ -70,7 +70,7 @@ void ProcessingThread::run()
 
         processingMutex.lock();
         // Get frame from queue, store in currentFrame, set ROI
-        currentFrame=Mat(sharedImageBuffer->getByDeviceNumber(deviceNumber)->get(), currentROI);
+        currentFrame=Mat(sharedImageBuffer->getByDeviceNumber(deviceNumber)->get().clone(), currentROI);
 
         // Example of how to grab a frame from another stream (where Device Number=1)
         // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
@@ -87,12 +87,9 @@ void ProcessingThread::run()
         ////////////////////////////////////
         // PERFORM IMAGE PROCESSING BELOW //
         ////////////////////////////////////
-        // Grayscale conversion
+        // Grayscale conversion (in-place operation)
         if(imgProcFlags.grayscaleOn && (currentFrame.channels() == 3 || currentFrame.channels() == 4))
-            cvtColor(currentFrame, currentFrameGrayscale, CV_BGR2GRAY);
-
-        // Create frame reference
-        Mat &currentFrameRef = (imgProcFlags.grayscaleOn && (currentFrame.channels() == 3 || currentFrame.channels() == 4)) ? currentFrameGrayscale : currentFrame;
+            cvtColor(currentFrame, currentFrame, CV_BGR2GRAY);
 
         // Smooth (in-place operations)
         if(imgProcFlags.smoothOn)
@@ -101,18 +98,18 @@ void ProcessingThread::run()
             {
                 // BLUR
                 case 0:
-                    blur(currentFrameRef, currentFrameRef,
+                    blur(currentFrame, currentFrame,
                          Size(imgProcSettings.smoothParam1, imgProcSettings.smoothParam2));
                     break;
                 // GAUSSIAN
                 case 1:
-                    GaussianBlur(currentFrameRef, currentFrameRef,
+                    GaussianBlur(currentFrame, currentFrame,
                                  Size(imgProcSettings.smoothParam1, imgProcSettings.smoothParam2),
                                  imgProcSettings.smoothParam3, imgProcSettings.smoothParam4);
                     break;
                 // MEDIAN
                 case 2:
-                    medianBlur(currentFrameRef, currentFrameRef,
+                    medianBlur(currentFrame, currentFrame,
                                imgProcSettings.smoothParam1);
                     break;
             }
@@ -120,25 +117,25 @@ void ProcessingThread::run()
         // Dilate
         if(imgProcFlags.dilateOn)
         {
-            dilate(currentFrameRef, currentFrameRef,
+            dilate(currentFrame, currentFrame,
                    Mat(), Point(-1, -1), imgProcSettings.dilateNumberOfIterations);
         }
         // Erode
         if(imgProcFlags.erodeOn)
         {
-            erode(currentFrameRef, currentFrameRef,
+            erode(currentFrame, currentFrame,
                   Mat(), Point(-1, -1), imgProcSettings.erodeNumberOfIterations);
         }
         // Flip
         if(imgProcFlags.flipOn)
         {
-            flip(currentFrameRef, currentFrameRef,
+            flip(currentFrame, currentFrame,
                  imgProcSettings.flipCode);
         }
         // Canny edge detection
         if(imgProcFlags.cannyOn)
         {
-            Canny(currentFrameRef, currentFrameRef,
+            Canny(currentFrame, currentFrame,
                   imgProcSettings.cannyThreshold1, imgProcSettings.cannyThreshold2,
                   imgProcSettings.cannyApertureSize, imgProcSettings.cannyL2gradient);
         }
@@ -147,7 +144,7 @@ void ProcessingThread::run()
         ////////////////////////////////////
 
         // Convert Mat to QImage
-        frame=MatToQImage(currentFrameRef);
+        frame=MatToQImage(currentFrame);
         processingMutex.unlock();
 
         // Inform GUI thread of new frame (QImage)
