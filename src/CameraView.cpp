@@ -82,6 +82,11 @@ CameraView::~CameraView()
         // Stop capture thread
         if(captureThread->isRunning())
             stopCaptureThread();
+
+        // Automatically start frame processing (for other streams)
+        if(sharedImageBuffer->isSyncEnabledForDeviceNumber(deviceNumber))
+            sharedImageBuffer->setSyncEnabled(true);
+
         // Remove from shared buffer
         sharedImageBuffer->removeByDeviceNumber(deviceNumber);
         // Disconnect camera

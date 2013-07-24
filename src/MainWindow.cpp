@@ -168,30 +168,55 @@ void MainWindow::connectToCamera()
 
 void MainWindow::disconnectCamera(int index)
 {
-    // Save number of tabs
-    int nTabs = ui->tabWidget->count();
-    // Close tab
-    ui->tabWidget->removeTab(index);
+    // Local variable(s)
+    bool doDisconnect=true;
 
-    // Delete widget (CameraView) contained in tab
-    delete cameraViewMap[deviceNumberMap.key(index)];
-    cameraViewMap.remove(deviceNumberMap.key(index));
-
-    // Remove from map
-    removeFromMapByTabIndex(deviceNumberMap, index);
-    // Update map (if tab closed is not last)
-    if(index!=(nTabs-1))
-        updateMapValues(deviceNumberMap, index);
-
-    // If start tab, set tab as blank
-    if(nTabs==1)
+    // Check if stream synchronization is enabled, more than 1 camera connected, and frame processing is not in progress
+    if(ui->actionSynchronizeStreams->isChecked() && cameraViewMap.size()>1 && !sharedImageBuffer->getSyncEnabled())
     {
-        QLabel *newTab = new QLabel(ui->tabWidget);
-        newTab->setText("No camera connected.");
-        newTab->setAlignment(Qt::AlignCenter);
-        ui->tabWidget->addTab(newTab, "");
-        ui->tabWidget->setTabsClosable(false);
-        ui->actionSynchronizeStreams->setEnabled(true);
+        // Prompt user
+        int ret = QMessageBox::question(this, tr("qt-opencv-multithreaded"),
+                                        tr("Stream synchronization is enabled.\n\n"
+                                           "Disconnecting this camera will cause frame processing to begin on other streams.\n\n"
+                                           "Do you wish to proceed?"),
+                                        QMessageBox::Yes | QMessageBox::No,
+                                        QMessageBox::Yes);
+        // Disconnect
+        if(ret==QMessageBox::Yes)
+            doDisconnect=true;
+        // Do not disconnect
+        else
+            doDisconnect=false;
+    }
+
+    // Disconnect camera
+    if(doDisconnect)
+    {
+        // Save number of tabs
+        int nTabs = ui->tabWidget->count();
+        // Close tab
+        ui->tabWidget->removeTab(index);
+
+        // Delete widget (CameraView) contained in tab
+        delete cameraViewMap[deviceNumberMap.key(index)];
+        cameraViewMap.remove(deviceNumberMap.key(index));
+
+        // Remove from map
+        removeFromMapByTabIndex(deviceNumberMap, index);
+        // Update map (if tab closed is not last)
+        if(index!=(nTabs-1))
+            updateMapValues(deviceNumberMap, index);
+
+        // If start tab, set tab as blank
+        if(nTabs==1)
+        {
+            QLabel *newTab = new QLabel(ui->tabWidget);
+            newTab->setText("No camera connected.");
+            newTab->setAlignment(Qt::AlignCenter);
+            ui->tabWidget->addTab(newTab, "");
+            ui->tabWidget->setTabsClosable(false);
+            ui->actionSynchronizeStreams->setEnabled(true);
+        }
     }
 }
 

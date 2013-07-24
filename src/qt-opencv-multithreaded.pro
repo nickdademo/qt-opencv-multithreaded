@@ -9,7 +9,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = qt-opencv-multithreaded
 TEMPLATE = app
 
-DEFINES += APP_VERSION=\\\"1.3.2-dev\\\"
+DEFINES += APP_VERSION=\\\"1.3.2\\\"
 
 SOURCES += main.cpp \
     MainWindow.cpp \
