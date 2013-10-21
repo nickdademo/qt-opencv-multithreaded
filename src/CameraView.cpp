@@ -150,9 +150,6 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         // Set frame label text
         if(!enableFrameProcessing)
             ui->frameLabel->setText("Frame processing disabled.");
-        // Set size of frame label
-        ui->frameLabel->setFixedWidth(captureThread->getInputSourceWidth());
-        ui->frameLabel->setFixedHeight(captureThread->getInputSourceHeight());
         return true;
     }
     // Failed to connect to camera
