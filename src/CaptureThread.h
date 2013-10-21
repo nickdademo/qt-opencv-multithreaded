@@ -37,7 +37,7 @@
 #include <QtCore/QTime>
 #include <QtCore/QThread>
 // OpenCV
-#include "opencv/highgui.h"
+#include <opencv2/highgui/highgui.hpp>
 // Local
 #include "SharedImageBuffer.h"
 #include "Config.h"

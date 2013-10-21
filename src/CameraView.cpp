@@ -140,9 +140,6 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         // Setup imageBufferBar with minimum and maximum values
         ui->imageBufferBar->setMinimum(0);
         ui->imageBufferBar->setMaximum(sharedImageBuffer->getByDeviceNumber(deviceNumber)->maxSize());
-        // Enable/disable appropriate GUI items
-        //ui->imageProcessingMenu->setEnabled(enableFrameProcessing);
-        //ui->imageProcessingSettingsAction->setEnabled(enableFrameProcessing);
         // Enable "Clear Image Buffer" push button
         ui->clearImageBufferButton->setEnabled(true);
         // Set text in labels
@@ -153,6 +150,9 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         // Set frame label text
         if(!enableFrameProcessing)
             ui->frameLabel->setText("Frame processing disabled.");
+        // Set size of frame label
+        ui->frameLabel->setFixedWidth(captureThread->getInputSourceWidth());
+        ui->frameLabel->setFixedHeight(captureThread->getInputSourceHeight());
         return true;
     }
     // Failed to connect to camera
@@ -211,7 +211,7 @@ void CameraView::updateProcessingThreadStats(struct ThreadStatisticsData statDat
 void CameraView::updateFrame(const QImage &frame)
 {
     // Display frame
-    ui->frameLabel->setPixmap(QPixmap::fromImage(frame));
+    ui->frameLabel->setPixmap(QPixmap::fromImage(frame).scaled(ui->frameLabel->width(), ui->frameLabel->height(),Qt::KeepAspectRatio));
 }
 
 void CameraView::clearImageBuffer()
