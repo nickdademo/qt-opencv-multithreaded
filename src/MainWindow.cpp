@@ -59,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // Connect other signals/slots
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
     connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
+    connect(ui->actionFullScreen, SIGNAL(toggled(bool)), this, SLOT(setFullScreen(bool)));
     // Create SharedImageBuffer object
     sharedImageBuffer = new SharedImageBuffer();
 }
@@ -260,4 +261,12 @@ void MainWindow::setTabCloseToolTips(QTabWidget *tabs, QString tooltip)
         if (item->inherits("CloseButton"))
             item->setToolTip(tooltip);
     }
+}
+
+void MainWindow::setFullScreen(bool input)
+{
+    if(input)
+        this->showFullScreen();
+    else
+        this->showNormal();
 }

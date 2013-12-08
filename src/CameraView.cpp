@@ -237,13 +237,31 @@ void CameraView::updateMouseCursorPosLabel()
                                      QString(",")+QString::number(ui->frameLabel->getMouseCursorPos().y())+
                                      QString(")"));
 
-    // Show ROI-adjusted cursor position if camera is connected
-    if(isCameraConnected)
-        ui->mouseCursorPosLabel->setText(ui->mouseCursorPosLabel->text()+
-                                         QString(" [")+QString::number(ui->frameLabel->getMouseCursorPos().x()-(ui->frameLabel->width()-processingThread->getCurrentROI().width())/2)+
-                                         QString(",")+QString::number(ui->frameLabel->getMouseCursorPos().y()-(ui->frameLabel->height()-processingThread->getCurrentROI().height())/2)+
-                                         QString("]"));
+    // Show pixel cursor position if camera is connected (image is being shown)
+    if(ui->frameLabel->pixmap()!=0)
+    {
+        // Scaling factor calculation depends on whether frame is scaled to fit label or not
+        if(!ui->frameLabel->hasScaledContents())
+        {
+            double xScalingFactor=((double) ui->frameLabel->getMouseCursorPos().x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double) ui->frameLabel->pixmap()->width();
+            double yScalingFactor=((double) ui->frameLabel->getMouseCursorPos().y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double) ui->frameLabel->pixmap()->height();
 
+            ui->mouseCursorPosLabel->setText(ui->mouseCursorPosLabel->text()+
+                                             QString(" [")+QString::number((int)(xScalingFactor*processingThread->getCurrentROI().width()))+
+                                             QString(",")+QString::number((int)(yScalingFactor*processingThread->getCurrentROI().height()))+
+                                             QString("]"));
+        }
+        else
+        {
+            double xScalingFactor=(double) ui->frameLabel->getMouseCursorPos().x() / (double) ui->frameLabel->width();
+            double yScalingFactor=(double) ui->frameLabel->getMouseCursorPos().y() / (double) ui->frameLabel->height();
+
+            ui->mouseCursorPosLabel->setText(ui->mouseCursorPosLabel->text()+
+                                             QString(" [")+QString::number((int)(xScalingFactor*processingThread->getCurrentROI().width()))+
+                                             QString(",")+QString::number((int)(yScalingFactor*processingThread->getCurrentROI().height()))+
+                                             QString("]"));
+        }
+    }
 }
 
 void CameraView::newMouseData(struct MouseData mouseData)
@@ -255,11 +273,33 @@ void CameraView::newMouseData(struct MouseData mouseData)
     // Set ROI
     if(mouseData.leftButtonRelease)
     {
-        // Copy box dimensions from mouseData to taskData
-        selectionBox.setX(mouseData.selectionBox.x()-((ui->frameLabel->width()-captureThread->getInputSourceWidth()))/2);
-        selectionBox.setY(mouseData.selectionBox.y()-((ui->frameLabel->height()-captureThread->getInputSourceHeight()))/2);
-        selectionBox.setWidth(mouseData.selectionBox.width());
-        selectionBox.setHeight(mouseData.selectionBox.height());
+        double xScalingFactor;
+        double yScalingFactor;
+        double wScalingFactor;
+        double hScalingFactor;
+
+        // Selection box calculation depends on whether frame is scaled to fit label or not
+        if(!ui->frameLabel->hasScaledContents())
+        {
+            xScalingFactor=((double) mouseData.selectionBox.x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double) ui->frameLabel->pixmap()->width();
+            yScalingFactor=((double) mouseData.selectionBox.y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double) ui->frameLabel->pixmap()->height();
+            wScalingFactor=(double) processingThread->getCurrentROI().width() / (double) ui->frameLabel->pixmap()->width();
+            hScalingFactor=(double) processingThread->getCurrentROI().height() / (double) ui->frameLabel->pixmap()->height();
+        }
+        else
+        {
+            xScalingFactor=(double) mouseData.selectionBox.x() / (double) ui->frameLabel->width();
+            yScalingFactor=(double) mouseData.selectionBox.y() / (double) ui->frameLabel->height();
+            wScalingFactor=(double) processingThread->getCurrentROI().width() / (double) ui->frameLabel->width();
+            hScalingFactor=(double) processingThread->getCurrentROI().height() / (double) ui->frameLabel->height();
+        }
+
+        // Set selection box properties (new ROI)
+        selectionBox.setX(xScalingFactor*processingThread->getCurrentROI().width() + processingThread->getCurrentROI().x());
+        selectionBox.setY(yScalingFactor*processingThread->getCurrentROI().height() + processingThread->getCurrentROI().y());
+        selectionBox.setWidth(wScalingFactor*mouseData.selectionBox.width());
+        selectionBox.setHeight(hScalingFactor*mouseData.selectionBox.height());
+
         // Check if selection box has NON-ZERO dimensions
         if((selectionBox.width()!=0)&&((selectionBox.height())!=0))
         {
@@ -281,8 +321,10 @@ void CameraView::newMouseData(struct MouseData mouseData)
 
             // Check if selection box is not outside window
             if((selectionBox.x()<0)||(selectionBox.y()<0)||
-               ((selectionBox.x()+selectionBox.width())>captureThread->getInputSourceWidth())||
-               ((selectionBox.y()+selectionBox.height())>captureThread->getInputSourceHeight()))
+               ((selectionBox.x()+selectionBox.width())>(processingThread->getCurrentROI().x()+processingThread->getCurrentROI().width()))||
+               ((selectionBox.y()+selectionBox.height())>(processingThread->getCurrentROI().y()+processingThread->getCurrentROI().height()))||
+               (selectionBox.x()<processingThread->getCurrentROI().x())||
+               (selectionBox.y()<processingThread->getCurrentROI().y()))
             {
                 // Display error message
                 QMessageBox::warning(this,"ERROR:","Selection box outside range. Please try again.");
