@@ -51,11 +51,11 @@ ImageProcessingSettingsDialog::ImageProcessingSettingsDialog(QWidget *parent) :
     connect(ui->applyButton,SIGNAL(released()),SLOT(updateStoredSettingsFromDialog()));
     connect(ui->smoothTypeGroup,SIGNAL(buttonReleased(QAbstractButton*)),SLOT(smoothTypeChange(QAbstractButton*)));
     // dilateIterationsEdit input string validation
-    QRegExp rx5("[1-9]\\d{0,1}"); // Integers 1 to 99
+    QRegExp rx5("[1-9]\\d{0,2}"); // Integers 1 to 999
     QRegExpValidator *validator5 = new QRegExpValidator(rx5, 0);
     ui->dilateIterationsEdit->setValidator(validator5);
     // erodeIterationsEdit input string validation
-    QRegExp rx6("[1-9]\\d{0,1}"); // Integers 1 to 99
+    QRegExp rx6("[1-9]\\d{0,2}"); // Integers 1 to 999
     QRegExpValidator *validator6 = new QRegExpValidator(rx6, 0);
     ui->erodeIterationsEdit->setValidator(validator6);
     // cannyThresh1Edit input string validation
@@ -168,11 +168,11 @@ void ImageProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
     if(input==(QAbstractButton*)ui->smoothBlurButton)
     {
         // smoothParam1Edit input string validation
-        QRegExp rx1("[1-9]\\d{0,1}"); // Integers 1 to 99
+        QRegExp rx1("[1-9]\\d{0,2}"); // Integers 1 to 999
         QRegExpValidator *validator1 = new QRegExpValidator(rx1, 0);
         ui->smoothParam1Edit->setValidator(validator1);
         // smoothParam2Edit input string validation
-        QRegExp rx2("[1-9]\\d{0,1}"); // Integers 1 to 99
+        QRegExp rx2("[1-9]\\d{0,2}"); // Integers 1 to 999
         QRegExpValidator *validator2 = new QRegExpValidator(rx2, 0);
         ui->smoothParam2Edit->setValidator(validator2);
         // Enable/disable appropriate parameter inputs
@@ -181,8 +181,8 @@ void ImageProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         ui->smoothParam3Edit->setEnabled(false);
         ui->smoothParam4Edit->setEnabled(false);
         // Set parameter range labels
-        ui->smoothParam1RangeLabel->setText("[1-99]");
-        ui->smoothParam2RangeLabel->setText("[1-99]");
+        ui->smoothParam1RangeLabel->setText("[1-999]");
+        ui->smoothParam2RangeLabel->setText("[1-999]");
         ui->smoothParam3RangeLabel->setText("");
         ui->smoothParam4RangeLabel->setText("");
         // Set parameter labels

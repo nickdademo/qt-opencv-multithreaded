@@ -646,7 +646,7 @@
               </font>
              </property>
              <property name="text">
-              <string>[1-99]</string>
+              <string>[1-999]</string>
              </property>
             </widget>
            </item>
@@ -754,7 +754,7 @@
               </font>
              </property>
              <property name="text">
-              <string>[1-99]</string>
+              <string>[1-999]</string>
              </property>
             </widget>
            </item>
