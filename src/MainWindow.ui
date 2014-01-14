@@ -23,7 +23,7 @@
    </size>
   </property>
   <property name="windowTitle">
-   <string>8tree-core</string>
+   <string>qt-opencv-multithreaded</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
