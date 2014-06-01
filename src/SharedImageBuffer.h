@@ -42,7 +42,7 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 // Local
-#include <Buffer.h>
+#include "Buffer.h"
 
 using namespace cv;
 
