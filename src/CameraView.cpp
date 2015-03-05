@@ -78,22 +78,32 @@ CameraView::~CameraView()
     {
         // Stop processing thread
         if(processingThread->isRunning())
+        {
             stopProcessingThread();
+        }
         // Stop capture thread
         if(captureThread->isRunning())
+        {
             stopCaptureThread();
+        }
 
         // Automatically start frame processing (for other streams)
         if(sharedImageBuffer->isSyncEnabledForDeviceNumber(deviceNumber))
+        {
             sharedImageBuffer->setSyncEnabled(true);
+        }
 
         // Remove from shared buffer
         sharedImageBuffer->removeByDeviceNumber(deviceNumber);
         // Disconnect camera
         if(captureThread->disconnectCamera())
+        {
             qDebug() << "[" << deviceNumber << "] Camera successfully disconnected.";
+        }
         else
+        {
             qDebug() << "[" << deviceNumber << "] WARNING: Camera already disconnected.";
+        }
     }
     // Delete UI
     delete ui;
@@ -103,9 +113,13 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
 {
     // Set frame label text
     if(sharedImageBuffer->isSyncEnabledForDeviceNumber(deviceNumber))
+    {
         ui->frameLabel->setText("Camera connected. Waiting...");
+    }
     else
+    {
         ui->frameLabel->setText("Connecting to camera...");
+    }
 
     // Create capture thread
     captureThread = new CaptureThread(sharedImageBuffer, deviceNumber, dropFrameIfBufferFull, width, height);
@@ -125,7 +139,9 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         connect(this, SIGNAL(setROI(QRect)), processingThread, SLOT(setROI(QRect)));
         // Only enable ROI setting/resetting if frame processing is enabled
         if(enableFrameProcessing)
+        {
             connect(ui->frameLabel, SIGNAL(newMouseData(struct MouseData)), this, SLOT(newMouseData(struct MouseData)));
+        }
         // Set initial data in processing thread
         emit setROI(QRect(0, 0, captureThread->getInputSourceWidth(), captureThread->getInputSourceHeight()));
         emit newImageProcessingFlags(imageProcessingFlags);
@@ -135,7 +151,9 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         captureThread->start((QThread::Priority)capThreadPrio);
         // Start processing captured frames (if enabled)
         if(enableFrameProcessing)
+        {
             processingThread->start((QThread::Priority)procThreadPrio);
+        }
 
         // Setup imageBufferBar with minimum and maximum values
         ui->imageBufferBar->setMinimum(0);
@@ -149,7 +167,9 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         isCameraConnected=true;
         // Set frame label text
         if(!enableFrameProcessing)
+        {
             ui->frameLabel->setText("Frame processing disabled.");
+        }
         return true;
     }
     // Failed to connect to camera
@@ -164,7 +184,9 @@ void CameraView::stopCaptureThread()
     sharedImageBuffer->wakeAll(); // This allows the thread to be stopped if it is in a wait-state
     // Take one frame off a FULL queue to allow the capture thread to finish
     if(sharedImageBuffer->getByDeviceNumber(deviceNumber)->isFull())
+    {
         sharedImageBuffer->getByDeviceNumber(deviceNumber)->get();
+    }
     captureThread->wait();
     qDebug() << "[" << deviceNumber << "] Capture thread successfully stopped.";
 }
@@ -214,9 +236,13 @@ void CameraView::updateFrame(const QImage &frame)
 void CameraView::clearImageBuffer()
 {
     if(sharedImageBuffer->getByDeviceNumber(deviceNumber)->clear())
+    {
         qDebug() << "[" << deviceNumber << "] Image buffer successfully cleared.";
+    }
     else
+    {
         qDebug() << "[" << deviceNumber << "] WARNING: Could not clear image buffer.";
+    }
 }
 
 void CameraView::setImageProcessingSettings()
@@ -224,10 +250,14 @@ void CameraView::setImageProcessingSettings()
     // Prompt user:
     // If user presses OK button on dialog, update image processing settings
     if(imageProcessingSettingsDialog->exec()==QDialog::Accepted)
+    {
         imageProcessingSettingsDialog->updateStoredSettingsFromDialog();
+    }
     // Else, restore dialog state
     else
+    {
         imageProcessingSettingsDialog->updateDialogSettingsFromStored();
+    }
 }
 
 void CameraView::updateMouseCursorPosLabel()
@@ -331,7 +361,9 @@ void CameraView::newMouseData(struct MouseData mouseData)
             }
             // Set ROI
             else
+            {
                 emit setROI(selectionBox);
+            }
         }
     }
 }
@@ -339,9 +371,13 @@ void CameraView::newMouseData(struct MouseData mouseData)
 void CameraView::handleContextMenuAction(QAction *action)
 {
     if(action->text()=="Reset ROI")
+    {
         emit setROI(QRect(0, 0, captureThread->getInputSourceWidth(), captureThread->getInputSourceHeight()));
+    }
     else if(action->text()=="Scale to Fit Frame")
+    {
         ui->frameLabel->setScaledContents(action->isChecked());
+    }
     else if(action->text()=="Grayscale")
     {
         imageProcessingFlags.grayscaleOn=action->isChecked();
@@ -373,5 +409,7 @@ void CameraView::handleContextMenuAction(QAction *action)
         emit newImageProcessingFlags(imageProcessingFlags);
     }
     else if(action->text()=="Settings...")
+    {
         setImageProcessingSettings();
+    }
 }

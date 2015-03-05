@@ -89,7 +89,9 @@ void ProcessingThread::run()
         ////////////////////////////////////
         // Grayscale conversion (in-place operation)
         if(imgProcFlags.grayscaleOn && (currentFrame.channels() == 3 || currentFrame.channels() == 4))
+        {
             cvtColor(currentFrame, currentFrame, CV_BGR2GRAY);
+        }
 
         // Smooth (in-place operations)
         if(imgProcFlags.smoothOn)
@@ -171,14 +173,18 @@ void ProcessingThread::updateFPS(int timeElapsed)
 
     // Maximum size of queue is DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH
     if(fps.size()>PROCESSING_FPS_STAT_QUEUE_LENGTH)
+    {
         fps.dequeue();
+    }
 
     // Update FPS value every DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH samples
     if((fps.size()==PROCESSING_FPS_STAT_QUEUE_LENGTH)&&(sampleNumber==PROCESSING_FPS_STAT_QUEUE_LENGTH))
     {
         // Empty queue and store sum
         while(!fps.empty())
+        {
             fpsSum+=fps.dequeue();
+        }
         // Calculate average FPS
         statsData.averageFPS=fpsSum/PROCESSING_FPS_STAT_QUEUE_LENGTH;
         // Reset sum

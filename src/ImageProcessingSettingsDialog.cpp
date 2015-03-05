@@ -87,11 +87,17 @@ void ImageProcessingSettingsDialog::updateStoredSettingsFromDialog()
     validateDialog();
     // Smooth
     if(ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothBlurButton)
+    {
         imageProcessingSettings.smoothType=0;
+    }
     else if(ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothGaussianButton)
+    {
         imageProcessingSettings.smoothType=1;
+    }
     else if(ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothMedianButton)
+    {
         imageProcessingSettings.smoothType=2;
+    }
     imageProcessingSettings.smoothParam1=ui->smoothParam1Edit->text().toInt();
     imageProcessingSettings.smoothParam2=ui->smoothParam2Edit->text().toInt();
     imageProcessingSettings.smoothParam3=ui->smoothParam3Edit->text().toDouble();
@@ -102,11 +108,17 @@ void ImageProcessingSettingsDialog::updateStoredSettingsFromDialog()
     imageProcessingSettings.erodeNumberOfIterations=ui->erodeIterationsEdit->text().toInt();
     // Flip
     if(ui->flipCodeGroup->checkedButton()==(QAbstractButton*)ui->flipXAxisButton)
+    {
         imageProcessingSettings.flipCode=0;
+    }
     else if(ui->flipCodeGroup->checkedButton()==(QAbstractButton*)ui->flipYAxisButton)
+    {
         imageProcessingSettings.flipCode=1;
+    }
     else if(ui->flipCodeGroup->checkedButton()==(QAbstractButton*)ui->flipBothAxesButton)
+    {
         imageProcessingSettings.flipCode=-1;
+    }
     // Canny
     imageProcessingSettings.cannyThreshold1=ui->cannyThresh1Edit->text().toDouble();
     imageProcessingSettings.cannyThreshold2=ui->cannyThresh2Edit->text().toDouble();
@@ -120,11 +132,17 @@ void ImageProcessingSettingsDialog::updateDialogSettingsFromStored()
 {
     // Smooth
     if(imageProcessingSettings.smoothType==0)
+    {
         ui->smoothBlurButton->setChecked(true);
+    }
     else if(imageProcessingSettings.smoothType==1)
+    {
         ui->smoothGaussianButton->setChecked(true);
+    }
     else if(imageProcessingSettings.smoothType==2)
+    {
         ui->smoothMedianButton->setChecked(true);
+    }
     ui->smoothParam1Edit->setText(QString::number(imageProcessingSettings.smoothParam1));
     ui->smoothParam2Edit->setText(QString::number(imageProcessingSettings.smoothParam2));
     ui->smoothParam3Edit->setText(QString::number(imageProcessingSettings.smoothParam3));
@@ -135,11 +153,17 @@ void ImageProcessingSettingsDialog::updateDialogSettingsFromStored()
     ui->erodeIterationsEdit->setText(QString::number(imageProcessingSettings.erodeNumberOfIterations));
     // Flip
     if(imageProcessingSettings.flipCode==0)
+    {
         ui->flipXAxisButton->setChecked(true);
+    }
     else if(imageProcessingSettings.flipCode==1)
+    {
         ui->flipYAxisButton->setChecked(true);
+    }
     else if(imageProcessingSettings.flipCode==-1)
+    {
         ui->flipBothAxesButton->setChecked(true);
+    }
     // Canny
     ui->cannyThresh1Edit->setText(QString::number(imageProcessingSettings.cannyThreshold1));
     ui->cannyThresh2Edit->setText(QString::number(imageProcessingSettings.cannyThreshold2));
@@ -311,7 +335,9 @@ void ImageProcessingSettingsDialog::validateDialog()
     }
     // Check if any of the inputs were empty
     if(inputEmpty)
+    {
         QMessageBox::warning(this->parentWidget(),"WARNING:","One or more inputs empty.\n\nAutomatically set to default values.");
+    }
 
     // Check for special parameter cases when smoothing type is GAUSSIAN
     if((ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothGaussianButton)&&
@@ -341,11 +367,17 @@ void ImageProcessingSettingsDialog::validateDialog()
 void ImageProcessingSettingsDialog::resetSmoothDialogToDefaults()
 {
     if(DEFAULT_SMOOTH_TYPE==0)
+    {
         ui->smoothBlurButton->setChecked(true);
+    }
     else if(DEFAULT_SMOOTH_TYPE==1)
+    {
         ui->smoothGaussianButton->setChecked(true);
+    }
     else if(DEFAULT_SMOOTH_TYPE==2)
+    {
         ui->smoothMedianButton->setChecked(true);
+    }
     ui->smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
     ui->smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
     ui->smoothParam3Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_3));
@@ -367,11 +399,17 @@ void ImageProcessingSettingsDialog::resetErodeDialogToDefaults()
 void ImageProcessingSettingsDialog::resetFlipDialogToDefaults()
 {
     if(DEFAULT_FLIP_CODE==0)
+    {
         ui->flipXAxisButton->setChecked(true);
+    }
     else if(DEFAULT_FLIP_CODE==1)
+    {
         ui->flipYAxisButton->setChecked(true);
+    }
     else if(DEFAULT_FLIP_CODE==-1)
+    {
         ui->flipBothAxesButton->setChecked(true);
+    }
 }
 
 void ImageProcessingSettingsDialog::resetCannyDialogToDefaults()

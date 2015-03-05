@@ -85,25 +85,35 @@ int CameraConnectDialog::getDeviceNumber()
         return 0;
     }
     else
+    {
         return ui->deviceNumberEdit->text().toInt();
+    }
 }
 
 int CameraConnectDialog::getResolutionWidth()
 {
     // Return -1 if field is blank
     if(ui->resWEdit->text().isEmpty())
+    {
         return -1;
+    }
     else
+    {
         return ui->resWEdit->text().toInt();
+    }
 }
 
 int CameraConnectDialog::getResolutionHeight()
 {
     // Return -1 if field is blank
     if(ui->resHEdit->text().isEmpty())
+    {
         return -1;
+    }
     else
+    {
         return ui->resHEdit->text().toInt();
+    }
 }
 
 int CameraConnectDialog::getImageBufferSize()
@@ -122,7 +132,9 @@ int CameraConnectDialog::getImageBufferSize()
     }
     // Use image buffer size specified by user
     else
+    {
         return ui->imageBufferSizeEdit->text().toInt();
+    }
 }
 
 bool CameraConnectDialog::getDropFrameCheckBoxState()
@@ -163,38 +175,70 @@ void CameraConnectDialog::resetToDefaults()
     ui->dropFrameCheckBox->setChecked(DEFAULT_DROP_FRAMES);
     // Capture thread
     if(DEFAULT_CAP_THREAD_PRIO==QThread::IdlePriority)
+    {
         ui->capturePrioComboBox->setCurrentIndex(0);
+    }
     else if(DEFAULT_CAP_THREAD_PRIO==QThread::LowestPriority)
+    {
         ui->capturePrioComboBox->setCurrentIndex(1);
+    }
     else if(DEFAULT_CAP_THREAD_PRIO==QThread::LowPriority)
+    {
         ui->capturePrioComboBox->setCurrentIndex(2);
+    }
     else if(DEFAULT_CAP_THREAD_PRIO==QThread::NormalPriority)
+    {
         ui->capturePrioComboBox->setCurrentIndex(3);
+    }
     else if(DEFAULT_CAP_THREAD_PRIO==QThread::HighPriority)
+    {
         ui->capturePrioComboBox->setCurrentIndex(4);
+    }
     else if(DEFAULT_CAP_THREAD_PRIO==QThread::HighestPriority)
+    {
         ui->capturePrioComboBox->setCurrentIndex(5);
+    }
     else if(DEFAULT_CAP_THREAD_PRIO==QThread::TimeCriticalPriority)
+    {
         ui->capturePrioComboBox->setCurrentIndex(6);
+    }
     else if(DEFAULT_CAP_THREAD_PRIO==QThread::InheritPriority)
+    {
         ui->capturePrioComboBox->setCurrentIndex(7);
+    }
     // Processing thread
     if(DEFAULT_PROC_THREAD_PRIO==QThread::IdlePriority)
+    {
         ui->processingPrioComboBox->setCurrentIndex(0);
+    }
     else if(DEFAULT_PROC_THREAD_PRIO==QThread::LowestPriority)
+    {
         ui->processingPrioComboBox->setCurrentIndex(1);
+    }
     else if(DEFAULT_PROC_THREAD_PRIO==QThread::LowPriority)
+    {
         ui->processingPrioComboBox->setCurrentIndex(2);
+    }
     else if(DEFAULT_PROC_THREAD_PRIO==QThread::NormalPriority)
+    {
         ui->processingPrioComboBox->setCurrentIndex(3);
+    }
     else if(DEFAULT_PROC_THREAD_PRIO==QThread::HighPriority)
+    {
         ui->processingPrioComboBox->setCurrentIndex(4);
+    }
     else if(DEFAULT_PROC_THREAD_PRIO==QThread::HighestPriority)
+    {
         ui->processingPrioComboBox->setCurrentIndex(5);
+    }
     else if(DEFAULT_PROC_THREAD_PRIO==QThread::TimeCriticalPriority)
+    {
         ui->processingPrioComboBox->setCurrentIndex(6);
+    }
     else if(DEFAULT_PROC_THREAD_PRIO==QThread::InheritPriority)
+    {
         ui->processingPrioComboBox->setCurrentIndex(7);
+    }
     // Tab label
     ui->tabLabelEdit->setText("");
     // Enable Frame Processing checkbox

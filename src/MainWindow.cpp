@@ -113,10 +113,14 @@ void MainWindow::connectToCamera()
                                                     QMessageBox::Yes);
                     // Start processing
                     if(ret==QMessageBox::Yes)
+                    {
                         sharedImageBuffer->setSyncEnabled(true);
+                    }
                     // Defer processing
                     else
+                    {
                         sharedImageBuffer->setSyncEnabled(false);
+                    }
                 }
 
                 // Attempt to connect to camera
@@ -135,7 +139,9 @@ void MainWindow::connectToCamera()
                     ui->tabWidget->setTabsClosable(true);
                     // If start tab, remove
                     if(nextTabIndex==0)
+                    {
                         ui->tabWidget->removeTab(0);
+                    }
                     // Add tab
                     ui->tabWidget->addTab(cameraViewMap[deviceNumber], tabLabel + " [" + QString::number(deviceNumber) + "]");
                     ui->tabWidget->setCurrentWidget(cameraViewMap[deviceNumber]);
@@ -160,7 +166,9 @@ void MainWindow::connectToCamera()
             }
             // Display error message
             else
+            {
                 QMessageBox::warning(this,"ERROR:","Could not connect to camera. Already connected.");
+            }
         }
         // Delete dialog
         delete cameraConnectDialog;
@@ -184,10 +192,14 @@ void MainWindow::disconnectCamera(int index)
                                         QMessageBox::Yes);
         // Disconnect
         if(ret==QMessageBox::Yes)
+        {
             doDisconnect=true;
+        }
         // Do not disconnect
         else
+        {
             doDisconnect=false;
+        }
     }
 
     // Disconnect camera
@@ -206,7 +218,9 @@ void MainWindow::disconnectCamera(int index)
         removeFromMapByTabIndex(deviceNumberMap, index);
         // Update map (if tab closed is not last)
         if(index!=(nTabs-1))
+        {
             updateMapValues(deviceNumberMap, index);
+        }
 
         // If start tab, set tab as blank
         if(nTabs==1)
@@ -248,7 +262,9 @@ void MainWindow::updateMapValues(QMap<int, int> &map, int tabIndex)
     {
         i.next();
         if(i.value()>tabIndex)
+        {
             i.setValue(i.value()-1);
+        }
     }
 }
 
@@ -259,14 +275,20 @@ void MainWindow::setTabCloseToolTips(QTabWidget *tabs, QString tooltip)
     {
         QAbstractButton* item = allPButtons.at(ind);
         if (item->inherits("CloseButton"))
+        {
             item->setToolTip(tooltip);
+        }
     }
 }
 
 void MainWindow::setFullScreen(bool input)
 {
     if(input)
+    {
         this->showFullScreen();
+    }
     else
+    {
         this->showNormal();
+    }
 }

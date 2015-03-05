@@ -82,10 +82,14 @@ void SharedImageBuffer::sync(int deviceNumber)
         nArrived++;
         // We are the last to arrive: wake all waiting threads
         if(doSync && (nArrived==syncSet.size()))
+        {
             wc.wakeAll();
+        }
         // Still waiting for other streams to arrive: wait
         else
+        {
             wc.wait(&mutex);
+        }
         // Decrement arrived count
         nArrived--;
     }

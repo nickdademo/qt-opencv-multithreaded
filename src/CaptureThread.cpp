@@ -76,7 +76,9 @@ void CaptureThread::run()
 
         // Capture frame (if available)
         if (!cap.grab())
+        {
             continue;
+        }
 
         // Retrieve frame
         cap.retrieve(grabbedFrame);
@@ -98,9 +100,13 @@ bool CaptureThread::connectToCamera()
     bool camOpenResult = cap.open(deviceNumber);
     // Set resolution
     if(width != -1)
+    {
         cap.set(CV_CAP_PROP_FRAME_WIDTH, width);
+    }
     if(height != -1)
+    {
         cap.set(CV_CAP_PROP_FRAME_HEIGHT, height);
+    }
     // Return result
     return camOpenResult;
 }
@@ -116,7 +122,9 @@ bool CaptureThread::disconnectCamera()
     }
     // Camera is NOT connected
     else
+    {
         return false;
+    }
 }
 
 void CaptureThread::updateFPS(int timeElapsed)
@@ -130,13 +138,17 @@ void CaptureThread::updateFPS(int timeElapsed)
     }
     // Maximum size of queue is DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH
     if(fps.size()>CAPTURE_FPS_STAT_QUEUE_LENGTH)
+    {
         fps.dequeue();
+    }
     // Update FPS value every DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH samples
     if((fps.size()==CAPTURE_FPS_STAT_QUEUE_LENGTH)&&(sampleNumber==CAPTURE_FPS_STAT_QUEUE_LENGTH))
     {
         // Empty queue and store sum
         while(!fps.empty())
+        {
             fpsSum+=fps.dequeue();
+        }
         // Calculate average FPS
         statsData.averageFPS=fpsSum/CAPTURE_FPS_STAT_QUEUE_LENGTH;
         // Reset sum
