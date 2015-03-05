@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2012-2013 Nick D'Ademo                                 */
+/* Copyright (c) 2012-2015 Nick D'Ademo                                 */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -32,6 +32,12 @@
 
 #ifndef CONFIG_H
 #define CONFIG_H
+
+// An anonymous namespace restricts these variables to the scope of the compilation unit.
+namespace {
+    const char* APP_NAME                    = "@PROJECT_NAME@";
+    const char* APP_VERSION                 = "@PROJECT_VERSION@";
+}
 
 // FPS statistics queue lengths
 #define PROCESSING_FPS_STAT_QUEUE_LENGTH    32
