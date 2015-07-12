@@ -43,14 +43,12 @@
 
 #include "Buffer.h"
 
-using namespace cv;
-
 class SharedImageBuffer
 {
     public:
         SharedImageBuffer();
-        void add(int deviceNumber, Buffer<Mat> *imageBuffer, bool sync=false);
-        Buffer<Mat>* getByDeviceNumber(int deviceNumber);
+        void add(int deviceNumber, Buffer<cv::Mat> *imageBuffer, bool sync = false);
+        Buffer<cv::Mat>* getByDeviceNumber(int deviceNumber);
         void removeByDeviceNumber(int deviceNumber);
         void sync(int deviceNumber);
         void wakeAll();
@@ -60,7 +58,7 @@ class SharedImageBuffer
         bool containsImageBufferForDeviceNumber(int deviceNumber);
 
     private:
-        QHash<int, Buffer<Mat>*> m_imageBufferMap;
+        QHash<int, Buffer<cv::Mat>*> m_imageBufferMap;
         QSet<int> m_syncSet;
         QWaitCondition m_wc;
         QMutex m_mutex;

@@ -46,7 +46,7 @@ class CameraConnectDialog : public QDialog
     Q_OBJECT
     
     public:
-        explicit CameraConnectDialog(QWidget *parent=0, bool isStreamSyncEnabled=false);
+        explicit CameraConnectDialog(QWidget *parent = 0, bool isStreamSyncEnabled = false);
         ~CameraConnectDialog();
         void setDeviceNumber();
         void setImageBufferSize();

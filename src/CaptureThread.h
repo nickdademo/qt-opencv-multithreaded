@@ -42,8 +42,6 @@
 #include "Config.h"
 #include "Structures.h"
 
-using namespace cv;
-
 class ImageBuffer;
 
 class CaptureThread : public QThread
@@ -62,8 +60,8 @@ class CaptureThread : public QThread
     private:
         void updateFPS(int);
         SharedImageBuffer *m_sharedImageBuffer;
-        VideoCapture m_cap;
-        Mat m_grabbedFrame;
+        cv::VideoCapture m_cap;
+        cv::Mat m_grabbedFrame;
         QTime m_t;
         QMutex m_doStopMutex;
         QQueue<int> m_fps;
@@ -81,7 +79,7 @@ class CaptureThread : public QThread
         void run();
 
     signals:
-        void updateStatisticsInGUI(ThreadStatisticsData);
+        void updateStatisticsInGUI(ThreadStatisticsData statData);
 };
 
 #endif // CAPTURETHREAD_H

@@ -72,7 +72,7 @@ void ProcessingThread::run()
 
         m_processingMutex.lock();
         // Get frame from queue, store in currentFrame, set ROI
-        m_currentFrame = Mat(m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->get().clone(), m_currentROI);
+        m_currentFrame = cv::Mat(m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->get().clone(), m_currentROI);
 
         // Example of how to grab a frame from another stream (where Device Number=1)
         // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
@@ -80,40 +80,46 @@ void ProcessingThread::run()
         if(sharedImageBuffer->containsImageBufferForDeviceNumber(1))
         {
             // Grab frame from another stream (connected to camera with Device Number=1)
-            Mat frameFromAnotherStream = Mat(sharedImageBuffer->getByDeviceNumber(1)->getFrame(), currentROI);
-            // Linear blend images together using OpenCV and save the result to currentFrame. Note: beta=1-alpha
-            addWeighted(frameFromAnotherStream, 0.5, currentFrame, 0.5, 0.0, currentFrame);
+            cv::Mat frameFromAnotherStream = cv::Mat(sharedImageBuffer->getByDeviceNumber(1)->getFrame(), currentROI);
+            // Linear blend images together using OpenCV and save the result to currentFrame. Note: beta = 1 - alpha
+            cv::addWeighted(frameFromAnotherStream, 0.5, currentFrame, 0.5, 0.0, currentFrame);
         }
         */
 
         ////////////////////////////////////
         // PERFORM IMAGE PROCESSING BELOW //
         ////////////////////////////////////
-        // Grayscale conversion (in-place operation)
+        // Grayscale conversion
         if (m_imgProcFlags.grayscaleOn && (m_currentFrame.channels() == 3 || m_currentFrame.channels() == 4))
         {
-            cvtColor(m_currentFrame, m_currentFrame, CV_BGR2GRAY);
+            cvtColor(m_currentFrame,
+                m_currentFrame,
+                CV_BGR2GRAY);
         }
 
-        // Smooth (in-place operations)
+        // Smooth
         if (m_imgProcFlags.smoothOn)
         {
             switch (m_imgProcSettings.smoothType)
             {
-                // BLUR
+                // Blur
                 case 0:
-                    blur(m_currentFrame, m_currentFrame,
-                        Size(m_imgProcSettings.smoothParam1, m_imgProcSettings.smoothParam2));
+                    blur(m_currentFrame,
+                        m_currentFrame,
+                        cv::Size(m_imgProcSettings.smoothParam1, m_imgProcSettings.smoothParam2));
                     break;
-                // GAUSSIAN
+                // Gaussian
                 case 1:
-                    GaussianBlur(m_currentFrame, m_currentFrame,
-                        Size(m_imgProcSettings.smoothParam1, m_imgProcSettings.smoothParam2),
-                        m_imgProcSettings.smoothParam3, m_imgProcSettings.smoothParam4);
+                    GaussianBlur(m_currentFrame,
+                        m_currentFrame,
+                        cv::Size(m_imgProcSettings.smoothParam1, m_imgProcSettings.smoothParam2),
+                        m_imgProcSettings.smoothParam3,
+                        m_imgProcSettings.smoothParam4);
                     break;
-                // MEDIAN
+                // Median
                 case 2:
-                    medianBlur(m_currentFrame, m_currentFrame,
+                    medianBlur(m_currentFrame,
+                        m_currentFrame,
                         m_imgProcSettings.smoothParam1);
                     break;
             }
@@ -121,27 +127,37 @@ void ProcessingThread::run()
         // Dilate
         if (m_imgProcFlags.dilateOn)
         {
-            dilate(m_currentFrame, m_currentFrame,
-                Mat(), Point(-1, -1), m_imgProcSettings.dilateNumberOfIterations);
+            dilate(m_currentFrame,
+                m_currentFrame,
+                cv::Mat(),
+                cv::Point(-1, -1),
+                m_imgProcSettings.dilateNumberOfIterations);
         }
         // Erode
         if (m_imgProcFlags.erodeOn)
         {
-            erode(m_currentFrame, m_currentFrame,
-                Mat(), Point(-1, -1), m_imgProcSettings.erodeNumberOfIterations);
+            erode(m_currentFrame,
+                m_currentFrame,
+                cv::Mat(),
+                cv::Point(-1, -1),
+                m_imgProcSettings.erodeNumberOfIterations);
         }
         // Flip
         if (m_imgProcFlags.flipOn)
         {
-            flip(m_currentFrame, m_currentFrame,
+            flip(m_currentFrame,
+                m_currentFrame,
                 m_imgProcSettings.flipCode);
         }
         // Canny edge detection
         if (m_imgProcFlags.cannyOn)
         {
-            Canny(m_currentFrame, m_currentFrame,
-                m_imgProcSettings.cannyThreshold1, m_imgProcSettings.cannyThreshold2,
-                m_imgProcSettings.cannyApertureSize, m_imgProcSettings.cannyL2gradient);
+            Canny(m_currentFrame,
+                m_currentFrame,
+                m_imgProcSettings.cannyThreshold1,
+                m_imgProcSettings.cannyThreshold2,
+                m_imgProcSettings.cannyApertureSize,
+                m_imgProcSettings.cannyL2gradient);
         }
         ////////////////////////////////////
         // PERFORM IMAGE PROCESSING ABOVE //

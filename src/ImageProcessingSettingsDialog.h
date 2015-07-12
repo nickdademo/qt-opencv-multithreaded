@@ -67,10 +67,10 @@ class ImageProcessingSettingsDialog : public QDialog
         void resetFlipDialogToDefaults();
         void resetCannyDialogToDefaults();
         void validateDialog();
-        void smoothTypeChange(QAbstractButton *);
+        void smoothTypeChange(QAbstractButton *button);
 
     signals:
-        void newImageProcessingSettings(ImageProcessingSettings p_settings);
+        void newImageProcessingSettings(ImageProcessingSettings settings);
 };
 
 #endif // IMAGEPROCESSINGSETTINGSDIALOG_H

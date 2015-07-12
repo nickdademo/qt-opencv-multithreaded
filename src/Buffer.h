@@ -139,7 +139,7 @@ template<class T> T Buffer<T>::get()
 template<class T> bool Buffer<T>::clear()
 {
     // Check if buffer contains items
-    if (m_queue.size()>0)
+    if (m_queue.size() > 0)
     {
         // Stop adding items to buffer (will return false if an item is currently being added to the buffer)
         if (m_clearBuffer_add->tryAcquire())

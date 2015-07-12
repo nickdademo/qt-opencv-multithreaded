@@ -39,7 +39,7 @@ SharedImageBuffer::SharedImageBuffer()
     m_doSync = false;
 }
 
-void SharedImageBuffer::add(int deviceNumber, Buffer<Mat>* imageBuffer, bool sync)
+void SharedImageBuffer::add(int deviceNumber, Buffer<cv::Mat>* imageBuffer, bool sync)
 {
     // Device stream is to be synchronized
     if(sync)
@@ -52,7 +52,7 @@ void SharedImageBuffer::add(int deviceNumber, Buffer<Mat>* imageBuffer, bool syn
     m_imageBufferMap[deviceNumber] = imageBuffer;
 }
 
-Buffer<Mat>* SharedImageBuffer::getByDeviceNumber(int deviceNumber)
+Buffer<cv::Mat>* SharedImageBuffer::getByDeviceNumber(int deviceNumber)
 {
     return m_imageBufferMap[deviceNumber];
 }

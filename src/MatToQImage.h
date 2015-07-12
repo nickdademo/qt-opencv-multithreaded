@@ -38,8 +38,6 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 
-using namespace cv;
-
-QImage MatToQImage(const Mat&);
+QImage MatToQImage(const cv::Mat& mat);
 
 #endif // MATTOQIMAGE_H

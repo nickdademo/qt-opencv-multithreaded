@@ -47,7 +47,7 @@ class FrameLabel : public QLabel
 
     public:
         FrameLabel(QWidget *parent = 0);
-        void setMouseCursorPos(QPoint);
+        void setMouseCursorPos(QPoint point);
         QPoint getMouseCursorPos();
         QMenu *menu;
 

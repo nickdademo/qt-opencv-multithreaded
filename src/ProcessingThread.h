@@ -46,8 +46,6 @@
 #include "MatToQImage.h"
 #include "SharedImageBuffer.h"
 
-using namespace cv;
-
 class ProcessingThread : public QThread
 {
     Q_OBJECT
@@ -62,16 +60,16 @@ class ProcessingThread : public QThread
         void setROI();
         void resetROI();
         SharedImageBuffer *m_sharedImageBuffer;
-        Mat m_currentFrame;
-        Mat m_currentFrameGrayscale;
-        Rect m_currentROI;
+        cv::Mat m_currentFrame;
+        cv::Mat m_currentFrameGrayscale;
+        cv::Rect m_currentROI;
         QImage m_frame;
         QTime m_t;
         QQueue<int> m_fps;
         QMutex m_doStopMutex;
         QMutex m_processingMutex;
-        Size m_frameSize;
-        Point m_framePoint;
+        cv::Size m_frameSize;
+        cv::Point m_framePoint;
         ImageProcessingFlags m_imgProcFlags;
         ImageProcessingSettings m_imgProcSettings;
         ThreadStatisticsData m_statsData;
@@ -86,13 +84,13 @@ class ProcessingThread : public QThread
         void run();
 
     private slots:
-        void updateImageProcessingFlags(ImageProcessingFlags);
-        void updateImageProcessingSettings(ImageProcessingSettings);
+        void updateImageProcessingFlags(ImageProcessingFlags flags);
+        void updateImageProcessingSettings(ImageProcessingSettings settings);
         void setROI(QRect roi);
 
     signals:
-        void newFrame(const QImage &frame);
-        void updateStatisticsInGUI(ThreadStatisticsData);
+        void newFrame(const QImage& frame);
+        void updateStatisticsInGUI(ThreadStatisticsData statData);
 };
 
 #endif // PROCESSINGTHREAD_H
