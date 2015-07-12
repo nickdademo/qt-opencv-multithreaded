@@ -33,12 +33,11 @@
 #ifndef PROCESSINGTHREAD_H
 #define PROCESSINGTHREAD_H
 
-#include <QtCore/QThread>
-#include <QtCore/QTime>
-#include <QtCore/QQueue>
+#include <QThread>
+#include <QTime>
+#include <QQueue>
 
 #include <opencv2/opencv.hpp>
-#include <opencv2/highgui/highgui.hpp>
 
 #include "Structures.h"
 #include "Config.h"

@@ -33,10 +33,10 @@
 #ifndef CAPTURETHREAD_H
 #define CAPTURETHREAD_H
 
-#include <QtCore/QTime>
-#include <QtCore/QThread>
+#include <QTime>
+#include <QThread>
 
-#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "SharedImageBuffer.h"
 #include "Config.h"

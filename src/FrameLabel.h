@@ -33,9 +33,9 @@
 #ifndef FRAMELABEL_H
 #define FRAMELABEL_H
 
-#include <QtCore/QObject>
-#include <QtCore/QPoint>
-#include <QtCore/QRect>
+#include <QObject>
+#include <QPoint>
+#include <QRect>
 #include <QLabel>
 #include <QMenu>
 

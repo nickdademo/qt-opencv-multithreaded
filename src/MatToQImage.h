@@ -33,10 +33,9 @@
 #ifndef MATTOQIMAGE_H
 #define MATTOQIMAGE_H
 
-#include <QtGui/QImage>
+#include <QImage>
 
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include <opencv2/opencv.hpp>
 
 QImage MatToQImage(const cv::Mat& mat);
 

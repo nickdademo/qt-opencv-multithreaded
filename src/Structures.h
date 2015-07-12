@@ -33,7 +33,7 @@
 #ifndef STRUCTURES_H
 #define STRUCTURES_H
 
-#include <QtCore/QRect>
+#include <QRect>
 
 typedef struct
 {
