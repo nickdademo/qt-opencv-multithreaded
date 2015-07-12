@@ -72,9 +72,9 @@ class ProcessingThread : public QThread
         QMutex m_processingMutex;
         Size m_frameSize;
         Point m_framePoint;
-        struct ImageProcessingFlags m_imgProcFlags;
-        struct ImageProcessingSettings m_imgProcSettings;
-        struct ThreadStatisticsData m_statsData;
+        ImageProcessingFlags m_imgProcFlags;
+        ImageProcessingSettings m_imgProcSettings;
+        ThreadStatisticsData m_statsData;
         volatile bool m_doStop;
         int m_processingTime;
         int m_fpsSum;
@@ -86,13 +86,13 @@ class ProcessingThread : public QThread
         void run();
 
     private slots:
-        void updateImageProcessingFlags(struct ImageProcessingFlags);
-        void updateImageProcessingSettings(struct ImageProcessingSettings);
+        void updateImageProcessingFlags(ImageProcessingFlags);
+        void updateImageProcessingSettings(ImageProcessingSettings);
         void setROI(QRect roi);
 
     signals:
         void newFrame(const QImage &frame);
-        void updateStatisticsInGUI(struct ThreadStatisticsData);
+        void updateStatisticsInGUI(ThreadStatisticsData);
 };
 
 #endif // PROCESSINGTHREAD_H

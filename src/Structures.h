@@ -35,7 +35,7 @@
 
 #include <QtCore/QRect>
 
-struct ImageProcessingSettings
+typedef struct
 {
     int smoothType;
     int smoothParam1;
@@ -49,9 +49,9 @@ struct ImageProcessingSettings
     double cannyThreshold2;
     int cannyApertureSize;
     bool cannyL2gradient;
-};
+} ImageProcessingSettings;
 
-struct ImageProcessingFlags
+typedef struct
 {
     bool grayscaleOn;
     bool smoothOn;
@@ -59,19 +59,19 @@ struct ImageProcessingFlags
     bool erodeOn;
     bool flipOn;
     bool cannyOn;
-};
+} ImageProcessingFlags;
 
-struct MouseData
+typedef struct
 {
     QRect selectionBox;
     bool leftButtonRelease;
     bool rightButtonRelease;
-};
+} MouseData;
 
-struct ThreadStatisticsData
+typedef struct
 {
     int averageFPS;
     int nFramesProcessed;
-};
+} ThreadStatisticsData;
 
 #endif // STRUCTURES_H

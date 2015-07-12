@@ -43,13 +43,25 @@ template<class T> class Buffer
 {
     public:
         Buffer(int size);
-        void add(const T& data, bool dropIfFull=false);
+        void add(const T& data, bool dropIfFull = false);
         T get();
-        int size();
-        int maxSize();
         bool clear();
-        bool isFull();
-        bool isEmpty();
+        int size() const
+        {
+            return m_queue.size();
+        }
+        int maxSize() const
+        {
+            return m_bufferSize;
+        }
+        bool isFull() const
+        {
+            return m_queue.size() == m_bufferSize;
+        }
+        bool isEmpty() const
+        {
+            return m_queue.size() == 0;
+        }
 
     private:
         QMutex m_queueProtect;
@@ -157,30 +169,14 @@ template<class T> bool Buffer<T>::clear()
             return true;
         }
         else
+        {
             return false;
+        }
     }
     else
+    {
         return false;
-}
-
-template<class T> int Buffer<T>::size()
-{
-    return m_queue.size();
-}
-
-template<class T> int Buffer<T>::maxSize()
-{
-    return m_bufferSize;
-}
-
-template<class T> bool Buffer<T>::isFull()
-{
-    return m_queue.size() == m_bufferSize;
-}
-
-template<class T> bool Buffer<T>::isEmpty()
-{
-    return m_queue.size() == 0;
+    }
 }
 
 #endif // BUFFER_H

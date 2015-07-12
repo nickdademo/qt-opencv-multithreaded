@@ -70,7 +70,7 @@ class ImageProcessingSettingsDialog : public QDialog
         void smoothTypeChange(QAbstractButton *);
 
     signals:
-        void newImageProcessingSettings(struct ImageProcessingSettings p_settings);
+        void newImageProcessingSettings(ImageProcessingSettings p_settings);
 };
 
 #endif // IMAGEPROCESSINGSETTINGSDIALOG_H

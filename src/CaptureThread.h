@@ -67,7 +67,7 @@ class CaptureThread : public QThread
         QTime m_t;
         QMutex m_doStopMutex;
         QQueue<int> m_fps;
-        struct ThreadStatisticsData m_statsData;
+        ThreadStatisticsData m_statsData;
         volatile bool m_doStop;
         int m_captureTime;
         int m_sampleNumber;
@@ -81,7 +81,7 @@ class CaptureThread : public QThread
         void run();
 
     signals:
-        void updateStatisticsInGUI(struct ThreadStatisticsData);
+        void updateStatisticsInGUI(ThreadStatisticsData);
 };
 
 #endif // CAPTURETHREAD_H

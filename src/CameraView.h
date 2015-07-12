@@ -66,18 +66,18 @@ class CameraView : public QWidget
 
     public slots:
         void setImageProcessingSettings();
-        void newMouseData(struct MouseData mouseData);
+        void newMouseData(MouseData mouseData);
         void updateMouseCursorPosLabel();
         void clearImageBuffer();
 
     private slots:
         void updateFrame(const QImage &frame);
-        void updateProcessingThreadStats(struct ThreadStatisticsData statData);
-        void updateCaptureThreadStats(struct ThreadStatisticsData statData);
+        void updateProcessingThreadStats(ThreadStatisticsData statData);
+        void updateCaptureThreadStats(ThreadStatisticsData statData);
         void handleContextMenuAction(QAction *action);
 
     signals:
-        void newImageProcessingFlags(struct ImageProcessingFlags imageProcessingFlags);
+        void newImageProcessingFlags(ImageProcessingFlags imageProcessingFlags);
         void setROI(QRect roi);
 };
 

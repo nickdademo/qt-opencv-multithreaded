@@ -66,7 +66,7 @@ class FrameLabel : public QLabel
         void paintEvent(QPaintEvent *ev);
 
     signals:
-        void newMouseData(struct MouseData mouseData);
+        void newMouseData(MouseData mouseData);
         void onMouseMoveEvent();
 };
 

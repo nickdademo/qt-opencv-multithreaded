@@ -202,7 +202,7 @@ void ProcessingThread::stop()
     m_doStop = true;
 }
 
-void ProcessingThread::updateImageProcessingFlags(struct ImageProcessingFlags imgProcFlags)
+void ProcessingThread::updateImageProcessingFlags(ImageProcessingFlags imgProcFlags)
 {
     QMutexLocker locker(&m_processingMutex);
     m_imgProcFlags.grayscaleOn = imgProcFlags.grayscaleOn;
@@ -213,7 +213,7 @@ void ProcessingThread::updateImageProcessingFlags(struct ImageProcessingFlags im
     m_imgProcFlags.cannyOn=imgProcFlags.cannyOn;
 }
 
-void ProcessingThread::updateImageProcessingSettings(struct ImageProcessingSettings imgProcSettings)
+void ProcessingThread::updateImageProcessingSettings(ImageProcessingSettings imgProcSettings)
 {
     QMutexLocker locker(&m_processingMutex);
     m_imgProcSettings.smoothType=imgProcSettings.smoothType;

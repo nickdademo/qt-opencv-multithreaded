@@ -69,7 +69,7 @@ CameraView::CameraView(QWidget *parent, int deviceNumber, SharedImageBuffer *sha
     connect(ui->clearImageBufferButton, SIGNAL(released()), this, SLOT(clearImageBuffer()));
     connect(ui->frameLabel->menu, SIGNAL(triggered(QAction*)), this, SLOT(handleContextMenuAction(QAction*)));
     // Register type
-    qRegisterMetaType<struct ThreadStatisticsData>("ThreadStatisticsData");
+    qRegisterMetaType<ThreadStatisticsData>("ThreadStatisticsData");
 }
 
 CameraView::~CameraView()
@@ -132,15 +132,15 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         m_imageProcessingSettingsDialog = new ImageProcessingSettingsDialog(this);
         // Setup signal/slot connections
         connect(m_processingThread, SIGNAL(newFrame(QImage)), this, SLOT(updateFrame(QImage)));
-        connect(m_processingThread, SIGNAL(updateStatisticsInGUI(struct ThreadStatisticsData)), this, SLOT(updateProcessingThreadStats(struct ThreadStatisticsData)));
-        connect(m_captureThread, SIGNAL(updateStatisticsInGUI(struct ThreadStatisticsData)), this, SLOT(updateCaptureThreadStats(struct ThreadStatisticsData)));
-        connect(m_imageProcessingSettingsDialog, SIGNAL(newImageProcessingSettings(struct ImageProcessingSettings)), m_processingThread, SLOT(updateImageProcessingSettings(struct ImageProcessingSettings)));
-        connect(this, SIGNAL(newImageProcessingFlags(struct ImageProcessingFlags)), m_processingThread, SLOT(updateImageProcessingFlags(struct ImageProcessingFlags)));
+        connect(m_processingThread, SIGNAL(updateStatisticsInGUI(ThreadStatisticsData)), this, SLOT(updateProcessingThreadStats(ThreadStatisticsData)));
+        connect(m_captureThread, SIGNAL(updateStatisticsInGUI(ThreadStatisticsData)), this, SLOT(updateCaptureThreadStats(ThreadStatisticsData)));
+        connect(m_imageProcessingSettingsDialog, SIGNAL(newImageProcessingSettings(ImageProcessingSettings)), m_processingThread, SLOT(updateImageProcessingSettings(ImageProcessingSettings)));
+        connect(this, SIGNAL(newImageProcessingFlags(ImageProcessingFlags)), m_processingThread, SLOT(updateImageProcessingFlags(ImageProcessingFlags)));
         connect(this, SIGNAL(setROI(QRect)), m_processingThread, SLOT(setROI(QRect)));
         // Only enable ROI setting/resetting if frame processing is enabled
         if(enableFrameProcessing)
         {
-            connect(ui->frameLabel, SIGNAL(newMouseData(struct MouseData)), this, SLOT(newMouseData(struct MouseData)));
+            connect(ui->frameLabel, SIGNAL(newMouseData(MouseData)), this, SLOT(newMouseData(MouseData)));
         }
         // Set initial data in processing thread
         emit setROI(QRect(0, 0, m_captureThread->getInputSourceWidth(), m_captureThread->getInputSourceHeight()));
@@ -200,7 +200,7 @@ void CameraView::stopProcessingThread()
     qDebug() << "[" << m_deviceNumber << "] Processing thread successfully stopped.";
 }
 
-void CameraView::updateCaptureThreadStats(struct ThreadStatisticsData statData)
+void CameraView::updateCaptureThreadStats(ThreadStatisticsData statData)
 {
     // Show [number of images in buffer / image buffer size] in imageBufferLabel
     ui->imageBufferLabel->setText(QString("[") + QString::number(m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->size()) +
@@ -214,7 +214,7 @@ void CameraView::updateCaptureThreadStats(struct ThreadStatisticsData statData)
     ui->nFramesCapturedLabel->setText(QString("[") + QString::number(statData.nFramesProcessed) + QString("]"));
 }
 
-void CameraView::updateProcessingThreadStats(struct ThreadStatisticsData statData)
+void CameraView::updateProcessingThreadStats(ThreadStatisticsData statData)
 {
     // Show processing rate in processingRateLabel
     ui->processingRateLabel->setText(QString::number(statData.averageFPS)+" fps");
@@ -294,7 +294,7 @@ void CameraView::updateMouseCursorPosLabel()
     }
 }
 
-void CameraView::newMouseData(struct MouseData mouseData)
+void CameraView::newMouseData(MouseData mouseData)
 {
     // Local variable(s)
     int x_temp, y_temp, width_temp, height_temp;
