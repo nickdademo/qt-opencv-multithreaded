@@ -32,7 +32,7 @@
 
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
-// Qt
+
 #include <QLabel>
 #include <QMessageBox>
 
@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_connectToCameraButton->setText("Connect to Camera...");
     ui->tabWidget->setCornerWidget(m_connectToCameraButton, Qt::TopLeftCorner);
     connect(m_connectToCameraButton, SIGNAL(released()), this, SLOT(connectToCamera()));
-    connect(ui->tabWidget,SIGNAL(tabCloseRequested(int)),this, SLOT(disconnectCamera(int)));
+    connect(ui->tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(disconnectCamera(int)));
     // Set focus on button
     m_connectToCameraButton->setFocus();
     // Connect other signals/slots
@@ -72,7 +72,7 @@ MainWindow::~MainWindow()
 void MainWindow::connectToCamera()
 {
     // We cannot connect to a camera if devices are already connected and stream synchronization is in progress
-    if (ui->actionSynchronizeStreams->isChecked() && m_deviceNumberMap.size()>0 && m_sharedImageBuffer->getSyncEnabled())
+    if (ui->actionSynchronizeStreams->isChecked() && (m_deviceNumberMap.size() > 0) && m_sharedImageBuffer->getSyncEnabled())
     {
         // Prompt user
         QMessageBox::warning(this, tr("qt-opencv-multithreaded"),
@@ -87,7 +87,7 @@ void MainWindow::connectToCamera()
         int nextTabIndex = (m_deviceNumberMap.size() == 0) ? 0 : ui->tabWidget->count();
         // Show dialog
         CameraConnectDialog *cameraConnectDialog = new CameraConnectDialog(this, ui->actionSynchronizeStreams->isChecked());
-        if(cameraConnectDialog->exec()==QDialog::Accepted)
+        if(cameraConnectDialog->exec() == QDialog::Accepted)
         {
             // Save user-defined device number
             int deviceNumber = cameraConnectDialog->getDeviceNumber();
@@ -112,7 +112,7 @@ void MainWindow::connectToCamera()
                                                     QMessageBox::Yes | QMessageBox::No,
                                                     QMessageBox::Yes);
                     // Start processing
-                    if(ret==QMessageBox::Yes)
+                    if(ret == QMessageBox::Yes)
                     {
                         m_sharedImageBuffer->setSyncEnabled(true);
                     }
@@ -138,7 +138,7 @@ void MainWindow::connectToCamera()
                     // Allow tabs to be closed
                     ui->tabWidget->setTabsClosable(true);
                     // If start tab, remove
-                    if(nextTabIndex==0)
+                    if(nextTabIndex == 0)
                     {
                         ui->tabWidget->removeTab(0);
                     }
@@ -178,10 +178,10 @@ void MainWindow::connectToCamera()
 void MainWindow::disconnectCamera(int index)
 {
     // Local variable(s)
-    bool doDisconnect=true;
+    bool doDisconnect = true;
 
     // Check if stream synchronization is enabled, more than 1 camera connected, and frame processing is not in progress
-    if (ui->actionSynchronizeStreams->isChecked() && m_cameraViewMap.size()>1 && !m_sharedImageBuffer->getSyncEnabled())
+    if (ui->actionSynchronizeStreams->isChecked() && (m_cameraViewMap.size() > 1) && !m_sharedImageBuffer->getSyncEnabled())
     {
         // Prompt user
         int ret = QMessageBox::question(this, tr("qt-opencv-multithreaded"),
@@ -193,12 +193,12 @@ void MainWindow::disconnectCamera(int index)
         // Disconnect
         if(ret==QMessageBox::Yes)
         {
-            doDisconnect=true;
+            doDisconnect = true;
         }
         // Do not disconnect
         else
         {
-            doDisconnect=false;
+            doDisconnect = false;
         }
     }
 
@@ -217,13 +217,13 @@ void MainWindow::disconnectCamera(int index)
         // Remove from map
         removeFromMapByTabIndex(m_deviceNumberMap, index);
         // Update map (if tab closed is not last)
-        if(index!=(nTabs-1))
+        if(index != (nTabs - 1))
         {
             updateMapValues(m_deviceNumberMap, index);
         }
 
         // If start tab, set tab as blank
-        if(nTabs==1)
+        if(nTabs == 1)
         {
             QLabel *newTab = new QLabel(ui->tabWidget);
             newTab->setText("No camera connected.");
@@ -261,7 +261,7 @@ void MainWindow::updateMapValues(QMap<int, int> &map, int tabIndex)
     while (i.hasNext())
     {
         i.next();
-        if(i.value()>tabIndex)
+        if(i.value() > tabIndex)
         {
             i.setValue(i.value()-1);
         }

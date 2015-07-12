@@ -33,8 +33,8 @@
 #include "ProcessingThread.h"
 
 ProcessingThread::ProcessingThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber) :
-QThread(),
-m_sharedImageBuffer(sharedImageBuffer)
+    QThread(),
+    m_sharedImageBuffer(sharedImageBuffer)
 {
     // Save Device Number
     m_deviceNumber = deviceNumber;
@@ -166,7 +166,7 @@ void ProcessingThread::run()
 void ProcessingThread::updateFPS(int timeElapsed)
 {
     // Add instantaneous FPS value to queue
-    if(timeElapsed>0)
+    if(timeElapsed > 0)
     {
         m_fps.enqueue((int)1000 / timeElapsed);
         // Increment sample number
@@ -174,7 +174,7 @@ void ProcessingThread::updateFPS(int timeElapsed)
     }
 
     // Maximum size of queue is DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH
-    if (m_fps.size()>PROCESSING_FPS_STAT_QUEUE_LENGTH)
+    if (m_fps.size() > PROCESSING_FPS_STAT_QUEUE_LENGTH)
     {
         m_fps.dequeue();
     }

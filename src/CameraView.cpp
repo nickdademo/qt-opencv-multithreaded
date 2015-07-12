@@ -32,7 +32,7 @@
 
 #include "CameraView.h"
 #include "ui_CameraView.h"
-// Qt
+
 #include <QMessageBox>
 
 CameraView::CameraView(QWidget *parent, int deviceNumber, SharedImageBuffer *sharedImageBuffer) :
@@ -209,7 +209,7 @@ void CameraView::updateCaptureThreadStats(ThreadStatisticsData statData)
     ui->imageBufferBar->setValue(m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->size());
 
     // Show processing rate in captureRateLabel
-    ui->captureRateLabel->setText(QString::number(statData.averageFPS)+" fps");
+    ui->captureRateLabel->setText(QString::number(statData.averageFPS) + " fps");
     // Show number of frames captured in nFramesCapturedLabel
     ui->nFramesCapturedLabel->setText(QString("[") + QString::number(statData.nFramesProcessed) + QString("]"));
 }
@@ -217,7 +217,7 @@ void CameraView::updateCaptureThreadStats(ThreadStatisticsData statData)
 void CameraView::updateProcessingThreadStats(ThreadStatisticsData statData)
 {
     // Show processing rate in processingRateLabel
-    ui->processingRateLabel->setText(QString::number(statData.averageFPS)+" fps");
+    ui->processingRateLabel->setText(QString::number(statData.averageFPS) + " fps");
     // Show ROI information in roiLabel
     ui->roiLabel->setText(QString("(") + QString::number(m_processingThread->getCurrentROI().x()) + QString(",") +
         QString::number(m_processingThread->getCurrentROI().y()) + QString(") ") +
@@ -263,30 +263,30 @@ void CameraView::setImageProcessingSettings()
 void CameraView::updateMouseCursorPosLabel()
 {
     // Update mouse cursor position in mouseCursorPosLabel
-    ui->mouseCursorPosLabel->setText(QString("(")+QString::number(ui->frameLabel->getMouseCursorPos().x())+
-                                     QString(",")+QString::number(ui->frameLabel->getMouseCursorPos().y())+
+    ui->mouseCursorPosLabel->setText(QString("(") + QString::number(ui->frameLabel->getMouseCursorPos().x()) +
+                                     QString(",") + QString::number(ui->frameLabel->getMouseCursorPos().y()) +
                                      QString(")"));
 
     // Show pixel cursor position if camera is connected (image is being shown)
-    if(ui->frameLabel->pixmap()!=0)
+    if(ui->frameLabel->pixmap() != 0)
     {
         // Scaling factor calculation depends on whether frame is scaled to fit label or not
         if(!ui->frameLabel->hasScaledContents())
         {
-            double xScalingFactor=((double) ui->frameLabel->getMouseCursorPos().x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double) ui->frameLabel->pixmap()->width();
-            double yScalingFactor=((double) ui->frameLabel->getMouseCursorPos().y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double) ui->frameLabel->pixmap()->height();
+            double xScalingFactor = ((double) ui->frameLabel->getMouseCursorPos().x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double) ui->frameLabel->pixmap()->width();
+            double yScalingFactor = ((double) ui->frameLabel->getMouseCursorPos().y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double) ui->frameLabel->pixmap()->height();
 
-            ui->mouseCursorPosLabel->setText(ui->mouseCursorPosLabel->text()+
+            ui->mouseCursorPosLabel->setText(ui->mouseCursorPosLabel->text() +
                 QString(" [") + QString::number((int)(xScalingFactor*m_processingThread->getCurrentROI().width())) +
                 QString(",") + QString::number((int)(yScalingFactor*m_processingThread->getCurrentROI().height())) +
                                              QString("]"));
         }
         else
         {
-            double xScalingFactor=(double) ui->frameLabel->getMouseCursorPos().x() / (double) ui->frameLabel->width();
-            double yScalingFactor=(double) ui->frameLabel->getMouseCursorPos().y() / (double) ui->frameLabel->height();
+            double xScalingFactor = (double) ui->frameLabel->getMouseCursorPos().x() / (double) ui->frameLabel->width();
+            double yScalingFactor = (double) ui->frameLabel->getMouseCursorPos().y() / (double) ui->frameLabel->height();
 
-            ui->mouseCursorPosLabel->setText(ui->mouseCursorPosLabel->text()+
+            ui->mouseCursorPosLabel->setText(ui->mouseCursorPosLabel->text() +
                 QString(" [") + QString::number((int)(xScalingFactor*m_processingThread->getCurrentROI().width())) +
                 QString(",") + QString::number((int)(yScalingFactor*m_processingThread->getCurrentROI().height())) +
                                              QString("]"));
@@ -325,36 +325,36 @@ void CameraView::newMouseData(MouseData mouseData)
         }
 
         // Set selection box properties (new ROI)
-        selectionBox.setX(xScalingFactor*m_processingThread->getCurrentROI().width() + m_processingThread->getCurrentROI().x());
-        selectionBox.setY(yScalingFactor*m_processingThread->getCurrentROI().height() + m_processingThread->getCurrentROI().y());
-        selectionBox.setWidth(wScalingFactor*mouseData.selectionBox.width());
-        selectionBox.setHeight(hScalingFactor*mouseData.selectionBox.height());
+        selectionBox.setX(xScalingFactor * m_processingThread->getCurrentROI().width() + m_processingThread->getCurrentROI().x());
+        selectionBox.setY(yScalingFactor * m_processingThread->getCurrentROI().height() + m_processingThread->getCurrentROI().y());
+        selectionBox.setWidth(wScalingFactor * mouseData.selectionBox.width());
+        selectionBox.setHeight(hScalingFactor * mouseData.selectionBox.height());
 
         // Check if selection box has NON-ZERO dimensions
-        if((selectionBox.width()!=0)&&((selectionBox.height())!=0))
+        if((selectionBox.width() != 0) && ((selectionBox.height()) != 0))
         {
             // Selection box can also be drawn from bottom-right to top-left corner
-            if(selectionBox.width()<0)
+            if(selectionBox.width() < 0)
             {
-                x_temp=selectionBox.x();
-                width_temp=selectionBox.width();
-                selectionBox.setX(x_temp+selectionBox.width());
-                selectionBox.setWidth(width_temp*-1);
+                x_temp = selectionBox.x();
+                width_temp = selectionBox.width();
+                selectionBox.setX(x_temp + selectionBox.width());
+                selectionBox.setWidth(width_temp * -1);
             }
-            if(selectionBox.height()<0)
+            if(selectionBox.height() < 0)
             {
-                y_temp=selectionBox.y();
-                height_temp=selectionBox.height();
-                selectionBox.setY(y_temp+selectionBox.height());
-                selectionBox.setHeight(height_temp*-1);
+                y_temp = selectionBox.y();
+                height_temp = selectionBox.height();
+                selectionBox.setY(y_temp + selectionBox.height());
+                selectionBox.setHeight(height_temp * -1);
             }
 
             // Check if selection box is not outside window
-            if((selectionBox.x()<0)||(selectionBox.y()<0)||
-                ((selectionBox.x() + selectionBox.width())>(m_processingThread->getCurrentROI().x() + m_processingThread->getCurrentROI().width())) ||
-                ((selectionBox.y() + selectionBox.height())>(m_processingThread->getCurrentROI().y() + m_processingThread->getCurrentROI().height())) ||
-                (selectionBox.x()<m_processingThread->getCurrentROI().x()) ||
-                (selectionBox.y()<m_processingThread->getCurrentROI().y()))
+            if((selectionBox.x() < 0) || (selectionBox.y() < 0)||
+                ((selectionBox.x() + selectionBox.width()) > (m_processingThread->getCurrentROI().x() + m_processingThread->getCurrentROI().width())) ||
+                ((selectionBox.y() + selectionBox.height()) > (m_processingThread->getCurrentROI().y() + m_processingThread->getCurrentROI().height())) ||
+                (selectionBox.x() < m_processingThread->getCurrentROI().x()) ||
+                (selectionBox.y() < m_processingThread->getCurrentROI().y()))
             {
                 // Display error message
                 QMessageBox::warning(this,"ERROR:","Selection box outside range. Please try again.");
@@ -370,45 +370,45 @@ void CameraView::newMouseData(MouseData mouseData)
 
 void CameraView::handleContextMenuAction(QAction *action)
 {
-    if(action->text()=="Reset ROI")
+    if(action->text() == "Reset ROI")
     {
         emit setROI(QRect(0, 0, m_captureThread->getInputSourceWidth(), m_captureThread->getInputSourceHeight()));
     }
-    else if(action->text()=="Scale to Fit Frame")
+    else if(action->text() == "Scale to Fit Frame")
     {
         ui->frameLabel->setScaledContents(action->isChecked());
     }
-    else if(action->text()=="Grayscale")
+    else if(action->text() == "Grayscale")
     {
         m_imageProcessingFlags.grayscaleOn = action->isChecked();
         emit newImageProcessingFlags(m_imageProcessingFlags);
     }
-    else if(action->text()=="Smooth")
+    else if(action->text() == "Smooth")
     {
         m_imageProcessingFlags.smoothOn = action->isChecked();
         emit newImageProcessingFlags(m_imageProcessingFlags);
     }
-    else if(action->text()=="Dilate")
+    else if(action->text() == "Dilate")
     {
         m_imageProcessingFlags.dilateOn = action->isChecked();
         emit newImageProcessingFlags(m_imageProcessingFlags);
     }
-    else if(action->text()=="Erode")
+    else if(action->text() == "Erode")
     {
         m_imageProcessingFlags.erodeOn = action->isChecked();
         emit newImageProcessingFlags(m_imageProcessingFlags);
     }
-    else if(action->text()=="Flip")
+    else if(action->text() == "Flip")
     {
         m_imageProcessingFlags.flipOn = action->isChecked();
         emit newImageProcessingFlags(m_imageProcessingFlags);
     }
-    else if(action->text()=="Canny")
+    else if(action->text() == "Canny")
     {
         m_imageProcessingFlags.cannyOn = action->isChecked();
         emit newImageProcessingFlags(m_imageProcessingFlags);
     }
-    else if(action->text()=="Settings...")
+    else if(action->text() == "Settings...")
     {
         setImageProcessingSettings();
     }

@@ -132,7 +132,7 @@ bool CaptureThread::disconnectCamera()
 void CaptureThread::updateFPS(int timeElapsed)
 {
     // Add instantaneous FPS value to queue
-    if(timeElapsed>0)
+    if(timeElapsed > 0)
     {
         m_fps.enqueue((int)1000 / timeElapsed);
         // Increment sample number

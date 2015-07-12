@@ -31,7 +31,7 @@
 /************************************************************************/
 
 #include "FrameLabel.h"
-// Qt
+
 #include <QtGui/QPainter>
 #include <QtGui/QMouseEvent>
 
@@ -76,7 +76,7 @@ void FrameLabel::mouseReleaseEvent(QMouseEvent *ev)
     // Update cursor position
     setMouseCursorPos(ev->pos());
     // On left mouse button release
-    if(ev->button()==Qt::LeftButton)
+    if(ev->button() == Qt::LeftButton)
     {
         // Set leftButtonRelease flag to TRUE
         m_mouseData.leftButtonRelease = true;
@@ -98,7 +98,7 @@ void FrameLabel::mouseReleaseEvent(QMouseEvent *ev)
         m_mouseData.leftButtonRelease = false;
     }
     // On right mouse button release
-    else if(ev->button()==Qt::RightButton)
+    else if(ev->button() == Qt::RightButton)
     {
         // If user presses (and then releases) the right mouse button while drawing box, stop drawing box
         if (m_drawBox)
@@ -117,7 +117,7 @@ void FrameLabel::mousePressEvent(QMouseEvent *ev)
 {
     // Update cursor position
     setMouseCursorPos(ev->pos());;
-    if(ev->button()==Qt::LeftButton)
+    if(ev->button() == Qt::LeftButton)
     {
         // Start drawing box
         m_startPoint = ev->pos();

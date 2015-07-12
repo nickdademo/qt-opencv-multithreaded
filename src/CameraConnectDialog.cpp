@@ -32,7 +32,7 @@
 
 #include "CameraConnectDialog.h"
 #include "ui_CameraConnectDialog.h"
-// Qt
+
 #include <QtCore/QThread>
 #include <QMessageBox>
 
@@ -60,7 +60,7 @@ CameraConnectDialog::CameraConnectDialog(QWidget *parent, bool isStreamSyncEnabl
     ui->resHEdit->setValidator(validator4);
     // Setup combo boxes
     QStringList threadPriorities;
-    threadPriorities<<"Idle"<<"Lowest"<<"Low"<<"Normal"<<"High"<<"Highest"<<"Time Critical"<<"Inherit";
+    threadPriorities << "Idle "<< "Lowest "<< "Low" << "Normal" << "High" << "Highest" << "Time Critical" << "Inherit";
     ui->capturePrioComboBox->addItems(threadPriorities);
     ui->processingPrioComboBox->addItems(threadPriorities);
     // Set dialog to defaults
@@ -68,7 +68,7 @@ CameraConnectDialog::CameraConnectDialog(QWidget *parent, bool isStreamSyncEnabl
     // Enable/disable checkbox
     ui->enableFrameProcessingCheckBox->setEnabled(isStreamSyncEnabled);
     // Connect button to slot
-    connect(ui->resetToDefaultsPushButton,SIGNAL(released()),SLOT(resetToDefaults()));
+    connect(ui->resetToDefaultsPushButton, SIGNAL(released()), SLOT(resetToDefaults()));
 }
 
 CameraConnectDialog::~CameraConnectDialog()
@@ -81,7 +81,7 @@ int CameraConnectDialog::getDeviceNumber()
     // Set device number to default (any available camera) if field is blank
     if(ui->deviceNumberEdit->text().isEmpty())
     {
-        QMessageBox::warning(this->parentWidget(), "WARNING:","Device Number field blank.\nAutomatically set to 0.");
+        QMessageBox::warning(this->parentWidget(), "WARNING:", "Device Number field blank.\nAutomatically set to 0.");
         return 0;
     }
     else
@@ -121,13 +121,13 @@ int CameraConnectDialog::getImageBufferSize()
     // Set image buffer size to default if field is blank
     if(ui->imageBufferSizeEdit->text().isEmpty())
     {
-        QMessageBox::warning(this->parentWidget(), "WARNING:","Image Buffer Size field blank.\nAutomatically set to default value.");
+        QMessageBox::warning(this->parentWidget(), "WARNING:", "Image Buffer Size field blank.\nAutomatically set to default value.");
         return DEFAULT_IMAGE_BUFFER_SIZE;
     }
     // Set image buffer size to default if field is zero
-    else if(ui->imageBufferSizeEdit->text().toInt()==0)
+    else if(ui->imageBufferSizeEdit->text().toInt() == 0)
     {
-        QMessageBox::warning(this->parentWidget(), "WARNING:","Image Buffer Size cannot be zero.\nAutomatically set to default value.");
+        QMessageBox::warning(this->parentWidget(), "WARNING:", "Image Buffer Size cannot be zero.\nAutomatically set to default value.");
         return DEFAULT_IMAGE_BUFFER_SIZE;;
     }
     // Use image buffer size specified by user
@@ -174,68 +174,68 @@ void CameraConnectDialog::resetToDefaults()
     // Drop frames
     ui->dropFrameCheckBox->setChecked(DEFAULT_DROP_FRAMES);
     // Capture thread
-    if(DEFAULT_CAP_THREAD_PRIO==QThread::IdlePriority)
+    if(DEFAULT_CAP_THREAD_PRIO == QThread::IdlePriority)
     {
         ui->capturePrioComboBox->setCurrentIndex(0);
     }
-    else if(DEFAULT_CAP_THREAD_PRIO==QThread::LowestPriority)
+    else if(DEFAULT_CAP_THREAD_PRIO == QThread::LowestPriority)
     {
         ui->capturePrioComboBox->setCurrentIndex(1);
     }
-    else if(DEFAULT_CAP_THREAD_PRIO==QThread::LowPriority)
+    else if(DEFAULT_CAP_THREAD_PRIO == QThread::LowPriority)
     {
         ui->capturePrioComboBox->setCurrentIndex(2);
     }
-    else if(DEFAULT_CAP_THREAD_PRIO==QThread::NormalPriority)
+    else if(DEFAULT_CAP_THREAD_PRIO == QThread::NormalPriority)
     {
         ui->capturePrioComboBox->setCurrentIndex(3);
     }
-    else if(DEFAULT_CAP_THREAD_PRIO==QThread::HighPriority)
+    else if(DEFAULT_CAP_THREAD_PRIO == QThread::HighPriority)
     {
         ui->capturePrioComboBox->setCurrentIndex(4);
     }
-    else if(DEFAULT_CAP_THREAD_PRIO==QThread::HighestPriority)
+    else if(DEFAULT_CAP_THREAD_PRIO == QThread::HighestPriority)
     {
         ui->capturePrioComboBox->setCurrentIndex(5);
     }
-    else if(DEFAULT_CAP_THREAD_PRIO==QThread::TimeCriticalPriority)
+    else if(DEFAULT_CAP_THREAD_PRIO == QThread::TimeCriticalPriority)
     {
         ui->capturePrioComboBox->setCurrentIndex(6);
     }
-    else if(DEFAULT_CAP_THREAD_PRIO==QThread::InheritPriority)
+    else if(DEFAULT_CAP_THREAD_PRIO == QThread::InheritPriority)
     {
         ui->capturePrioComboBox->setCurrentIndex(7);
     }
     // Processing thread
-    if(DEFAULT_PROC_THREAD_PRIO==QThread::IdlePriority)
+    if(DEFAULT_PROC_THREAD_PRIO == QThread::IdlePriority)
     {
         ui->processingPrioComboBox->setCurrentIndex(0);
     }
-    else if(DEFAULT_PROC_THREAD_PRIO==QThread::LowestPriority)
+    else if(DEFAULT_PROC_THREAD_PRIO == QThread::LowestPriority)
     {
         ui->processingPrioComboBox->setCurrentIndex(1);
     }
-    else if(DEFAULT_PROC_THREAD_PRIO==QThread::LowPriority)
+    else if(DEFAULT_PROC_THREAD_PRIO == QThread::LowPriority)
     {
         ui->processingPrioComboBox->setCurrentIndex(2);
     }
-    else if(DEFAULT_PROC_THREAD_PRIO==QThread::NormalPriority)
+    else if(DEFAULT_PROC_THREAD_PRIO == QThread::NormalPriority)
     {
         ui->processingPrioComboBox->setCurrentIndex(3);
     }
-    else if(DEFAULT_PROC_THREAD_PRIO==QThread::HighPriority)
+    else if(DEFAULT_PROC_THREAD_PRIO == QThread::HighPriority)
     {
         ui->processingPrioComboBox->setCurrentIndex(4);
     }
-    else if(DEFAULT_PROC_THREAD_PRIO==QThread::HighestPriority)
+    else if(DEFAULT_PROC_THREAD_PRIO == QThread::HighestPriority)
     {
         ui->processingPrioComboBox->setCurrentIndex(5);
     }
-    else if(DEFAULT_PROC_THREAD_PRIO==QThread::TimeCriticalPriority)
+    else if(DEFAULT_PROC_THREAD_PRIO == QThread::TimeCriticalPriority)
     {
         ui->processingPrioComboBox->setCurrentIndex(6);
     }
-    else if(DEFAULT_PROC_THREAD_PRIO==QThread::InheritPriority)
+    else if(DEFAULT_PROC_THREAD_PRIO == QThread::InheritPriority)
     {
         ui->processingPrioComboBox->setCurrentIndex(7);
     }

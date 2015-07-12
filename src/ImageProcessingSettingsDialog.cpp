@@ -32,7 +32,7 @@
 
 #include "ImageProcessingSettingsDialog.h"
 #include "ui_ImageProcessingSettingsDialog.h"
-// Qt
+
 #include <QMessageBox>
 
 ImageProcessingSettingsDialog::ImageProcessingSettingsDialog(QWidget *parent) :
@@ -42,14 +42,14 @@ ImageProcessingSettingsDialog::ImageProcessingSettingsDialog(QWidget *parent) :
     // Setup dialog
     ui->setupUi(this);
     // Connect GUI signals and slots
-    connect(ui->resetAllToDefaultsButton,SIGNAL(released()),SLOT(resetAllDialogToDefaults()));
-    connect(ui->resetSmoothToDefaultsButton,SIGNAL(released()),SLOT(resetSmoothDialogToDefaults()));
-    connect(ui->resetDilateToDefaultsButton,SIGNAL(released()),SLOT(resetDilateDialogToDefaults()));
-    connect(ui->resetErodeToDefaultsButton,SIGNAL(released()),SLOT(resetErodeDialogToDefaults()));
-    connect(ui->resetFlipToDefaultsButton,SIGNAL(released()),SLOT(resetFlipDialogToDefaults()));
-    connect(ui->resetCannyToDefaultsButton,SIGNAL(released()),SLOT(resetCannyDialogToDefaults()));
-    connect(ui->applyButton,SIGNAL(released()),SLOT(updateStoredSettingsFromDialog()));
-    connect(ui->smoothTypeGroup,SIGNAL(buttonReleased(QAbstractButton*)),SLOT(smoothTypeChange(QAbstractButton*)));
+    connect(ui->resetAllToDefaultsButton, SIGNAL(released()), SLOT(resetAllDialogToDefaults()));
+    connect(ui->resetSmoothToDefaultsButton, SIGNAL(released()), SLOT(resetSmoothDialogToDefaults()));
+    connect(ui->resetDilateToDefaultsButton, SIGNAL(released()), SLOT(resetDilateDialogToDefaults()));
+    connect(ui->resetErodeToDefaultsButton, SIGNAL(released()), SLOT(resetErodeDialogToDefaults()));
+    connect(ui->resetFlipToDefaultsButton, SIGNAL(released()), SLOT(resetFlipDialogToDefaults()));
+    connect(ui->resetCannyToDefaultsButton, SIGNAL(released()), SLOT(resetCannyDialogToDefaults()));
+    connect(ui->applyButton, SIGNAL(released()), SLOT(updateStoredSettingsFromDialog()));
+    connect(ui->smoothTypeGroup, SIGNAL(buttonReleased(QAbstractButton*)), SLOT(smoothTypeChange(QAbstractButton*)));
     // dilateIterationsEdit input string validation
     QRegExp rx5("[1-9]\\d{0,2}"); // Integers 1 to 999
     QRegExpValidator *validator5 = new QRegExpValidator(rx5, 0);
@@ -86,15 +86,15 @@ void ImageProcessingSettingsDialog::updateStoredSettingsFromDialog()
     // Validate values in dialog before storing
     validateDialog();
     // Smooth
-    if(ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothBlurButton)
+    if(ui->smoothTypeGroup->checkedButton() == (QAbstractButton*)ui->smoothBlurButton)
     {
         m_imageProcessingSettings.smoothType = 0;
     }
-    else if(ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothGaussianButton)
+    else if(ui->smoothTypeGroup->checkedButton() == (QAbstractButton*)ui->smoothGaussianButton)
     {
         m_imageProcessingSettings.smoothType = 1;
     }
-    else if(ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothMedianButton)
+    else if(ui->smoothTypeGroup->checkedButton() == (QAbstractButton*)ui->smoothMedianButton)
     {
         m_imageProcessingSettings.smoothType = 2;
     }
@@ -107,15 +107,15 @@ void ImageProcessingSettingsDialog::updateStoredSettingsFromDialog()
     // Erode
     m_imageProcessingSettings.erodeNumberOfIterations = ui->erodeIterationsEdit->text().toInt();
     // Flip
-    if(ui->flipCodeGroup->checkedButton()==(QAbstractButton*)ui->flipXAxisButton)
+    if(ui->flipCodeGroup->checkedButton() == (QAbstractButton*)ui->flipXAxisButton)
     {
         m_imageProcessingSettings.flipCode = 0;
     }
-    else if(ui->flipCodeGroup->checkedButton()==(QAbstractButton*)ui->flipYAxisButton)
+    else if(ui->flipCodeGroup->checkedButton() == (QAbstractButton*)ui->flipYAxisButton)
     {
         m_imageProcessingSettings.flipCode = 1;
     }
-    else if(ui->flipCodeGroup->checkedButton()==(QAbstractButton*)ui->flipBothAxesButton)
+    else if(ui->flipCodeGroup->checkedButton() == (QAbstractButton*)ui->flipBothAxesButton)
     {
         m_imageProcessingSettings.flipCode = -1;
     }
@@ -189,7 +189,7 @@ void ImageProcessingSettingsDialog::resetAllDialogToDefaults()
 
 void ImageProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
 {
-    if(input==(QAbstractButton*)ui->smoothBlurButton)
+    if(input == (QAbstractButton*)ui->smoothBlurButton)
     {
         // smoothParam1Edit input string validation
         QRegExp rx1("[1-9]\\d{0,2}"); // Integers 1 to 999
@@ -215,7 +215,7 @@ void ImageProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         ui->smoothParam3Label->setText("");
         ui->smoothParam4Label->setText("");
     }
-    else if(input==(QAbstractButton*)ui->smoothGaussianButton)
+    else if(input == (QAbstractButton*)ui->smoothGaussianButton)
     {
         // smoothParam1Edit input string validation
         QRegExp rx1("^[0-9]{1,2}$"); // Integers 0 to 99
@@ -245,7 +245,7 @@ void ImageProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         ui->smoothParam3Label->setText("Sigma X");
         ui->smoothParam4Label->setText("Sigma Y");
     }
-    else if(input==(QAbstractButton*)ui->smoothMedianButton)
+    else if(input == (QAbstractButton*)ui->smoothMedianButton)
     {
         // smoothParam1Edit input string validation
         QRegExp rx1("[1-9]\\d{0,1}"); // Integers 1 to 99
@@ -272,18 +272,18 @@ void ImageProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
 void ImageProcessingSettingsDialog::validateDialog()
 {
     // Local variables
-    bool inputEmpty=false;
+    bool inputEmpty = false;
 
     // If value of Smooth parameter 1 is EVEN (and not zero), convert to ODD by adding 1
-    if(((ui->smoothParam1Edit->text().toInt()%2)==0)&&(ui->smoothParam1Edit->text().toInt()!=0))
+    if(((ui->smoothParam1Edit->text().toInt() % 2) == 0) && (ui->smoothParam1Edit->text().toInt() != 0))
     {
-        ui->smoothParam1Edit->setText(QString::number(ui->smoothParam1Edit->text().toInt()+1));
+        ui->smoothParam1Edit->setText(QString::number(ui->smoothParam1Edit->text().toInt() + 1));
         QMessageBox::information(this->parentWidget(),"NOTE:","Smooth parameter 1 must be an ODD number.\n\nAutomatically set to (inputted value+1).");
     }
     // If value of Smooth parameter 2 is EVEN (and not zero), convert to ODD by adding 1
-    if(((ui->smoothParam2Edit->text().toInt()%2)==0)&&(ui->smoothParam2Edit->text().toInt()!=0))
+    if(((ui->smoothParam2Edit->text().toInt() % 2) == 0) && (ui->smoothParam2Edit->text().toInt() != 0))
     {
-        ui->smoothParam2Edit->setText(QString::number(ui->smoothParam2Edit->text().toInt()+1));
+        ui->smoothParam2Edit->setText(QString::number(ui->smoothParam2Edit->text().toInt() + 1));
         QMessageBox::information(this->parentWidget(),"NOTE:","Smooth parameter 2 must be an ODD number (or zero).\n\nAutomatically set to (inputted value+1).");
     }
 
@@ -340,23 +340,23 @@ void ImageProcessingSettingsDialog::validateDialog()
     }
 
     // Check for special parameter cases when smoothing type is GAUSSIAN
-    if((ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothGaussianButton)&&
-       (ui->smoothParam1Edit->text().toInt()==0)&&(ui->smoothParam3Edit->text().toDouble()==0.00))
+    if((ui->smoothTypeGroup->checkedButton() == (QAbstractButton*)ui->smoothGaussianButton) &&
+       (ui->smoothParam1Edit->text().toInt() == 0)&&(ui->smoothParam3Edit->text().toDouble() == 0.00))
     {
         ui->smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
         ui->smoothParam3Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_3));
         QMessageBox::warning(this->parentWidget(),"ERROR:","Parameters 1 and 3 cannot BOTH be zero when the smoothing type is GAUSSIAN.\n\nAutomatically set to default values.");
     }
-    if((ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothGaussianButton)&&
-       (ui->smoothParam2Edit->text().toInt()==0)&&(ui->smoothParam4Edit->text().toDouble()==0.00))
+    if((ui->smoothTypeGroup->checkedButton() == (QAbstractButton*)ui->smoothGaussianButton) &&
+       (ui->smoothParam2Edit->text().toInt() == 0)&&(ui->smoothParam4Edit->text().toDouble() == 0.00))
     {
         ui->smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
         ui->smoothParam4Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_4));
         QMessageBox::warning(this->parentWidget(),"ERROR:","Parameters 2 and 4 cannot BOTH be zero when the smoothing type is GAUSSIAN.\n\nAutomatically set to default values.");
     }
     // Ensure neither smoothing parameters 1 or 2 are ZERO (except in the GAUSSIAN case)
-    if((ui->smoothTypeGroup->checkedButton()!=(QAbstractButton*)ui->smoothGaussianButton)&&
-       ((ui->smoothParam1Edit->text().toInt()==0)||(ui->smoothParam2Edit->text().toDouble()==0)))
+    if((ui->smoothTypeGroup->checkedButton() != (QAbstractButton*)ui->smoothGaussianButton) &&
+       ((ui->smoothParam1Edit->text().toInt() == 0)||(ui->smoothParam2Edit->text().toDouble() == 0)))
     {
         ui->smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
         ui->smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
@@ -398,15 +398,15 @@ void ImageProcessingSettingsDialog::resetErodeDialogToDefaults()
 
 void ImageProcessingSettingsDialog::resetFlipDialogToDefaults()
 {
-    if(DEFAULT_FLIP_CODE==0)
+    if(DEFAULT_FLIP_CODE == 0)
     {
         ui->flipXAxisButton->setChecked(true);
     }
-    else if(DEFAULT_FLIP_CODE==1)
+    else if(DEFAULT_FLIP_CODE == 1)
     {
         ui->flipYAxisButton->setChecked(true);
     }
-    else if(DEFAULT_FLIP_CODE==-1)
+    else if(DEFAULT_FLIP_CODE == -1)
     {
         ui->flipBothAxesButton->setChecked(true);
     }
