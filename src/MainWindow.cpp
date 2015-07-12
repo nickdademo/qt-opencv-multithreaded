@@ -52,14 +52,14 @@ MainWindow::MainWindow(QWidget *parent) :
     m_connectToCameraButton = new QPushButton();
     m_connectToCameraButton->setText(tr("Connect to Camera..."));
     ui->tabWidget->setCornerWidget(m_connectToCameraButton, Qt::TopLeftCorner);
-    connect(m_connectToCameraButton, SIGNAL(released()), this, SLOT(connectToCamera()));
-    connect(ui->tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(disconnectCamera(int)));
+    connect(m_connectToCameraButton, &QPushButton::released, this, &MainWindow::connectToCamera);
+    connect(ui->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::disconnectCamera);
     // Set focus on button
     m_connectToCameraButton->setFocus();
     // Connect other signals/slots
-    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
-    connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
-    connect(ui->actionFullScreen, SIGNAL(toggled(bool)), this, SLOT(setFullScreen(bool)));
+    connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::showAboutDialog);
+    connect(ui->actionQuit, &QAction::triggered, this, &MainWindow::close);
+    connect(ui->actionFullScreen, &QAction::toggled, this, &MainWindow::setFullScreen);
     // Create SharedImageBuffer object
     m_sharedImageBuffer = new SharedImageBuffer();
 }

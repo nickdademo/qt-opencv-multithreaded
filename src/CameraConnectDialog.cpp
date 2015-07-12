@@ -68,7 +68,7 @@ CameraConnectDialog::CameraConnectDialog(QWidget *parent, bool isStreamSyncEnabl
     // Enable/disable checkbox
     ui->enableFrameProcessingCheckBox->setEnabled(isStreamSyncEnabled);
     // Connect button to slot
-    connect(ui->resetToDefaultsPushButton, SIGNAL(released()), SLOT(resetToDefaults()));
+    connect(ui->resetToDefaultsPushButton, &QPushButton::released, this, &CameraConnectDialog::resetToDefaults);
 }
 
 CameraConnectDialog::~CameraConnectDialog()

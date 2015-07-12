@@ -42,14 +42,14 @@ ImageProcessingSettingsDialog::ImageProcessingSettingsDialog(QWidget *parent) :
     // Setup dialog
     ui->setupUi(this);
     // Connect GUI signals and slots
-    connect(ui->resetAllToDefaultsButton, SIGNAL(released()), SLOT(resetAllDialogToDefaults()));
-    connect(ui->resetSmoothToDefaultsButton, SIGNAL(released()), SLOT(resetSmoothDialogToDefaults()));
-    connect(ui->resetDilateToDefaultsButton, SIGNAL(released()), SLOT(resetDilateDialogToDefaults()));
-    connect(ui->resetErodeToDefaultsButton, SIGNAL(released()), SLOT(resetErodeDialogToDefaults()));
-    connect(ui->resetFlipToDefaultsButton, SIGNAL(released()), SLOT(resetFlipDialogToDefaults()));
-    connect(ui->resetCannyToDefaultsButton, SIGNAL(released()), SLOT(resetCannyDialogToDefaults()));
-    connect(ui->applyButton, SIGNAL(released()), SLOT(updateStoredSettingsFromDialog()));
-    connect(ui->smoothTypeGroup, SIGNAL(buttonReleased(QAbstractButton*)), SLOT(smoothTypeChange(QAbstractButton*)));
+    connect(ui->resetAllToDefaultsButton, &QPushButton::released, this, &ImageProcessingSettingsDialog::resetAllDialogToDefaults);
+    connect(ui->resetSmoothToDefaultsButton, &QPushButton::released, this, &ImageProcessingSettingsDialog::resetSmoothDialogToDefaults);
+    connect(ui->resetDilateToDefaultsButton, &QPushButton::released, this, &ImageProcessingSettingsDialog::resetDilateDialogToDefaults);
+    connect(ui->resetErodeToDefaultsButton, &QPushButton::released, this, &ImageProcessingSettingsDialog::resetErodeDialogToDefaults);
+    connect(ui->resetFlipToDefaultsButton, &QPushButton::released, this, &ImageProcessingSettingsDialog::resetFlipDialogToDefaults);
+    connect(ui->resetCannyToDefaultsButton, &QPushButton::released, this, &ImageProcessingSettingsDialog::resetCannyDialogToDefaults);
+    connect(ui->applyButton, &QPushButton::released, this, &ImageProcessingSettingsDialog::updateStoredSettingsFromDialog);
+    connect(ui->smoothTypeGroup, static_cast<void (QButtonGroup::*)(QAbstractButton*)>(&QButtonGroup::buttonReleased), this, &ImageProcessingSettingsDialog::smoothTypeChange);
     // dilateIterationsEdit input string validation
     QRegExp rx5("[1-9]\\d{0,2}"); // Integers 1 to 999
     QRegExpValidator *validator5 = new QRegExpValidator(rx5, 0);

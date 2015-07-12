@@ -57,7 +57,6 @@ class ProcessingThread : public QThread
 
     private:
         void updateFPS(int);
-        void setROI();
         void resetROI();
         SharedImageBuffer *m_sharedImageBuffer;
         cv::Mat m_currentFrame;
@@ -83,7 +82,7 @@ class ProcessingThread : public QThread
     protected:
         void run();
 
-    private slots:
+    public slots:
         void updateImageProcessingFlags(ImageProcessingFlags flags);
         void updateImageProcessingSettings(ImageProcessingSettings settings);
         void setROI(QRect roi);

@@ -65,9 +65,9 @@ CameraView::CameraView(QWidget *parent, int deviceNumber, SharedImageBuffer *sha
     m_imageProcessingFlags.flipOn = false;
     m_imageProcessingFlags.cannyOn = false;
     // Connect signals/slots
-    connect(ui->frameLabel, SIGNAL(onMouseMoveEvent()), this, SLOT(updateMouseCursorPosLabel()));
-    connect(ui->clearImageBufferButton, SIGNAL(released()), this, SLOT(clearImageBuffer()));
-    connect(ui->frameLabel->menu, SIGNAL(triggered(QAction*)), this, SLOT(handleContextMenuAction(QAction*)));
+    connect(ui->frameLabel, &FrameLabel::onMouseMoveEvent, this, &CameraView::updateMouseCursorPosLabel);
+    connect(ui->clearImageBufferButton, &QPushButton::released, this, &CameraView::clearImageBuffer);
+    connect(ui->frameLabel->menu, &QMenu::triggered, this, &CameraView::handleContextMenuAction);
     // Register type
     qRegisterMetaType<ThreadStatisticsData>("ThreadStatisticsData");
 }
@@ -131,16 +131,16 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         // Create image processing settings dialog
         m_imageProcessingSettingsDialog = new ImageProcessingSettingsDialog(this);
         // Setup signal/slot connections
-        connect(m_processingThread, SIGNAL(newFrame(QImage)), this, SLOT(updateFrame(QImage)));
-        connect(m_processingThread, SIGNAL(updateStatisticsInGUI(ThreadStatisticsData)), this, SLOT(updateProcessingThreadStats(ThreadStatisticsData)));
-        connect(m_captureThread, SIGNAL(updateStatisticsInGUI(ThreadStatisticsData)), this, SLOT(updateCaptureThreadStats(ThreadStatisticsData)));
-        connect(m_imageProcessingSettingsDialog, SIGNAL(newImageProcessingSettings(ImageProcessingSettings)), m_processingThread, SLOT(updateImageProcessingSettings(ImageProcessingSettings)));
-        connect(this, SIGNAL(newImageProcessingFlags(ImageProcessingFlags)), m_processingThread, SLOT(updateImageProcessingFlags(ImageProcessingFlags)));
-        connect(this, SIGNAL(setROI(QRect)), m_processingThread, SLOT(setROI(QRect)));
+        connect(m_processingThread, &ProcessingThread::newFrame, this, &CameraView::updateFrame);
+        connect(m_processingThread, &ProcessingThread::updateStatisticsInGUI, this, &CameraView::updateProcessingThreadStats);
+        connect(m_captureThread, &CaptureThread::updateStatisticsInGUI, this, &CameraView::updateCaptureThreadStats);
+        connect(m_imageProcessingSettingsDialog, &ImageProcessingSettingsDialog::newImageProcessingSettings, m_processingThread, &ProcessingThread::updateImageProcessingSettings);
+        connect(this, &CameraView::newImageProcessingFlags, m_processingThread, &ProcessingThread::updateImageProcessingFlags);
+        connect(this, &CameraView::setROI, m_processingThread, &ProcessingThread::setROI);
         // Only enable ROI setting/resetting if frame processing is enabled
         if(enableFrameProcessing)
         {
-            connect(ui->frameLabel, SIGNAL(newMouseData(MouseData)), this, SLOT(newMouseData(MouseData)));
+            connect(ui->frameLabel, &FrameLabel::newMouseData, this, &CameraView::newMouseData);
         }
         // Set initial data in processing thread
         emit setROI(QRect(0, 0, m_captureThread->getInputSourceWidth(), m_captureThread->getInputSourceHeight()));

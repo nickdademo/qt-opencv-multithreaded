@@ -33,8 +33,8 @@
 #include "CaptureThread.h"
 
 CaptureThread::CaptureThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber, bool dropFrameIfBufferFull, int width, int height) :
-QThread(),
-m_sharedImageBuffer(sharedImageBuffer)
+    QThread(),
+    m_sharedImageBuffer(sharedImageBuffer)
 {
     // Save passed parameters
     m_dropFrameIfBufferFull = dropFrameIfBufferFull;
