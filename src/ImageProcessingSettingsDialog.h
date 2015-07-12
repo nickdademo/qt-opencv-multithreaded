@@ -33,10 +33,9 @@
 #ifndef IMAGEPROCESSINGSETTINGSDIALOG_H
 #define IMAGEPROCESSINGSETTINGSDIALOG_H
 
-// Qt
 #include <QDialog>
 #include <QAbstractButton>
-// Local
+
 #include "Structures.h"
 #include "Config.h"
 
@@ -55,7 +54,7 @@ class ImageProcessingSettingsDialog : public QDialog
 
     private:
         Ui::ImageProcessingSettingsDialog *ui;
-        ImageProcessingSettings imageProcessingSettings;
+        ImageProcessingSettings m_imageProcessingSettings;
 
     public slots:
         void resetAllDialogToDefaults();

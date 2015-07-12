@@ -33,10 +33,10 @@
 #ifndef STRUCTURES_H
 #define STRUCTURES_H
 
-// Qt
 #include <QtCore/QRect>
 
-struct ImageProcessingSettings{
+struct ImageProcessingSettings
+{
     int smoothType;
     int smoothParam1;
     int smoothParam2;
@@ -51,7 +51,8 @@ struct ImageProcessingSettings{
     bool cannyL2gradient;
 };
 
-struct ImageProcessingFlags{
+struct ImageProcessingFlags
+{
     bool grayscaleOn;
     bool smoothOn;
     bool dilateOn;
@@ -60,13 +61,15 @@ struct ImageProcessingFlags{
     bool cannyOn;
 };
 
-struct MouseData{
+struct MouseData
+{
     QRect selectionBox;
     bool leftButtonRelease;
     bool rightButtonRelease;
 };
 
-struct ThreadStatisticsData{
+struct ThreadStatisticsData
+{
     int averageFPS;
     int nFramesProcessed;
 };

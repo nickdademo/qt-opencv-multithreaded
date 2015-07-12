@@ -37,13 +37,13 @@
 
 FrameLabel::FrameLabel(QWidget *parent) : QLabel(parent)
 {
-    startPoint.setX(0);
-    startPoint.setY(0);
-    mouseCursorPos.setX(0);
-    mouseCursorPos.setY(0);
-    drawBox=false;
-    mouseData.leftButtonRelease=false;
-    mouseData.rightButtonRelease=false;
+    m_startPoint.setX(0);
+    m_startPoint.setY(0);
+    m_mouseCursorPos.setX(0);
+    m_mouseCursorPos.setY(0);
+    m_drawBox = false;
+    m_mouseData.leftButtonRelease = false;
+    m_mouseData.rightButtonRelease = false;
     createContextMenu();
 }
 
@@ -52,10 +52,10 @@ void FrameLabel::mouseMoveEvent(QMouseEvent *ev)
     // Save mouse cursor position
     setMouseCursorPos(ev->pos());
     // Update box width and height if box drawing is in progress
-    if(drawBox)
+    if (m_drawBox)
     {
-        box->setWidth(getMouseCursorPos().x()-startPoint.x());
-        box->setHeight(getMouseCursorPos().y()-startPoint.y());
+        m_box->setWidth(getMouseCursorPos().x() - m_startPoint.x());
+        m_box->setHeight(getMouseCursorPos().y() - m_startPoint.y());
     }
     // Inform main window of mouse move event
     emit onMouseMoveEvent();
@@ -63,12 +63,12 @@ void FrameLabel::mouseMoveEvent(QMouseEvent *ev)
 
 void FrameLabel::setMouseCursorPos(QPoint input)
 {
-    mouseCursorPos=input;
+    m_mouseCursorPos = input;
 }
 
 QPoint FrameLabel::getMouseCursorPos()
 {
-    return mouseCursorPos;
+    return m_mouseCursorPos;
 }
 
 void FrameLabel::mouseReleaseEvent(QMouseEvent *ev)
@@ -79,31 +79,31 @@ void FrameLabel::mouseReleaseEvent(QMouseEvent *ev)
     if(ev->button()==Qt::LeftButton)
     {
         // Set leftButtonRelease flag to TRUE
-        mouseData.leftButtonRelease=true;
-        if(drawBox)
+        m_mouseData.leftButtonRelease = true;
+        if (m_drawBox)
         {
             // Stop drawing box
-            drawBox=false;
+            m_drawBox = false;
             // Save box dimensions
-            mouseData.selectionBox.setX(box->left());
-            mouseData.selectionBox.setY(box->top());
-            mouseData.selectionBox.setWidth(box->width());
-            mouseData.selectionBox.setHeight(box->height());
+            m_mouseData.selectionBox.setX(m_box->left());
+            m_mouseData.selectionBox.setY(m_box->top());
+            m_mouseData.selectionBox.setWidth(m_box->width());
+            m_mouseData.selectionBox.setHeight(m_box->height());
             // Set leftButtonRelease flag to TRUE
-            mouseData.leftButtonRelease=true;
+            m_mouseData.leftButtonRelease = true;
             // Inform main window of event
-            emit newMouseData(mouseData);
+            emit newMouseData(m_mouseData);
         }
         // Set leftButtonRelease flag to FALSE
-        mouseData.leftButtonRelease=false;
+        m_mouseData.leftButtonRelease = false;
     }
     // On right mouse button release
     else if(ev->button()==Qt::RightButton)
     {
         // If user presses (and then releases) the right mouse button while drawing box, stop drawing box
-        if(drawBox)
+        if (m_drawBox)
         {
-            drawBox=false;
+            m_drawBox = false;
         }
         else
         {
@@ -120,9 +120,9 @@ void FrameLabel::mousePressEvent(QMouseEvent *ev)
     if(ev->button()==Qt::LeftButton)
     {
         // Start drawing box
-        startPoint=ev->pos();
-        box=new QRect(startPoint.x(),startPoint.y(),0,0);
-        drawBox=true;
+        m_startPoint = ev->pos();
+        m_box = new QRect(m_startPoint.x(), m_startPoint.y(), 0, 0);
+        m_drawBox = true;
     }
 }
 
@@ -131,10 +131,10 @@ void FrameLabel::paintEvent(QPaintEvent *ev)
     QLabel::paintEvent(ev);
     QPainter painter(this);
     // Draw box
-    if(drawBox)
+    if (m_drawBox)
     {
         painter.setPen(Qt::blue);
-        painter.drawRect(*box);
+        painter.drawRect(*m_box);
     }
 }
 

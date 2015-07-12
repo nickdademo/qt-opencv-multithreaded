@@ -33,14 +33,13 @@
 #ifndef PROCESSINGTHREAD_H
 #define PROCESSINGTHREAD_H
 
-// Qt
 #include <QtCore/QThread>
 #include <QtCore/QTime>
 #include <QtCore/QQueue>
-// OpenCV
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
-// Local
+
 #include "Structures.h"
 #include "Config.h"
 #include "Buffer.h"
@@ -62,26 +61,26 @@ class ProcessingThread : public QThread
         void updateFPS(int);
         void setROI();
         void resetROI();
-        SharedImageBuffer *sharedImageBuffer;
-        Mat currentFrame;
-        Mat currentFrameGrayscale;
-        Rect currentROI;
-        QImage frame;
-        QTime t;
-        QQueue<int> fps;
-        QMutex doStopMutex;
-        QMutex processingMutex;
-        Size frameSize;
-        Point framePoint;
-        struct ImageProcessingFlags imgProcFlags;
-        struct ImageProcessingSettings imgProcSettings;
-        struct ThreadStatisticsData statsData;
-        volatile bool doStop;
-        int processingTime;
-        int fpsSum;
-        int sampleNumber;
-        int deviceNumber;
-        bool enableFrameProcessing;
+        SharedImageBuffer *m_sharedImageBuffer;
+        Mat m_currentFrame;
+        Mat m_currentFrameGrayscale;
+        Rect m_currentROI;
+        QImage m_frame;
+        QTime m_t;
+        QQueue<int> m_fps;
+        QMutex m_doStopMutex;
+        QMutex m_processingMutex;
+        Size m_frameSize;
+        Point m_framePoint;
+        struct ImageProcessingFlags m_imgProcFlags;
+        struct ImageProcessingSettings m_imgProcSettings;
+        struct ThreadStatisticsData m_statsData;
+        volatile bool m_doStop;
+        int m_processingTime;
+        int m_fpsSum;
+        int m_sampleNumber;
+        int m_deviceNumber;
+        bool m_enableFrameProcessing;
 
     protected:
         void run();

@@ -49,19 +49,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tabWidget->addTab(newTab, "");
     ui->tabWidget->setTabsClosable(false);
     // Add "Connect to Camera" button to tab
-    connectToCameraButton = new QPushButton();
-    connectToCameraButton->setText("Connect to Camera...");
-    ui->tabWidget->setCornerWidget(connectToCameraButton, Qt::TopLeftCorner);
-    connect(connectToCameraButton,SIGNAL(released()),this, SLOT(connectToCamera()));
+    m_connectToCameraButton = new QPushButton();
+    m_connectToCameraButton->setText("Connect to Camera...");
+    ui->tabWidget->setCornerWidget(m_connectToCameraButton, Qt::TopLeftCorner);
+    connect(m_connectToCameraButton, SIGNAL(released()), this, SLOT(connectToCamera()));
     connect(ui->tabWidget,SIGNAL(tabCloseRequested(int)),this, SLOT(disconnectCamera(int)));
     // Set focus on button
-    connectToCameraButton->setFocus();
+    m_connectToCameraButton->setFocus();
     // Connect other signals/slots
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
     connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
     connect(ui->actionFullScreen, SIGNAL(toggled(bool)), this, SLOT(setFullScreen(bool)));
     // Create SharedImageBuffer object
-    sharedImageBuffer = new SharedImageBuffer();
+    m_sharedImageBuffer = new SharedImageBuffer();
 }
 
 MainWindow::~MainWindow()
@@ -72,7 +72,7 @@ MainWindow::~MainWindow()
 void MainWindow::connectToCamera()
 {
     // We cannot connect to a camera if devices are already connected and stream synchronization is in progress
-    if(ui->actionSynchronizeStreams->isChecked() && deviceNumberMap.size()>0 && sharedImageBuffer->getSyncEnabled())
+    if (ui->actionSynchronizeStreams->isChecked() && m_deviceNumberMap.size()>0 && m_sharedImageBuffer->getSyncEnabled())
     {
         // Prompt user
         QMessageBox::warning(this, tr("qt-opencv-multithreaded"),
@@ -84,7 +84,7 @@ void MainWindow::connectToCamera()
     else
     {
         // Get next tab index
-        int nextTabIndex = (deviceNumberMap.size()==0) ? 0 : ui->tabWidget->count();
+        int nextTabIndex = (m_deviceNumberMap.size() == 0) ? 0 : ui->tabWidget->count();
         // Show dialog
         CameraConnectDialog *cameraConnectDialog = new CameraConnectDialog(this, ui->actionSynchronizeStreams->isChecked());
         if(cameraConnectDialog->exec()==QDialog::Accepted)
@@ -92,14 +92,14 @@ void MainWindow::connectToCamera()
             // Save user-defined device number
             int deviceNumber = cameraConnectDialog->getDeviceNumber();
             // Check if this camera is already connected
-            if(!deviceNumberMap.contains(deviceNumber))
+            if (!m_deviceNumberMap.contains(deviceNumber))
             {
                 // Create ImageBuffer with user-defined size
                 Buffer<Mat> *imageBuffer = new Buffer<Mat>(cameraConnectDialog->getImageBufferSize());
                 // Add created ImageBuffer to SharedImageBuffer object
-                sharedImageBuffer->add(deviceNumber, imageBuffer, ui->actionSynchronizeStreams->isChecked());
+                m_sharedImageBuffer->add(deviceNumber, imageBuffer, ui->actionSynchronizeStreams->isChecked());
                 // Create CameraView
-                cameraViewMap[deviceNumber] = new CameraView(ui->tabWidget, deviceNumber, sharedImageBuffer);
+                m_cameraViewMap[deviceNumber] = new CameraView(ui->tabWidget, deviceNumber, m_sharedImageBuffer);
 
                 // Check if stream synchronization is enabled
                 if(ui->actionSynchronizeStreams->isChecked())
@@ -114,17 +114,17 @@ void MainWindow::connectToCamera()
                     // Start processing
                     if(ret==QMessageBox::Yes)
                     {
-                        sharedImageBuffer->setSyncEnabled(true);
+                        m_sharedImageBuffer->setSyncEnabled(true);
                     }
                     // Defer processing
                     else
                     {
-                        sharedImageBuffer->setSyncEnabled(false);
+                        m_sharedImageBuffer->setSyncEnabled(false);
                     }
                 }
 
                 // Attempt to connect to camera
-                if(cameraViewMap[deviceNumber]->connectToCamera(cameraConnectDialog->getDropFrameCheckBoxState(),
+                if (m_cameraViewMap[deviceNumber]->connectToCamera(cameraConnectDialog->getDropFrameCheckBoxState(),
                                                cameraConnectDialog->getCaptureThreadPrio(),
                                                cameraConnectDialog->getProcessingThreadPrio(),
                                                cameraConnectDialog->getEnableFrameProcessingCheckBoxState(),
@@ -132,7 +132,7 @@ void MainWindow::connectToCamera()
                                                cameraConnectDialog->getResolutionHeight()))
                 {
                     // Add to map
-                    deviceNumberMap[deviceNumber] = nextTabIndex;
+                    m_deviceNumberMap[deviceNumber] = nextTabIndex;
                     // Save tab label
                     QString tabLabel = cameraConnectDialog->getTabLabel();
                     // Allow tabs to be closed
@@ -143,8 +143,8 @@ void MainWindow::connectToCamera()
                         ui->tabWidget->removeTab(0);
                     }
                     // Add tab
-                    ui->tabWidget->addTab(cameraViewMap[deviceNumber], tabLabel + " [" + QString::number(deviceNumber) + "]");
-                    ui->tabWidget->setCurrentWidget(cameraViewMap[deviceNumber]);
+                    ui->tabWidget->addTab(m_cameraViewMap[deviceNumber], tabLabel + " [" + QString::number(deviceNumber) + "]");
+                    ui->tabWidget->setCurrentWidget(m_cameraViewMap[deviceNumber]);
                     // Set tooltips
                     setTabCloseToolTips(ui->tabWidget, "Disconnect Camera");
                     // Prevent user from enabling/disabling stream synchronization after a camera has been connected
@@ -156,10 +156,10 @@ void MainWindow::connectToCamera()
                     // Display error message
                     QMessageBox::warning(this,"ERROR:","Could not connect to camera. Please check device number.");
                     // Explicitly delete widget
-                    delete cameraViewMap[deviceNumber];
-                    cameraViewMap.remove(deviceNumber);
+                    delete m_cameraViewMap[deviceNumber];
+                    m_cameraViewMap.remove(deviceNumber);
                     // Remove from shared buffer
-                    sharedImageBuffer->removeByDeviceNumber(deviceNumber);
+                    m_sharedImageBuffer->removeByDeviceNumber(deviceNumber);
                     // Explicitly delete ImageBuffer object
                     delete imageBuffer;
                 }
@@ -181,7 +181,7 @@ void MainWindow::disconnectCamera(int index)
     bool doDisconnect=true;
 
     // Check if stream synchronization is enabled, more than 1 camera connected, and frame processing is not in progress
-    if(ui->actionSynchronizeStreams->isChecked() && cameraViewMap.size()>1 && !sharedImageBuffer->getSyncEnabled())
+    if (ui->actionSynchronizeStreams->isChecked() && m_cameraViewMap.size()>1 && !m_sharedImageBuffer->getSyncEnabled())
     {
         // Prompt user
         int ret = QMessageBox::question(this, tr("qt-opencv-multithreaded"),
@@ -211,15 +211,15 @@ void MainWindow::disconnectCamera(int index)
         ui->tabWidget->removeTab(index);
 
         // Delete widget (CameraView) contained in tab
-        delete cameraViewMap[deviceNumberMap.key(index)];
-        cameraViewMap.remove(deviceNumberMap.key(index));
+        delete m_cameraViewMap[m_deviceNumberMap.key(index)];
+        m_cameraViewMap.remove(m_deviceNumberMap.key(index));
 
         // Remove from map
-        removeFromMapByTabIndex(deviceNumberMap, index);
+        removeFromMapByTabIndex(m_deviceNumberMap, index);
         // Update map (if tab closed is not last)
         if(index!=(nTabs-1))
         {
-            updateMapValues(deviceNumberMap, index);
+            updateMapValues(m_deviceNumberMap, index);
         }
 
         // If start tab, set tab as blank

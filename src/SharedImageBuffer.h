@@ -33,15 +33,14 @@
 #ifndef SHAREDIMAGEBUFFER_H
 #define SHAREDIMAGEBUFFER_H
 
-// Qt
 #include <QHash>
 #include <QSet>
 #include <QWaitCondition>
 #include <QMutex>
-// OpenCV
+
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
-// Local
+
 #include "Buffer.h"
 
 using namespace cv;
@@ -61,12 +60,12 @@ class SharedImageBuffer
         bool containsImageBufferForDeviceNumber(int deviceNumber);
 
     private:
-        QHash<int, Buffer<Mat>*> imageBufferMap;
-        QSet<int> syncSet;
-        QWaitCondition wc;
-        QMutex mutex;
-        int nArrived;
-        bool doSync;
+        QHash<int, Buffer<Mat>*> m_imageBufferMap;
+        QSet<int> m_syncSet;
+        QWaitCondition m_wc;
+        QMutex m_mutex;
+        int m_nArrived;
+        bool m_doSync;
 };
 
 #endif // SHAREDIMAGEBUFFER_H

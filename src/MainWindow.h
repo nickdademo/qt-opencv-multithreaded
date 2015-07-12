@@ -33,10 +33,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-// Qt
 #include <QMainWindow>
 #include <QPushButton>
-// Local
+
 #include "CameraConnectDialog.h"
 #include "CameraView.h"
 #include "Buffer.h"
@@ -55,14 +54,14 @@ class MainWindow : public QMainWindow
         ~MainWindow();
 
     private:
-        Ui::MainWindow *ui;
-        QPushButton *connectToCameraButton;
-        QMap<int, int> deviceNumberMap;
-        QMap<int, CameraView*> cameraViewMap;
-        SharedImageBuffer *sharedImageBuffer;
         bool removeFromMapByTabIndex(QMap<int, int>& map, int tabIndex);
         void updateMapValues(QMap<int, int>& map, int tabIndex);
         void setTabCloseToolTips(QTabWidget *tabs, QString tooltip);
+        Ui::MainWindow *ui;
+        QPushButton *m_connectToCameraButton;
+        QMap<int, int> m_deviceNumberMap;
+        QMap<int, CameraView*> m_cameraViewMap;
+        SharedImageBuffer *m_sharedImageBuffer;
 
     public slots:
         void connectToCamera();

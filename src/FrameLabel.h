@@ -33,13 +33,12 @@
 #ifndef FRAMELABEL_H
 #define FRAMELABEL_H
 
-// Qt
 #include <QtCore/QObject>
 #include <QtCore/QPoint>
 #include <QtCore/QRect>
 #include <QLabel>
 #include <QMenu>
-// Local
+
 #include "Structures.h"
 
 class FrameLabel : public QLabel
@@ -54,11 +53,11 @@ class FrameLabel : public QLabel
 
     private:
         void createContextMenu();
-        MouseData mouseData;
-        QPoint startPoint;
-        QPoint mouseCursorPos;
-        bool drawBox;
-        QRect *box;
+        MouseData m_mouseData;
+        QPoint m_startPoint;
+        QPoint m_mouseCursorPos;
+        bool m_drawBox;
+        QRect *m_box;
 
     protected:
         void mouseMoveEvent(QMouseEvent *ev);

@@ -33,9 +33,8 @@
 #ifndef CAMERACONNECTDIALOG_H
 #define CAMERACONNECTDIALOG_H
 
-// Qt
 #include <QDialog>
-// Local
+
 #include "Config.h"
 
 namespace Ui {

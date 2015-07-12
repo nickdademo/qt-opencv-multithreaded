@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.2.3)
 
 project(qt-opencv-multithreaded)
 
@@ -18,6 +18,7 @@ find_package(Qt5Widgets REQUIRED)
 ##########
 # OpenCV #
 ##########
+set(OpenCV_STATIC OFF)
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 

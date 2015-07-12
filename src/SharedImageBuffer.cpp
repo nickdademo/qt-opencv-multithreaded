@@ -35,8 +35,8 @@
 SharedImageBuffer::SharedImageBuffer()
 {
     // Initialize variables(s)
-    nArrived=0;
-    doSync=false;
+    m_nArrived = 0;
+    m_doSync = false;
 }
 
 void SharedImageBuffer::add(int deviceNumber, Buffer<Mat>* imageBuffer, bool sync)
@@ -44,80 +44,80 @@ void SharedImageBuffer::add(int deviceNumber, Buffer<Mat>* imageBuffer, bool syn
     // Device stream is to be synchronized
     if(sync)
     {
-        mutex.lock();
-        syncSet.insert(deviceNumber);
-        mutex.unlock();
+        m_mutex.lock();
+        m_syncSet.insert(deviceNumber);
+        m_mutex.unlock();
     }
     // Add image buffer to map
-    imageBufferMap[deviceNumber]=imageBuffer;
+    m_imageBufferMap[deviceNumber] = imageBuffer;
 }
 
 Buffer<Mat>* SharedImageBuffer::getByDeviceNumber(int deviceNumber)
 {
-    return imageBufferMap[deviceNumber];
+    return m_imageBufferMap[deviceNumber];
 }
 
 void SharedImageBuffer::removeByDeviceNumber(int deviceNumber)
 {
     // Remove buffer for device from imageBufferMap
-    imageBufferMap.remove(deviceNumber);
+    m_imageBufferMap.remove(deviceNumber);
 
     // Also remove from syncSet (if present)
-    mutex.lock();
-    if(syncSet.contains(deviceNumber))
+    m_mutex.lock();
+    if (m_syncSet.contains(deviceNumber))
     {
-        syncSet.remove(deviceNumber);
-        wc.wakeAll();
+        m_syncSet.remove(deviceNumber);
+        m_wc.wakeAll();
     }
-    mutex.unlock();
+    m_mutex.unlock();
 }
 
 void SharedImageBuffer::sync(int deviceNumber)
 {
     // Only perform sync if enabled for specified device/stream
-    mutex.lock();
-    if(syncSet.contains(deviceNumber))
+    m_mutex.lock();
+    if (m_syncSet.contains(deviceNumber))
     {
         // Increment arrived count
-        nArrived++;
+        m_nArrived++;
         // We are the last to arrive: wake all waiting threads
-        if(doSync && (nArrived==syncSet.size()))
+        if (m_doSync && (m_nArrived == m_syncSet.size()))
         {
-            wc.wakeAll();
+            m_wc.wakeAll();
         }
         // Still waiting for other streams to arrive: wait
         else
         {
-            wc.wait(&mutex);
+            m_wc.wait(&m_mutex);
         }
         // Decrement arrived count
-        nArrived--;
+        m_nArrived--;
     }
-    mutex.unlock();
+    m_mutex.unlock();
 }
 
 void SharedImageBuffer::wakeAll()
 {
-    QMutexLocker locker(&mutex);
-    wc.wakeAll();
+    QMutexLocker locker(&m_mutex);
+    m_wc.wakeAll();
 }
 
 void SharedImageBuffer::setSyncEnabled(bool enable)
 {
-    doSync=enable;
+    m_doSync = enable;
 }
 
 bool SharedImageBuffer::isSyncEnabledForDeviceNumber(int deviceNumber)
 {
-    return syncSet.contains(deviceNumber);
+    return m_syncSet.contains(deviceNumber);
 }
 
 bool SharedImageBuffer::getSyncEnabled()
 {
-    return doSync;
+    return m_doSync;
 }
 
 bool SharedImageBuffer::containsImageBufferForDeviceNumber(int deviceNumber)
 {
-    return imageBufferMap.contains(deviceNumber);
+    return m_imageBufferMap.contains(deviceNumber);
 }

@@ -33,9 +33,8 @@
 #ifndef MATTOQIMAGE_H
 #define MATTOQIMAGE_H
 
-// Qt
 #include <QtGui/QImage>
-// OpenCV
+
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 

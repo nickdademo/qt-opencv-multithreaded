@@ -88,87 +88,87 @@ void ImageProcessingSettingsDialog::updateStoredSettingsFromDialog()
     // Smooth
     if(ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothBlurButton)
     {
-        imageProcessingSettings.smoothType=0;
+        m_imageProcessingSettings.smoothType = 0;
     }
     else if(ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothGaussianButton)
     {
-        imageProcessingSettings.smoothType=1;
+        m_imageProcessingSettings.smoothType = 1;
     }
     else if(ui->smoothTypeGroup->checkedButton()==(QAbstractButton*)ui->smoothMedianButton)
     {
-        imageProcessingSettings.smoothType=2;
+        m_imageProcessingSettings.smoothType = 2;
     }
-    imageProcessingSettings.smoothParam1=ui->smoothParam1Edit->text().toInt();
-    imageProcessingSettings.smoothParam2=ui->smoothParam2Edit->text().toInt();
-    imageProcessingSettings.smoothParam3=ui->smoothParam3Edit->text().toDouble();
-    imageProcessingSettings.smoothParam4=ui->smoothParam4Edit->text().toDouble();
+    m_imageProcessingSettings.smoothParam1 = ui->smoothParam1Edit->text().toInt();
+    m_imageProcessingSettings.smoothParam2 = ui->smoothParam2Edit->text().toInt();
+    m_imageProcessingSettings.smoothParam3 = ui->smoothParam3Edit->text().toDouble();
+    m_imageProcessingSettings.smoothParam4 = ui->smoothParam4Edit->text().toDouble();
     // Dilate
-    imageProcessingSettings.dilateNumberOfIterations=ui->dilateIterationsEdit->text().toInt();
+    m_imageProcessingSettings.dilateNumberOfIterations = ui->dilateIterationsEdit->text().toInt();
     // Erode
-    imageProcessingSettings.erodeNumberOfIterations=ui->erodeIterationsEdit->text().toInt();
+    m_imageProcessingSettings.erodeNumberOfIterations = ui->erodeIterationsEdit->text().toInt();
     // Flip
     if(ui->flipCodeGroup->checkedButton()==(QAbstractButton*)ui->flipXAxisButton)
     {
-        imageProcessingSettings.flipCode=0;
+        m_imageProcessingSettings.flipCode = 0;
     }
     else if(ui->flipCodeGroup->checkedButton()==(QAbstractButton*)ui->flipYAxisButton)
     {
-        imageProcessingSettings.flipCode=1;
+        m_imageProcessingSettings.flipCode = 1;
     }
     else if(ui->flipCodeGroup->checkedButton()==(QAbstractButton*)ui->flipBothAxesButton)
     {
-        imageProcessingSettings.flipCode=-1;
+        m_imageProcessingSettings.flipCode = -1;
     }
     // Canny
-    imageProcessingSettings.cannyThreshold1=ui->cannyThresh1Edit->text().toDouble();
-    imageProcessingSettings.cannyThreshold2=ui->cannyThresh2Edit->text().toDouble();
-    imageProcessingSettings.cannyApertureSize=ui->cannyApertureSizeEdit->text().toInt();
-    imageProcessingSettings.cannyL2gradient=ui->cannyL2NormCheckBox->isChecked();
+    m_imageProcessingSettings.cannyThreshold1 = ui->cannyThresh1Edit->text().toDouble();
+    m_imageProcessingSettings.cannyThreshold2 = ui->cannyThresh2Edit->text().toDouble();
+    m_imageProcessingSettings.cannyApertureSize = ui->cannyApertureSizeEdit->text().toInt();
+    m_imageProcessingSettings.cannyL2gradient = ui->cannyL2NormCheckBox->isChecked();
     // Update image processing flags in processingThread
-    emit newImageProcessingSettings(imageProcessingSettings);
+    emit newImageProcessingSettings(m_imageProcessingSettings);
 }
 
 void ImageProcessingSettingsDialog::updateDialogSettingsFromStored()
 {
     // Smooth
-    if(imageProcessingSettings.smoothType==0)
+    if (m_imageProcessingSettings.smoothType == 0)
     {
         ui->smoothBlurButton->setChecked(true);
     }
-    else if(imageProcessingSettings.smoothType==1)
+    else if (m_imageProcessingSettings.smoothType == 1)
     {
         ui->smoothGaussianButton->setChecked(true);
     }
-    else if(imageProcessingSettings.smoothType==2)
+    else if (m_imageProcessingSettings.smoothType == 2)
     {
         ui->smoothMedianButton->setChecked(true);
     }
-    ui->smoothParam1Edit->setText(QString::number(imageProcessingSettings.smoothParam1));
-    ui->smoothParam2Edit->setText(QString::number(imageProcessingSettings.smoothParam2));
-    ui->smoothParam3Edit->setText(QString::number(imageProcessingSettings.smoothParam3));
-    ui->smoothParam4Edit->setText(QString::number(imageProcessingSettings.smoothParam4));
+    ui->smoothParam1Edit->setText(QString::number(m_imageProcessingSettings.smoothParam1));
+    ui->smoothParam2Edit->setText(QString::number(m_imageProcessingSettings.smoothParam2));
+    ui->smoothParam3Edit->setText(QString::number(m_imageProcessingSettings.smoothParam3));
+    ui->smoothParam4Edit->setText(QString::number(m_imageProcessingSettings.smoothParam4));
     // Dilate
-    ui->dilateIterationsEdit->setText(QString::number(imageProcessingSettings.dilateNumberOfIterations));
+    ui->dilateIterationsEdit->setText(QString::number(m_imageProcessingSettings.dilateNumberOfIterations));
     // Erode
-    ui->erodeIterationsEdit->setText(QString::number(imageProcessingSettings.erodeNumberOfIterations));
+    ui->erodeIterationsEdit->setText(QString::number(m_imageProcessingSettings.erodeNumberOfIterations));
     // Flip
-    if(imageProcessingSettings.flipCode==0)
+    if (m_imageProcessingSettings.flipCode == 0)
     {
         ui->flipXAxisButton->setChecked(true);
     }
-    else if(imageProcessingSettings.flipCode==1)
+    else if (m_imageProcessingSettings.flipCode == 1)
     {
         ui->flipYAxisButton->setChecked(true);
     }
-    else if(imageProcessingSettings.flipCode==-1)
+    else if (m_imageProcessingSettings.flipCode == -1)
     {
         ui->flipBothAxesButton->setChecked(true);
     }
     // Canny
-    ui->cannyThresh1Edit->setText(QString::number(imageProcessingSettings.cannyThreshold1));
-    ui->cannyThresh2Edit->setText(QString::number(imageProcessingSettings.cannyThreshold2));
-    ui->cannyApertureSizeEdit->setText(QString::number(imageProcessingSettings.cannyApertureSize));
-    ui->cannyL2NormCheckBox->setChecked(imageProcessingSettings.cannyL2gradient);
+    ui->cannyThresh1Edit->setText(QString::number(m_imageProcessingSettings.cannyThreshold1));
+    ui->cannyThresh2Edit->setText(QString::number(m_imageProcessingSettings.cannyThreshold2));
+    ui->cannyApertureSizeEdit->setText(QString::number(m_imageProcessingSettings.cannyApertureSize));
+    ui->cannyL2NormCheckBox->setChecked(m_imageProcessingSettings.cannyL2gradient);
     // Enable/disable appropriate Smooth parameter inputs
     smoothTypeChange(ui->smoothTypeGroup->checkedButton());
 }

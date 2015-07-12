@@ -33,12 +33,11 @@
 #ifndef CAPTURETHREAD_H
 #define CAPTURETHREAD_H
 
-// Qt
 #include <QtCore/QTime>
 #include <QtCore/QThread>
-// OpenCV
+
 #include <opencv2/highgui/highgui.hpp>
-// Local
+
 #include "SharedImageBuffer.h"
 #include "Config.h"
 #include "Structures.h"
@@ -62,21 +61,21 @@ class CaptureThread : public QThread
 
     private:
         void updateFPS(int);
-        SharedImageBuffer *sharedImageBuffer;
-        VideoCapture cap;
-        Mat grabbedFrame;
-        QTime t;
-        QMutex doStopMutex;
-        QQueue<int> fps;
-        struct ThreadStatisticsData statsData;
-        volatile bool doStop;
-        int captureTime;
-        int sampleNumber;
-        int fpsSum;
-        bool dropFrameIfBufferFull;
-        int deviceNumber;
-        int width;
-        int height;
+        SharedImageBuffer *m_sharedImageBuffer;
+        VideoCapture m_cap;
+        Mat m_grabbedFrame;
+        QTime m_t;
+        QMutex m_doStopMutex;
+        QQueue<int> m_fps;
+        struct ThreadStatisticsData m_statsData;
+        volatile bool m_doStop;
+        int m_captureTime;
+        int m_sampleNumber;
+        int m_fpsSum;
+        bool m_dropFrameIfBufferFull;
+        int m_deviceNumber;
+        int m_width;
+        int m_height;
 
     protected:
         void run();

@@ -32,17 +32,19 @@
 
 #include "ProcessingThread.h"
 
-ProcessingThread::ProcessingThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber) : QThread(), sharedImageBuffer(sharedImageBuffer)
+ProcessingThread::ProcessingThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber) :
+QThread(),
+m_sharedImageBuffer(sharedImageBuffer)
 {
     // Save Device Number
-    this->deviceNumber=deviceNumber;
+    m_deviceNumber = deviceNumber;
     // Initialize members
-    doStop=false;
-    sampleNumber=0;
-    fpsSum=0;
-    fps.clear();
-    statsData.averageFPS=0;
-    statsData.nFramesProcessed=0;
+    m_doStop = false;
+    m_sampleNumber = 0;
+    m_fpsSum = 0;
+    m_fps.clear();
+    m_statsData.averageFPS = 0;
+    m_statsData.nFramesProcessed = 0;
 }
 
 void ProcessingThread::run()
@@ -52,25 +54,25 @@ void ProcessingThread::run()
         ////////////////////////////////
         // Stop thread if doStop=TRUE //
         ////////////////////////////////
-        doStopMutex.lock();
-        if(doStop)
+        m_doStopMutex.lock();
+        if (m_doStop)
         {
-            doStop=false;
-            doStopMutex.unlock();
+            m_doStop = false;
+            m_doStopMutex.unlock();
             break;
         }
-        doStopMutex.unlock();
+        m_doStopMutex.unlock();
         /////////////////////////////////
         /////////////////////////////////
 
         // Save processing time
-        processingTime=t.elapsed();
+        m_processingTime = m_t.elapsed();
         // Start timer (used to calculate processing rate)
-        t.start();
+        m_t.start();
 
-        processingMutex.lock();
+        m_processingMutex.lock();
         // Get frame from queue, store in currentFrame, set ROI
-        currentFrame=Mat(sharedImageBuffer->getByDeviceNumber(deviceNumber)->get().clone(), currentROI);
+        m_currentFrame = Mat(m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->get().clone(), m_currentROI);
 
         // Example of how to grab a frame from another stream (where Device Number=1)
         // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
@@ -88,75 +90,75 @@ void ProcessingThread::run()
         // PERFORM IMAGE PROCESSING BELOW //
         ////////////////////////////////////
         // Grayscale conversion (in-place operation)
-        if(imgProcFlags.grayscaleOn && (currentFrame.channels() == 3 || currentFrame.channels() == 4))
+        if (m_imgProcFlags.grayscaleOn && (m_currentFrame.channels() == 3 || m_currentFrame.channels() == 4))
         {
-            cvtColor(currentFrame, currentFrame, CV_BGR2GRAY);
+            cvtColor(m_currentFrame, m_currentFrame, CV_BGR2GRAY);
         }
 
         // Smooth (in-place operations)
-        if(imgProcFlags.smoothOn)
+        if (m_imgProcFlags.smoothOn)
         {
-            switch(imgProcSettings.smoothType)
+            switch (m_imgProcSettings.smoothType)
             {
                 // BLUR
                 case 0:
-                    blur(currentFrame, currentFrame,
-                         Size(imgProcSettings.smoothParam1, imgProcSettings.smoothParam2));
+                    blur(m_currentFrame, m_currentFrame,
+                        Size(m_imgProcSettings.smoothParam1, m_imgProcSettings.smoothParam2));
                     break;
                 // GAUSSIAN
                 case 1:
-                    GaussianBlur(currentFrame, currentFrame,
-                                 Size(imgProcSettings.smoothParam1, imgProcSettings.smoothParam2),
-                                 imgProcSettings.smoothParam3, imgProcSettings.smoothParam4);
+                    GaussianBlur(m_currentFrame, m_currentFrame,
+                        Size(m_imgProcSettings.smoothParam1, m_imgProcSettings.smoothParam2),
+                        m_imgProcSettings.smoothParam3, m_imgProcSettings.smoothParam4);
                     break;
                 // MEDIAN
                 case 2:
-                    medianBlur(currentFrame, currentFrame,
-                               imgProcSettings.smoothParam1);
+                    medianBlur(m_currentFrame, m_currentFrame,
+                        m_imgProcSettings.smoothParam1);
                     break;
             }
         }
         // Dilate
-        if(imgProcFlags.dilateOn)
+        if (m_imgProcFlags.dilateOn)
         {
-            dilate(currentFrame, currentFrame,
-                   Mat(), Point(-1, -1), imgProcSettings.dilateNumberOfIterations);
+            dilate(m_currentFrame, m_currentFrame,
+                Mat(), Point(-1, -1), m_imgProcSettings.dilateNumberOfIterations);
         }
         // Erode
-        if(imgProcFlags.erodeOn)
+        if (m_imgProcFlags.erodeOn)
         {
-            erode(currentFrame, currentFrame,
-                  Mat(), Point(-1, -1), imgProcSettings.erodeNumberOfIterations);
+            erode(m_currentFrame, m_currentFrame,
+                Mat(), Point(-1, -1), m_imgProcSettings.erodeNumberOfIterations);
         }
         // Flip
-        if(imgProcFlags.flipOn)
+        if (m_imgProcFlags.flipOn)
         {
-            flip(currentFrame, currentFrame,
-                 imgProcSettings.flipCode);
+            flip(m_currentFrame, m_currentFrame,
+                m_imgProcSettings.flipCode);
         }
         // Canny edge detection
-        if(imgProcFlags.cannyOn)
+        if (m_imgProcFlags.cannyOn)
         {
-            Canny(currentFrame, currentFrame,
-                  imgProcSettings.cannyThreshold1, imgProcSettings.cannyThreshold2,
-                  imgProcSettings.cannyApertureSize, imgProcSettings.cannyL2gradient);
+            Canny(m_currentFrame, m_currentFrame,
+                m_imgProcSettings.cannyThreshold1, m_imgProcSettings.cannyThreshold2,
+                m_imgProcSettings.cannyApertureSize, m_imgProcSettings.cannyL2gradient);
         }
         ////////////////////////////////////
         // PERFORM IMAGE PROCESSING ABOVE //
         ////////////////////////////////////
 
         // Convert Mat to QImage
-        frame=MatToQImage(currentFrame);
-        processingMutex.unlock();
+        m_frame = MatToQImage(m_currentFrame);
+        m_processingMutex.unlock();
 
         // Inform GUI thread of new frame (QImage)
-        emit newFrame(frame);
+        emit newFrame(m_frame);
 
         // Update statistics
-        updateFPS(processingTime);
-        statsData.nFramesProcessed++;
+        updateFPS(m_processingTime);
+        m_statsData.nFramesProcessed++;
         // Inform GUI of updated statistics
-        emit updateStatisticsInGUI(statsData);
+        emit updateStatisticsInGUI(m_statsData);
     }
     qDebug() << "Stopping processing thread...";
 }
@@ -166,78 +168,78 @@ void ProcessingThread::updateFPS(int timeElapsed)
     // Add instantaneous FPS value to queue
     if(timeElapsed>0)
     {
-        fps.enqueue((int)1000/timeElapsed);
+        m_fps.enqueue((int)1000 / timeElapsed);
         // Increment sample number
-        sampleNumber++;
+        m_sampleNumber++;
     }
 
     // Maximum size of queue is DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH
-    if(fps.size()>PROCESSING_FPS_STAT_QUEUE_LENGTH)
+    if (m_fps.size()>PROCESSING_FPS_STAT_QUEUE_LENGTH)
     {
-        fps.dequeue();
+        m_fps.dequeue();
     }
 
     // Update FPS value every DEFAULT_PROCESSING_FPS_STAT_QUEUE_LENGTH samples
-    if((fps.size()==PROCESSING_FPS_STAT_QUEUE_LENGTH)&&(sampleNumber==PROCESSING_FPS_STAT_QUEUE_LENGTH))
+    if ((m_fps.size() == PROCESSING_FPS_STAT_QUEUE_LENGTH) && (m_sampleNumber == PROCESSING_FPS_STAT_QUEUE_LENGTH))
     {
         // Empty queue and store sum
-        while(!fps.empty())
+        while (!m_fps.empty())
         {
-            fpsSum+=fps.dequeue();
+            m_fpsSum += m_fps.dequeue();
         }
         // Calculate average FPS
-        statsData.averageFPS=fpsSum/PROCESSING_FPS_STAT_QUEUE_LENGTH;
+        m_statsData.averageFPS = m_fpsSum / PROCESSING_FPS_STAT_QUEUE_LENGTH;
         // Reset sum
-        fpsSum=0;
+        m_fpsSum = 0;
         // Reset sample number
-        sampleNumber=0;
+        m_sampleNumber = 0;
     }
 }
 
 void ProcessingThread::stop()
 {
-    QMutexLocker locker(&doStopMutex);
-    doStop=true;
+    QMutexLocker locker(&m_doStopMutex);
+    m_doStop = true;
 }
 
 void ProcessingThread::updateImageProcessingFlags(struct ImageProcessingFlags imgProcFlags)
 {
-    QMutexLocker locker(&processingMutex);
-    this->imgProcFlags.grayscaleOn=imgProcFlags.grayscaleOn;
-    this->imgProcFlags.smoothOn=imgProcFlags.smoothOn;
-    this->imgProcFlags.dilateOn=imgProcFlags.dilateOn;
-    this->imgProcFlags.erodeOn=imgProcFlags.erodeOn;
-    this->imgProcFlags.flipOn=imgProcFlags.flipOn;
-    this->imgProcFlags.cannyOn=imgProcFlags.cannyOn;
+    QMutexLocker locker(&m_processingMutex);
+    m_imgProcFlags.grayscaleOn = imgProcFlags.grayscaleOn;
+    m_imgProcFlags.smoothOn = imgProcFlags.smoothOn;
+    m_imgProcFlags.dilateOn=imgProcFlags.dilateOn;
+    m_imgProcFlags.erodeOn=imgProcFlags.erodeOn;
+    m_imgProcFlags.flipOn=imgProcFlags.flipOn;
+    m_imgProcFlags.cannyOn=imgProcFlags.cannyOn;
 }
 
 void ProcessingThread::updateImageProcessingSettings(struct ImageProcessingSettings imgProcSettings)
 {
-    QMutexLocker locker(&processingMutex);
-    this->imgProcSettings.smoothType=imgProcSettings.smoothType;
-    this->imgProcSettings.smoothParam1=imgProcSettings.smoothParam1;
-    this->imgProcSettings.smoothParam2=imgProcSettings.smoothParam2;
-    this->imgProcSettings.smoothParam3=imgProcSettings.smoothParam3;
-    this->imgProcSettings.smoothParam4=imgProcSettings.smoothParam4;
-    this->imgProcSettings.dilateNumberOfIterations=imgProcSettings.dilateNumberOfIterations;
-    this->imgProcSettings.erodeNumberOfIterations=imgProcSettings.erodeNumberOfIterations;
-    this->imgProcSettings.flipCode=imgProcSettings.flipCode;
-    this->imgProcSettings.cannyThreshold1=imgProcSettings.cannyThreshold1;
-    this->imgProcSettings.cannyThreshold2=imgProcSettings.cannyThreshold2;
-    this->imgProcSettings.cannyApertureSize=imgProcSettings.cannyApertureSize;
-    this->imgProcSettings.cannyL2gradient=imgProcSettings.cannyL2gradient;
+    QMutexLocker locker(&m_processingMutex);
+    m_imgProcSettings.smoothType=imgProcSettings.smoothType;
+    m_imgProcSettings.smoothParam1=imgProcSettings.smoothParam1;
+    m_imgProcSettings.smoothParam2=imgProcSettings.smoothParam2;
+    m_imgProcSettings.smoothParam3=imgProcSettings.smoothParam3;
+    m_imgProcSettings.smoothParam4=imgProcSettings.smoothParam4;
+    m_imgProcSettings.dilateNumberOfIterations=imgProcSettings.dilateNumberOfIterations;
+    m_imgProcSettings.erodeNumberOfIterations=imgProcSettings.erodeNumberOfIterations;
+    m_imgProcSettings.flipCode=imgProcSettings.flipCode;
+    m_imgProcSettings.cannyThreshold1=imgProcSettings.cannyThreshold1;
+    m_imgProcSettings.cannyThreshold2=imgProcSettings.cannyThreshold2;
+    m_imgProcSettings.cannyApertureSize=imgProcSettings.cannyApertureSize;
+    m_imgProcSettings.cannyL2gradient=imgProcSettings.cannyL2gradient;
 }
 
 void ProcessingThread::setROI(QRect roi)
 {
-    QMutexLocker locker(&processingMutex);
-    currentROI.x = roi.x();
-    currentROI.y = roi.y();
-    currentROI.width = roi.width();
-    currentROI.height = roi.height();
+    QMutexLocker locker(&m_processingMutex);
+    m_currentROI.x = roi.x();
+    m_currentROI.y = roi.y();
+    m_currentROI.width = roi.width();
+    m_currentROI.height = roi.height();
 }
 
 QRect ProcessingThread::getCurrentROI()
 {
-    return QRect(currentROI.x, currentROI.y, currentROI.width, currentROI.height);
+    return QRect(m_currentROI.x, m_currentROI.y, m_currentROI.width, m_currentROI.height);
 }

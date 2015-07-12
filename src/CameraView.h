@@ -33,7 +33,6 @@
 #ifndef CAMERAVIEW_H
 #define CAMERAVIEW_H
 
-// Local
 #include "CaptureThread.h"
 #include "ProcessingThread.h"
 #include "ImageProcessingSettingsDialog.h"
@@ -54,16 +53,16 @@ class CameraView : public QWidget
         bool connectToCamera(bool dropFrame, int capThreadPrio, int procThreadPrio, bool createProcThread, int width, int height);
 
     private:
-        Ui::CameraView *ui;
-        ProcessingThread *processingThread;
-        CaptureThread *captureThread;
-        SharedImageBuffer *sharedImageBuffer;
-        ImageProcessingSettingsDialog *imageProcessingSettingsDialog;
-        ImageProcessingFlags imageProcessingFlags;
         void stopCaptureThread();
         void stopProcessingThread();
-        int deviceNumber;
-        bool isCameraConnected;
+        Ui::CameraView *ui;
+        int m_deviceNumber;
+        bool m_isCameraConnected;
+        ProcessingThread *m_processingThread;
+        CaptureThread *m_captureThread;
+        SharedImageBuffer *m_sharedImageBuffer;
+        ImageProcessingSettingsDialog *m_imageProcessingSettingsDialog;
+        ImageProcessingFlags m_imageProcessingFlags;
 
     public slots:
         void setImageProcessingSettings();
