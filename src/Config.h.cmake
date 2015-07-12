@@ -37,6 +37,9 @@
 namespace {
     const char* APP_NAME                    = "@PROJECT_NAME@";
     const char* APP_VERSION                 = "@PROJECT_VERSION@";
+    const char* APP_AUTHOR_NAME             = "@PROJECT_AUTHOR_NAME@";
+    const char* APP_AUTHOR_EMAIL            = "@PROJECT_AUTHOR_EMAIL@";
+    const char* APP_AUTHOR_WEBSITE          = "@PROJECT_AUTHOR_WEBSITE@";
 }
 
 // FPS statistics queue lengths

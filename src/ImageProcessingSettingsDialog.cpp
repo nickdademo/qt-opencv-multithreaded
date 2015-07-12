@@ -210,8 +210,8 @@ void ImageProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         ui->smoothParam3RangeLabel->setText("");
         ui->smoothParam4RangeLabel->setText("");
         // Set parameter labels
-        ui->smoothParam1Label->setText("Kernel Width");
-        ui->smoothParam2Label->setText("Kernel Height");
+        ui->smoothParam1Label->setText(tr("Kernel Width"));
+        ui->smoothParam2Label->setText(tr("Kernel Height"));
         ui->smoothParam3Label->setText("");
         ui->smoothParam4Label->setText("");
     }
@@ -240,10 +240,10 @@ void ImageProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         ui->smoothParam3RangeLabel->setText("[0.00-99.99]");
         ui->smoothParam4RangeLabel->setText("[0.00-99.99]");
         // Set parameter labels
-        ui->smoothParam1Label->setText("Kernel Width");
-        ui->smoothParam2Label->setText("Kernel Height");
-        ui->smoothParam3Label->setText("Sigma X");
-        ui->smoothParam4Label->setText("Sigma Y");
+        ui->smoothParam1Label->setText(tr("Kernel Width"));
+        ui->smoothParam2Label->setText(tr("Kernel Height"));
+        ui->smoothParam3Label->setText(tr("Sigma X"));
+        ui->smoothParam4Label->setText(tr("Sigma Y"));
     }
     else if(input == (QAbstractButton*)ui->smoothMedianButton)
     {
@@ -262,7 +262,7 @@ void ImageProcessingSettingsDialog::smoothTypeChange(QAbstractButton *input)
         ui->smoothParam3RangeLabel->setText("");
         ui->smoothParam4RangeLabel->setText("");
         // Set parameter labels
-        ui->smoothParam1Label->setText("Kernel (Square)");
+        ui->smoothParam1Label->setText(tr("Kernel (Square)"));
         ui->smoothParam2Label->setText("");
         ui->smoothParam3Label->setText("");
         ui->smoothParam4Label->setText("");
@@ -278,103 +278,103 @@ void ImageProcessingSettingsDialog::validateDialog()
     if(((ui->smoothParam1Edit->text().toInt() % 2) == 0) && (ui->smoothParam1Edit->text().toInt() != 0))
     {
         ui->smoothParam1Edit->setText(QString::number(ui->smoothParam1Edit->text().toInt() + 1));
-        QMessageBox::information(this->parentWidget(),"NOTE:","Smooth parameter 1 must be an ODD number.\n\nAutomatically set to (inputted value+1).");
+        QMessageBox::information(this->parentWidget(), "Parameter Changed", QString("%1\\%2").arg(tr("Smooth parameter 1 must be an ODD number.")).arg(QString(tr("Automatically set to %1.")).arg(ui->smoothParam1Edit->text().toInt() + 1)));
     }
     // If value of Smooth parameter 2 is EVEN (and not zero), convert to ODD by adding 1
     if(((ui->smoothParam2Edit->text().toInt() % 2) == 0) && (ui->smoothParam2Edit->text().toInt() != 0))
     {
         ui->smoothParam2Edit->setText(QString::number(ui->smoothParam2Edit->text().toInt() + 1));
-        QMessageBox::information(this->parentWidget(),"NOTE:","Smooth parameter 2 must be an ODD number (or zero).\n\nAutomatically set to (inputted value+1).");
+        QMessageBox::information(this->parentWidget(), "Parameter Changed", QString("%1\\%2").arg(tr("Smooth parameter 2 must be an ODD number.")).arg(QString(tr("Automatically set to %1.")).arg(ui->smoothParam2Edit->text().toInt() + 1)));
     }
 
     // Check for empty inputs: if empty, set to default values
     if(ui->smoothParam1Edit->text().isEmpty())
     {
         ui->smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
-        inputEmpty=true;
+        inputEmpty = true;
     }
     if(ui->smoothParam2Edit->text().isEmpty())
     {
         ui->smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
-        inputEmpty=true;
+        inputEmpty = true;
     }
     if(ui->smoothParam3Edit->text().isEmpty())
     {
         ui->smoothParam3Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_3));
-        inputEmpty=true;
+        inputEmpty = true;
     }
     if(ui->smoothParam4Edit->text().isEmpty())
     {
         ui->smoothParam4Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_4));
-        inputEmpty=true;
+        inputEmpty = true;
     }
     if(ui->dilateIterationsEdit->text().isEmpty())
     {
         ui->dilateIterationsEdit->setText(QString::number(DEFAULT_DILATE_ITERATIONS));
-        inputEmpty=true;
+        inputEmpty = true;
     }
     if(ui->erodeIterationsEdit->text().isEmpty())
     {
         ui->erodeIterationsEdit->setText(QString::number(DEFAULT_ERODE_ITERATIONS));
-        inputEmpty=true;
+        inputEmpty = true;
     }
     if(ui->cannyThresh1Edit->text().isEmpty())
     {
         ui->cannyThresh1Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_1));
-        inputEmpty=true;
+        inputEmpty = true;
     }
     if(ui->cannyThresh2Edit->text().isEmpty())
     {
         ui->cannyThresh2Edit->setText(QString::number(DEFAULT_CANNY_THRESHOLD_2));
-        inputEmpty=true;
+        inputEmpty = true;
     }
     if(ui->cannyApertureSizeEdit->text().isEmpty())
     {
         ui->cannyApertureSizeEdit->setText(QString::number(DEFAULT_CANNY_APERTURE_SIZE));
-        inputEmpty=true;
+        inputEmpty = true;
     }
     // Check if any of the inputs were empty
     if(inputEmpty)
     {
-        QMessageBox::warning(this->parentWidget(),"WARNING:","One or more inputs empty.\n\nAutomatically set to default values.");
+        QMessageBox::warning(this->parentWidget(), tr("Auto Default(s) Set"), QString("%1\n\n%2").arg(tr("One or more inputs empty.")).arg(tr("Automatically set to default values.")));
     }
 
     // Check for special parameter cases when smoothing type is GAUSSIAN
     if((ui->smoothTypeGroup->checkedButton() == (QAbstractButton*)ui->smoothGaussianButton) &&
-       (ui->smoothParam1Edit->text().toInt() == 0)&&(ui->smoothParam3Edit->text().toDouble() == 0.00))
+       (ui->smoothParam1Edit->text().toInt() == 0) && (ui->smoothParam3Edit->text().toDouble() == 0.00))
     {
         ui->smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
         ui->smoothParam3Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_3));
-        QMessageBox::warning(this->parentWidget(),"ERROR:","Parameters 1 and 3 cannot BOTH be zero when the smoothing type is GAUSSIAN.\n\nAutomatically set to default values.");
+        QMessageBox::warning(this->parentWidget(), tr("Auto Default(s) Set"), QString("%1\n\n%2").arg(tr("Parameters 1 and 3 cannot BOTH be zero when the smoothing type is GAUSSIAN.")).arg(tr("Automatically set to default values.")));
     }
     if((ui->smoothTypeGroup->checkedButton() == (QAbstractButton*)ui->smoothGaussianButton) &&
-       (ui->smoothParam2Edit->text().toInt() == 0)&&(ui->smoothParam4Edit->text().toDouble() == 0.00))
+       (ui->smoothParam2Edit->text().toInt() == 0) && (ui->smoothParam4Edit->text().toDouble() == 0.00))
     {
         ui->smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
         ui->smoothParam4Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_4));
-        QMessageBox::warning(this->parentWidget(),"ERROR:","Parameters 2 and 4 cannot BOTH be zero when the smoothing type is GAUSSIAN.\n\nAutomatically set to default values.");
+        QMessageBox::warning(this->parentWidget(), tr("Auto Default(s) Set"), QString("%1\n\n%2").arg(tr("Parameters 2 and 4 cannot BOTH be zero when the smoothing type is GAUSSIAN.")).arg(tr("Automatically set to default values.")));
     }
     // Ensure neither smoothing parameters 1 or 2 are ZERO (except in the GAUSSIAN case)
     if((ui->smoothTypeGroup->checkedButton() != (QAbstractButton*)ui->smoothGaussianButton) &&
-       ((ui->smoothParam1Edit->text().toInt() == 0)||(ui->smoothParam2Edit->text().toDouble() == 0)))
+       ((ui->smoothParam1Edit->text().toInt() == 0) || (ui->smoothParam2Edit->text().toDouble() == 0)))
     {
         ui->smoothParam1Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_1));
         ui->smoothParam2Edit->setText(QString::number(DEFAULT_SMOOTH_PARAM_2));
-        QMessageBox::warning(this->parentWidget(),"ERROR:","Parameters 1 or 2 cannot be zero for the current smoothing type.\n\nAutomatically set to default values.");
+        QMessageBox::warning(this->parentWidget(), tr("Auto Default(s) Set"), QString("%1\n\n%2").arg(tr("Parameters 1 or 2 cannot be zero for the current smoothing type.")).arg(tr("Automatically set to default values.")));
     }
 }
 
 void ImageProcessingSettingsDialog::resetSmoothDialogToDefaults()
 {
-    if(DEFAULT_SMOOTH_TYPE==0)
+    if(DEFAULT_SMOOTH_TYPE == 0)
     {
         ui->smoothBlurButton->setChecked(true);
     }
-    else if(DEFAULT_SMOOTH_TYPE==1)
+    else if(DEFAULT_SMOOTH_TYPE == 1)
     {
         ui->smoothGaussianButton->setChecked(true);
     }
-    else if(DEFAULT_SMOOTH_TYPE==2)
+    else if(DEFAULT_SMOOTH_TYPE == 2)
     {
         ui->smoothMedianButton->setChecked(true);
     }

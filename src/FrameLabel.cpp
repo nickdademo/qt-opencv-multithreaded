@@ -154,7 +154,7 @@ void FrameLabel::createContextMenu()
     menu->addSeparator();
     // Create image processing menu object
     QMenu* menu_imgProc = new QMenu(this);
-    menu_imgProc->setTitle("Image Processing");
+    menu_imgProc->setTitle(tr("Image Processing"));
     menu->addMenu(menu_imgProc);
     // Add actions
     action = new QAction(this);

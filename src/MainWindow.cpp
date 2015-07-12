@@ -44,13 +44,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     // Set start tab as blank
     QLabel *newTab = new QLabel(ui->tabWidget);
-    newTab->setText("No camera connected.");
+    newTab->setText(tr("No camera connected."));
     newTab->setAlignment(Qt::AlignCenter);
     ui->tabWidget->addTab(newTab, "");
     ui->tabWidget->setTabsClosable(false);
     // Add "Connect to Camera" button to tab
     m_connectToCameraButton = new QPushButton();
-    m_connectToCameraButton->setText("Connect to Camera...");
+    m_connectToCameraButton->setText(tr("Connect to Camera..."));
     ui->tabWidget->setCornerWidget(m_connectToCameraButton, Qt::TopLeftCorner);
     connect(m_connectToCameraButton, SIGNAL(released()), this, SLOT(connectToCamera()));
     connect(ui->tabWidget, SIGNAL(tabCloseRequested(int)), this, SLOT(disconnectCamera(int)));
@@ -75,10 +75,10 @@ void MainWindow::connectToCamera()
     if (ui->actionSynchronizeStreams->isChecked() && (m_deviceNumberMap.size() > 0) && m_sharedImageBuffer->getSyncEnabled())
     {
         // Prompt user
-        QMessageBox::warning(this, tr("qt-opencv-multithreaded"),
-                                    tr("Stream synchronization is in progress.\n\n"
-                                       "Please close all currently open streams before attempting to open a new stream."),
-                                        QMessageBox::Ok);
+        QMessageBox::warning(this,
+            APP_NAME,
+            QString("%1\n\n%2").arg(tr("Stream synchronization is in progress.")).arg(tr("Please close all currently open streams before attempting to open a new stream.")),
+            QMessageBox::Ok);
     }
     // Attempt to connect to camera
     else
@@ -105,12 +105,11 @@ void MainWindow::connectToCamera()
                 if(ui->actionSynchronizeStreams->isChecked())
                 {
                     // Prompt user
-                    int ret = QMessageBox::question(this, tr("qt-opencv-multithreaded"),
-                                                    tr("Stream synchronization is enabled.\n\n"
-                                                       "Do you want to start processing?\n\n"
-                                                       "Choose 'No' if you would like to open additional streams."),
-                                                    QMessageBox::Yes | QMessageBox::No,
-                                                    QMessageBox::Yes);
+                    int ret = QMessageBox::question(this,
+                        APP_NAME,
+                        QString("%1\n\n%2\n\n%3").arg(tr("Stream synchronization is enabled.")).arg(tr("Do you want to start processing?")).arg(tr("Choose 'No' if you would like to open additional streams.")),
+                        QMessageBox::Yes | QMessageBox::No,
+                        QMessageBox::Yes);
                     // Start processing
                     if(ret == QMessageBox::Yes)
                     {
@@ -146,7 +145,7 @@ void MainWindow::connectToCamera()
                     ui->tabWidget->addTab(m_cameraViewMap[deviceNumber], tabLabel + " [" + QString::number(deviceNumber) + "]");
                     ui->tabWidget->setCurrentWidget(m_cameraViewMap[deviceNumber]);
                     // Set tooltips
-                    setTabCloseToolTips(ui->tabWidget, "Disconnect Camera");
+                    setTabCloseToolTips(ui->tabWidget, tr("Disconnect Camera"));
                     // Prevent user from enabling/disabling stream synchronization after a camera has been connected
                     ui->actionSynchronizeStreams->setEnabled(false);
                 }
@@ -154,7 +153,7 @@ void MainWindow::connectToCamera()
                 else
                 {
                     // Display error message
-                    QMessageBox::warning(this,"ERROR:","Could not connect to camera. Please check device number.");
+                    QMessageBox::warning(this, tr("Connect to Camera"), tr("Could not connect to camera. Please check device number."));
                     // Explicitly delete widget
                     delete m_cameraViewMap[deviceNumber];
                     m_cameraViewMap.remove(deviceNumber);
@@ -167,7 +166,7 @@ void MainWindow::connectToCamera()
             // Display error message
             else
             {
-                QMessageBox::warning(this,"ERROR:","Could not connect to camera. Already connected.");
+                QMessageBox::warning(this, tr("Connect to Camera"), tr("Could not connect to camera. Already connected."));
             }
         }
         // Delete dialog
@@ -184,14 +183,13 @@ void MainWindow::disconnectCamera(int index)
     if (ui->actionSynchronizeStreams->isChecked() && (m_cameraViewMap.size() > 1) && !m_sharedImageBuffer->getSyncEnabled())
     {
         // Prompt user
-        int ret = QMessageBox::question(this, tr("qt-opencv-multithreaded"),
-                                        tr("Stream synchronization is enabled.\n\n"
-                                           "Disconnecting this camera will cause frame processing to begin on other streams.\n\n"
-                                           "Do you wish to proceed?"),
-                                        QMessageBox::Yes | QMessageBox::No,
-                                        QMessageBox::Yes);
+        int ret = QMessageBox::question(this,
+            APP_NAME,
+            QString("%1\n\n%2\n\n%3").arg(tr("Stream synchronization is enabled.")).arg(tr("Disconnecting this camera will cause frame processing to begin on other streams.")).arg(tr("Do you wish to proceed?")),
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::Yes);
         // Disconnect
-        if(ret==QMessageBox::Yes)
+        if(ret == QMessageBox::Yes)
         {
             doDisconnect = true;
         }
@@ -226,7 +224,7 @@ void MainWindow::disconnectCamera(int index)
         if(nTabs == 1)
         {
             QLabel *newTab = new QLabel(ui->tabWidget);
-            newTab->setText("No camera connected.");
+            newTab->setText(tr("No camera connected."));
             newTab->setAlignment(Qt::AlignCenter);
             ui->tabWidget->addTab(newTab, "");
             ui->tabWidget->setTabsClosable(false);
@@ -237,7 +235,7 @@ void MainWindow::disconnectCamera(int index)
 
 void MainWindow::showAboutDialog()
 {
-    QMessageBox::information(this, "About", QString("Created by Nick D'Ademo\n\nContact: nickdademo@gmail.com\nWebsite: www.nickdademo.com\n\nVersion: %1").arg(APP_VERSION));
+    QMessageBox::information(this, tr("About"), QString("%1 v%2\n\nCreated by %3\nEmail: %4\nWebsite: %5").arg(APP_NAME).arg(APP_VERSION).arg(APP_AUTHOR_NAME).arg(APP_AUTHOR_EMAIL).arg(APP_AUTHOR_WEBSITE));
 }
 
 bool MainWindow::removeFromMapByTabIndex(QMap<int, int> &map, int tabIndex)
@@ -246,7 +244,7 @@ bool MainWindow::removeFromMapByTabIndex(QMap<int, int> &map, int tabIndex)
     while (i.hasNext())
     {
          i.next();
-         if(i.value()==tabIndex)
+         if(i.value() == tabIndex)
          {
              i.remove();
              return true;

@@ -47,7 +47,7 @@ CameraView::CameraView(QWidget *parent, int deviceNumber, SharedImageBuffer *sha
     // Initialize internal flag
     m_isCameraConnected = false;
     // Set initial GUI state
-    ui->frameLabel->setText("No camera connected.");
+    ui->frameLabel->setText(tr("No camera connected."));
     ui->imageBufferBar->setValue(0);
     ui->imageBufferLabel->setText("[000/000]");
     ui->captureRateLabel->setText("");
@@ -114,11 +114,11 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
     // Set frame label text
     if (m_sharedImageBuffer->isSyncEnabledForDeviceNumber(m_deviceNumber))
     {
-        ui->frameLabel->setText("Camera connected. Waiting...");
+        ui->frameLabel->setText(tr("Camera connected. Waiting..."));
     }
     else
     {
-        ui->frameLabel->setText("Connecting to camera...");
+        ui->frameLabel->setText(tr("Connecting to camera..."));
     }
 
     // Create capture thread
@@ -168,7 +168,7 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         // Set frame label text
         if(!enableFrameProcessing)
         {
-            ui->frameLabel->setText("Frame processing disabled.");
+            ui->frameLabel->setText(tr("Frame processing disabled."));
         }
         return true;
     }
@@ -357,7 +357,7 @@ void CameraView::newMouseData(MouseData mouseData)
                 (selectionBox.y() < m_processingThread->getCurrentROI().y()))
             {
                 // Display error message
-                QMessageBox::warning(this,"ERROR:","Selection box outside range. Please try again.");
+                QMessageBox::critical(this, "Invalid Selection", tr("Selection box outside allowable range. Please try again."));
             }
             // Set ROI
             else
