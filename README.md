@@ -13,7 +13,7 @@ The build procedure has been tested and verified using:
 - Qt 5.5.0 (msvc2013_64): http://www.qt.io/download/
 
 #### Building
-Firstly, ensure the path to the CMake executable (e.g: ```C:\Program Files (x86)\CMake\bin```) and the path to the Qt installation (e.g: ```C:\Qt\Qt5.5.0\5.5\msvc2013_64\bin```) are added to the Windows ```PATH``` variable.
+Firstly, ensure the path to the CMake executable (e.g: ```C:\Program Files (x86)\CMake\bin```) and the path to the Qt installation (e.g: ```C:\Qt\Qt5.5.0\5.5\msvc2013_64\bin```) are added to the Windows ```PATH``` variable.  
 1. Create a build folder inside the top-level directory (this repository):  
 ```$ mkdir build```  
 2. Navigate to created folder:  
