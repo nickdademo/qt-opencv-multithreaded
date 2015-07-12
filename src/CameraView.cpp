@@ -35,7 +35,7 @@
 
 #include <QMessageBox>
 
-CameraView::CameraView(QWidget *parent, int deviceNumber, SharedImageBuffer *sharedImageBuffer) :
+CameraView::CameraView(int deviceNumber, SharedImageBuffer *sharedImageBuffer, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::CameraView),
     m_sharedImageBuffer(sharedImageBuffer)

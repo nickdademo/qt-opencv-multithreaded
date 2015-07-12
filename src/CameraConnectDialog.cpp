@@ -81,7 +81,7 @@ int CameraConnectDialog::getDeviceNumber()
     // Set device number to default (any available camera) if field is blank
     if(ui->deviceNumberEdit->text().isEmpty())
     {
-        QMessageBox::warning(this->parentWidget(), tr("Device Number"), QString("%1\n\n%2").arg(tr("Device Number not specified.")).arg("Automatically set to 0."));
+        QMessageBox::warning(parentWidget(), tr("Device Number"), QString("%1\n\n%2").arg(tr("Device Number not specified.")).arg("Automatically set to 0."));
         return 0;
     }
     else
@@ -121,13 +121,13 @@ int CameraConnectDialog::getImageBufferSize()
     // Set image buffer size to default if field is blank
     if(ui->imageBufferSizeEdit->text().isEmpty())
     {
-        QMessageBox::warning(this->parentWidget(), tr("Image Buffer Size"), QString("%1\n\n%2").arg(tr("Image Buffer Size not specified.")).arg(tr("Automatically set to default value.")));
+        QMessageBox::warning(parentWidget(), tr("Image Buffer Size"), QString("%1\n\n%2").arg(tr("Image Buffer Size not specified.")).arg(tr("Automatically set to default value.")));
         return DEFAULT_IMAGE_BUFFER_SIZE;
     }
     // Set image buffer size to default if field is zero
     else if(ui->imageBufferSizeEdit->text().toInt() == 0)
     {
-        QMessageBox::warning(this->parentWidget(), tr("Image Buffer Size"), QString("%1\n\n%2").arg(tr("Image Buffer Size cannot be zero.")).arg(tr("Automatically set to default value.")));
+        QMessageBox::warning(parentWidget(), tr("Image Buffer Size"), QString("%1\n\n%2").arg(tr("Image Buffer Size cannot be zero.")).arg(tr("Automatically set to default value.")));
         return DEFAULT_IMAGE_BUFFER_SIZE;;
     }
     // Use image buffer size specified by user

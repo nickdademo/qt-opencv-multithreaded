@@ -99,7 +99,7 @@ void MainWindow::connectToCamera()
                 // Add created ImageBuffer to SharedImageBuffer object
                 m_sharedImageBuffer->add(deviceNumber, imageBuffer, ui->actionSynchronizeStreams->isChecked());
                 // Create CameraView
-                m_cameraViewMap[deviceNumber] = new CameraView(ui->tabWidget, deviceNumber, m_sharedImageBuffer);
+                m_cameraViewMap[deviceNumber] = new CameraView(deviceNumber, m_sharedImageBuffer, ui->tabWidget);
 
                 // Check if stream synchronization is enabled
                 if(ui->actionSynchronizeStreams->isChecked())
@@ -283,10 +283,10 @@ void MainWindow::setFullScreen(bool input)
 {
     if(input)
     {
-        this->showFullScreen();
+        showFullScreen();
     }
     else
     {
-        this->showNormal();
+        showNormal();
     }
 }
