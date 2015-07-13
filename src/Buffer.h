@@ -37,7 +37,6 @@
 #include <QQueue>
 #include <QSemaphore>
 #include <QByteArray>
-#include <QDebug>
 
 template<class T> class Buffer
 {
@@ -64,12 +63,12 @@ template<class T> class Buffer
         }
 
     private:
-        QMutex m_queueProtect;
+        QMutex m_queueProtectMutex;
         QQueue<T> m_queue;
-        QSemaphore *m_freeSlots;
-        QSemaphore *m_usedSlots;
-        QSemaphore *m_clearBuffer_add;
-        QSemaphore *m_clearBuffer_get;
+        QSemaphore *m_freeSlotsSemaphore;
+        QSemaphore *m_usedSlotsSemaphore;
+        QSemaphore *m_addProtectSemaphore;
+        QSemaphore *m_getProtectSemaphore;
         int m_bufferSize;
 };
 
@@ -78,61 +77,61 @@ template<class T> Buffer<T>::Buffer(int size)
     // Save buffer size
     m_bufferSize = size;
     // Create semaphores
-    m_freeSlots = new QSemaphore(m_bufferSize);
-    m_usedSlots = new QSemaphore(0);
-    m_clearBuffer_add = new QSemaphore(1);
-    m_clearBuffer_get = new QSemaphore(1);
+    m_freeSlotsSemaphore = new QSemaphore(m_bufferSize);
+    m_usedSlotsSemaphore = new QSemaphore(0);
+    m_addProtectSemaphore = new QSemaphore(1);
+    m_getProtectSemaphore = new QSemaphore(1);
 }
 
 template<class T> void Buffer<T>::add(const T& data, bool dropIfFull)
 {
-    // Acquire semaphore
-    m_clearBuffer_add->acquire();
+    m_addProtectSemaphore->acquire();
+
     // If dropping is enabled, do not block if buffer is full
     if(dropIfFull)
     {
         // Try and acquire semaphore to add item
-        if (m_freeSlots->tryAcquire())
+        if (m_freeSlotsSemaphore->tryAcquire())
         {
             // Add item to queue
-            m_queueProtect.lock();
+            m_queueProtectMutex.lock();
             m_queue.enqueue(data);
-            m_queueProtect.unlock();
+            m_queueProtectMutex.unlock();
             // Release semaphore
-            m_usedSlots->release();
+            m_usedSlotsSemaphore->release();
         }
     }
     // If buffer is full, wait on semaphore
     else
     {
         // Acquire semaphore
-        m_freeSlots->acquire();
+        m_freeSlotsSemaphore->acquire();
         // Add item to queue
-        m_queueProtect.lock();
+        m_queueProtectMutex.lock();
         m_queue.enqueue(data);
-        m_queueProtect.unlock();
+        m_queueProtectMutex.unlock();
         // Release semaphore
-        m_usedSlots->release();
+        m_usedSlotsSemaphore->release();
     }
-    // Release semaphore
-    m_clearBuffer_add->release();
+
+    m_addProtectSemaphore->release();
 }
 
 template<class T> T Buffer<T>::get()
 {
-    // Local variable(s)
     T data;
+    m_getProtectSemaphore->acquire();
+
     // Acquire semaphores
-    m_clearBuffer_get->acquire();
-    m_usedSlots->acquire();
+    m_usedSlotsSemaphore->acquire();
     // Take item from queue
-    m_queueProtect.lock();
+    m_queueProtectMutex.lock();
     data = m_queue.dequeue();
-    m_queueProtect.unlock();
+    m_queueProtectMutex.unlock();
     // Release semaphores
-    m_freeSlots->release();
-    m_clearBuffer_get->release();
-    // Return item to caller
+    m_freeSlotsSemaphore->release();
+
+    m_getProtectSemaphore->release();
     return data;
 }
 
@@ -142,30 +141,30 @@ template<class T> bool Buffer<T>::clear()
     if (m_queue.size() > 0)
     {
         // Stop adding items to buffer (will return false if an item is currently being added to the buffer)
-        if (m_clearBuffer_add->tryAcquire())
+        if (m_addProtectSemaphore->tryAcquire())
         {
             // Stop taking items from buffer (will return false if an item is currently being taken from the buffer)
-            if (m_clearBuffer_get->tryAcquire())
+            if (m_getProtectSemaphore->tryAcquire())
             {
                 // Release all remaining slots in queue
-                m_freeSlots->release(m_queue.size());
+                m_freeSlotsSemaphore->release(m_queue.size());
                 // Acquire all queue slots
-                m_freeSlots->acquire(m_bufferSize);
+                m_freeSlotsSemaphore->acquire(m_bufferSize);
                 // Reset usedSlots to zero
-                m_usedSlots->acquire(m_queue.size());
+                m_usedSlotsSemaphore->acquire(m_queue.size());
                 // Clear buffer
                 m_queue.clear();
                 // Release all slots
-                m_freeSlots->release(m_bufferSize);
+                m_freeSlotsSemaphore->release(m_bufferSize);
                 // Allow get method to resume
-                m_clearBuffer_get->release();
+                m_getProtectSemaphore->release();
             }
             else
             {
                 return false;
             }
             // Allow add method to resume
-            m_clearBuffer_add->release();
+            m_addProtectSemaphore->release();
             return true;
         }
         else

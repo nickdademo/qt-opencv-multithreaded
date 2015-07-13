@@ -33,13 +33,13 @@
 #ifndef FRAMELABEL_H
 #define FRAMELABEL_H
 
-#include <QObject>
-#include <QPoint>
-#include <QRect>
 #include <QLabel>
-#include <QMenu>
+#include <QPoint>
 
 #include "Structures.h"
+
+class QRect;
+class QMenu;
 
 class FrameLabel : public QLabel
 {

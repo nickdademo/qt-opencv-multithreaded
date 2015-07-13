@@ -32,10 +32,13 @@
 
 #include "FrameLabel.h"
 
-#include <QtGui/QPainter>
-#include <QtGui/QMouseEvent>
+#include <QPainter>
+#include <QMouseEvent>
+#include <QRect>
+#include <QMenu>
 
-FrameLabel::FrameLabel(QWidget *parent) : QLabel(parent)
+FrameLabel::FrameLabel(QWidget *parent) : 
+    QLabel(parent)
 {
     m_startPoint.setX(0);
     m_startPoint.setY(0);

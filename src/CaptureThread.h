@@ -33,16 +33,15 @@
 #ifndef CAPTURETHREAD_H
 #define CAPTURETHREAD_H
 
-#include <QTime>
 #include <QThread>
+#include <QTime>
+#include <QQueue>
 
 #include <opencv2/opencv.hpp>
 
-#include "SharedImageBuffer.h"
-#include "Config.h"
 #include "Structures.h"
 
-class ImageBuffer;
+class SharedImageBuffer;
 
 class CaptureThread : public QThread
 {

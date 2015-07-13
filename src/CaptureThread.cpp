@@ -32,16 +32,19 @@
 
 #include "CaptureThread.h"
 
+#include "SharedImageBuffer.h"
+#include "Config.h"
+
+#include <QDebug>
+
 CaptureThread::CaptureThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber, bool dropFrameIfBufferFull, int width, int height) :
     QThread(),
     m_sharedImageBuffer(sharedImageBuffer)
 {
-    // Save passed parameters
     m_dropFrameIfBufferFull = dropFrameIfBufferFull;
     m_deviceNumber = deviceNumber;
     m_width = width;
     m_height = height;
-    // Initialize variables(s)
     m_doStop = false;
     m_sampleNumber = 0;
     m_fpsSum = 0;
@@ -93,6 +96,7 @@ void CaptureThread::run()
         // Inform GUI of updated statistics
         emit updateStatisticsInGUI(m_statsData);
     }
+
     qDebug() << "Stopping capture thread...";
 }
 

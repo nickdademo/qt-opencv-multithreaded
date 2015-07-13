@@ -33,7 +33,10 @@
 #include "ImageProcessingSettingsDialog.h"
 #include "ui_ImageProcessingSettingsDialog.h"
 
+#include "Config.h"
+
 #include <QMessageBox>
+#include <QAbstractButton>
 
 ImageProcessingSettingsDialog::ImageProcessingSettingsDialog(QWidget *parent) :
     QDialog(parent),

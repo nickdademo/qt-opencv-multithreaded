@@ -35,8 +35,6 @@
 
 #include <QDialog>
 
-#include "Config.h"
-
 namespace Ui {
 class CameraConnectDialog;
 }

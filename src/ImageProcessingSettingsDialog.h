@@ -34,14 +34,14 @@
 #define IMAGEPROCESSINGSETTINGSDIALOG_H
 
 #include <QDialog>
-#include <QAbstractButton>
 
 #include "Structures.h"
-#include "Config.h"
 
 namespace Ui {
 class ImageProcessingSettingsDialog;
 }
+
+class QAbstractButton;
 
 class ImageProcessingSettingsDialog : public QDialog
 {

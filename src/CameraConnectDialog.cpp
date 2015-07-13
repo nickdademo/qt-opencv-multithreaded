@@ -33,7 +33,9 @@
 #include "CameraConnectDialog.h"
 #include "ui_CameraConnectDialog.h"
 
-#include <QtCore/QThread>
+#include "Config.h"
+
+#include <QThread>
 #include <QMessageBox>
 
 CameraConnectDialog::CameraConnectDialog(QWidget *parent, bool isStreamSyncEnabled) :

@@ -33,15 +33,18 @@
 #ifndef CAMERAVIEW_H
 #define CAMERAVIEW_H
 
-#include "CaptureThread.h"
-#include "ProcessingThread.h"
-#include "ImageProcessingSettingsDialog.h"
+#include <QWidget>
+
 #include "Structures.h"
-#include "SharedImageBuffer.h"
 
 namespace Ui {
     class CameraView;
 }
+
+class ProcessingThread;
+class CaptureThread;
+class SharedImageBuffer;
+class ImageProcessingSettingsDialog;
 
 class CameraView : public QWidget
 {

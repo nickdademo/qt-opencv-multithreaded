@@ -34,7 +34,6 @@
 
 SharedImageBuffer::SharedImageBuffer()
 {
-    // Initialize variables(s)
     m_nArrived = 0;
     m_doSync = false;
 }

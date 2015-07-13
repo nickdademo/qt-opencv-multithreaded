@@ -34,16 +34,15 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QPushButton>
-
-#include "CameraConnectDialog.h"
-#include "CameraView.h"
-#include "Buffer.h"
-#include "SharedImageBuffer.h"
+#include <QMap>
 
 namespace Ui {
     class MainWindow;
 }
+
+class SharedImageBuffer;
+class CameraView;
+class QPushButton;
 
 class MainWindow : public QMainWindow
 {

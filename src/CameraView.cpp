@@ -33,7 +33,14 @@
 #include "CameraView.h"
 #include "ui_CameraView.h"
 
+#include "CaptureThread.h"
+#include "ProcessingThread.h"
+#include "ImageProcessingSettingsDialog.h"
+#include "SharedImageBuffer.h"
+
 #include <QMessageBox>
+#include <QDebug>
+#include <QMenu>
 
 CameraView::CameraView(int deviceNumber, SharedImageBuffer *sharedImageBuffer, QWidget *parent) :
     QWidget(parent),

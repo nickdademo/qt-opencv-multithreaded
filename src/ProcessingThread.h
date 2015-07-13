@@ -36,14 +36,13 @@
 #include <QThread>
 #include <QTime>
 #include <QQueue>
+#include <QImage>
 
 #include <opencv2/opencv.hpp>
 
 #include "Structures.h"
-#include "Config.h"
-#include "Buffer.h"
-#include "MatToQImage.h"
-#include "SharedImageBuffer.h"
+
+class SharedImageBuffer;
 
 class ProcessingThread : public QThread
 {

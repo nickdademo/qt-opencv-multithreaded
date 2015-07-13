@@ -32,13 +32,18 @@
 
 #include "ProcessingThread.h"
 
+#include "SharedImageBuffer.h"
+#include "Buffer.h"
+#include "MatToQImage.h"
+#include "Config.h"
+
+#include <QDebug>
+
 ProcessingThread::ProcessingThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber) :
     QThread(),
     m_sharedImageBuffer(sharedImageBuffer)
 {
-    // Save Device Number
     m_deviceNumber = deviceNumber;
-    // Initialize members
     m_doStop = false;
     m_sampleNumber = 0;
     m_fpsSum = 0;
@@ -176,6 +181,7 @@ void ProcessingThread::run()
         // Inform GUI of updated statistics
         emit updateStatisticsInGUI(m_statsData);
     }
+
     qDebug() << "Stopping processing thread...";
 }
 

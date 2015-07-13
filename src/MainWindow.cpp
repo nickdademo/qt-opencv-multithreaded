@@ -33,8 +33,14 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
+#include "SharedImageBuffer.h"
+#include "CameraView.h"
+#include "CameraConnectDialog.h"
+#include "Config.h"
+
 #include <QLabel>
 #include <QMessageBox>
+#include <QPushButton>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
