@@ -13,10 +13,10 @@ The build procedure has been tested and verified using:
 - Qt 5.5.0 (msvc2013_64): http://www.qt.io/download/
 
 #### Preparation
-Firstly, ensure the following are added to the Windows ```PATH``` variable:  
+Firstly, ensure the following are added to the Windows ```PATH``` variable (modified as required):  
 - CMake executable: ```C:/Program Files (x86)/CMake/bin```  
 - Qt libraries (DLLs): ```C:/Qt/Qt5.5.0/5.5/msvc2013_64/bin```  
-- OpenCV libraries (DLLs): ```C:/Users/Nick/Desktop/opencv/build```
+- OpenCV libraries (DLLs): ```C:/Users/Nick/Desktop/opencv/build/x64/vc12```
 
 #### Building
 1. Create a build folder inside the top-level directory (this repository):  
