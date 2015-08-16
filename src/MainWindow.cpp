@@ -31,7 +31,6 @@
 /************************************************************************/
 
 #include "MainWindow.h"
-#include "ui_MainWindow.h"
 
 #include "SharedImageBuffer.h"
 #include "CameraView.h"
@@ -41,44 +40,79 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QMenu>
+#include <QAction>
+#include <QTabWidget>
+#include <QMenuBar>
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    QMainWindow(parent)
 {
-    // Setup UI
-    ui->setupUi(this);
-    // Set start tab as blank
-    QLabel *newTab = new QLabel(ui->tabWidget);
-    newTab->setText(tr("No camera connected."));
-    newTab->setAlignment(Qt::AlignCenter);
-    ui->tabWidget->addTab(newTab, "");
-    ui->tabWidget->setTabsClosable(false);
-    // Add "Connect to Camera" button to tab
-    m_connectToCameraButton = new QPushButton();
-    m_connectToCameraButton->setText(tr("Connect to Camera..."));
-    ui->tabWidget->setCornerWidget(m_connectToCameraButton, Qt::TopLeftCorner);
-    connect(m_connectToCameraButton, &QPushButton::released, this, &MainWindow::connectToCamera);
-    connect(ui->tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::disconnectCamera);
-    // Set focus on button
-    m_connectToCameraButton->setFocus();
-    // Connect other signals/slots
-    connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::showAboutDialog);
-    connect(ui->actionQuit, &QAction::triggered, this, &MainWindow::close);
-    connect(ui->actionFullScreen, &QAction::toggled, this, &MainWindow::setFullScreen);
-    // Create SharedImageBuffer object
+    // Create SharedImageBuffer instance
     m_sharedImageBuffer = new SharedImageBuffer();
+
+    // Initialize UI
+    initUi();
 }
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+    delete m_sharedImageBuffer;
+}
+
+void MainWindow::initUi()
+{
+    // File menu
+    m_menuFile = menuBar()->addMenu(tr("File"));
+    m_actionQuit = new QAction(tr("Quit"), this);
+    m_menuFile->addAction(m_actionQuit);
+    connect(m_actionQuit, &QAction::triggered, this, &MainWindow::close);
+
+    // Options menu
+    m_menuOptions = menuBar()->addMenu(tr("Options"));
+    m_actionSynchronizeStreams = new QAction(tr("Synchronize streams"), this);
+    m_actionSynchronizeStreams->setCheckable(true);
+    m_menuOptions->addAction(m_actionSynchronizeStreams);
+
+    // View menu
+    m_menuView = menuBar()->addMenu(tr("View"));
+    m_actionFullScreen = new QAction(tr("Full Screen"), this);
+    m_actionFullScreen->setCheckable(true);
+    m_menuView->addAction(m_actionFullScreen);
+    connect(m_actionFullScreen, &QAction::toggled, this, &MainWindow::setFullScreen);
+
+    // Help menu
+    m_menuHelp = menuBar()->addMenu(tr("Help"));
+    m_actionAbout = new QAction(tr("About"), this);
+    m_menuHelp->addAction(m_actionAbout);
+    connect(m_actionAbout, &QAction::triggered, this, &MainWindow::showAboutDialog);
+
+    // Tab widget
+    m_tabWidget = new QTabWidget(this);
+
+    // Set start tab as blank
+    QLabel *newTab = new QLabel(m_tabWidget);
+    newTab->setText(tr("No camera connected."));
+    newTab->setAlignment(Qt::AlignCenter);
+    m_tabWidget->addTab(newTab, "");
+    m_tabWidget->setTabsClosable(false);
+    // Add "Connect to Camera" button to tab
+    m_connectToCameraButton = new QPushButton();
+    m_connectToCameraButton->setText(tr("Connect to Camera..."));
+    m_tabWidget->setCornerWidget(m_connectToCameraButton, Qt::TopLeftCorner);
+    connect(m_connectToCameraButton, &QPushButton::released, this, &MainWindow::connectToCamera);
+    connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, &MainWindow::disconnectCamera);
+    // Set focus on button
+    m_connectToCameraButton->setFocus();
+
+    // Tab widget is central widget
+    setCentralWidget(m_tabWidget);
 }
 
 void MainWindow::connectToCamera()
 {
     // We cannot connect to a camera if devices are already connected and stream synchronization is in progress
-    if (ui->actionSynchronizeStreams->isChecked() && (m_deviceNumberMap.size() > 0) && m_sharedImageBuffer->getSyncEnabled())
+    if (m_actionSynchronizeStreams->isChecked() && (m_deviceNumberMap.size() > 0) && m_sharedImageBuffer->getSyncEnabled())
     {
         // Prompt user
         QMessageBox::warning(this,
@@ -90,9 +124,9 @@ void MainWindow::connectToCamera()
     else
     {
         // Get next tab index
-        int nextTabIndex = (m_deviceNumberMap.size() == 0) ? 0 : ui->tabWidget->count();
+        int nextTabIndex = (m_deviceNumberMap.size() == 0) ? 0 : m_tabWidget->count();
         // Show dialog
-        CameraConnectDialog *cameraConnectDialog = new CameraConnectDialog(this, ui->actionSynchronizeStreams->isChecked());
+        CameraConnectDialog *cameraConnectDialog = new CameraConnectDialog(this, m_actionSynchronizeStreams->isChecked());
         if(cameraConnectDialog->exec() == QDialog::Accepted)
         {
             // Save user-defined device number
@@ -103,12 +137,12 @@ void MainWindow::connectToCamera()
                 // Create ImageBuffer with user-defined size
                 Buffer<cv::Mat> *imageBuffer = new Buffer<cv::Mat>(cameraConnectDialog->getImageBufferSize());
                 // Add created ImageBuffer to SharedImageBuffer object
-                m_sharedImageBuffer->add(deviceNumber, imageBuffer, ui->actionSynchronizeStreams->isChecked());
+                m_sharedImageBuffer->add(deviceNumber, imageBuffer, m_actionSynchronizeStreams->isChecked());
                 // Create CameraView
-                m_cameraViewMap[deviceNumber] = new CameraView(deviceNumber, m_sharedImageBuffer, ui->tabWidget);
+                m_cameraViewMap[deviceNumber] = new CameraView(deviceNumber, m_sharedImageBuffer, m_tabWidget);
 
                 // Check if stream synchronization is enabled
-                if(ui->actionSynchronizeStreams->isChecked())
+                if (m_actionSynchronizeStreams->isChecked())
                 {
                     // Prompt user
                     int ret = QMessageBox::question(this,
@@ -141,19 +175,19 @@ void MainWindow::connectToCamera()
                     // Save tab label
                     QString tabLabel = cameraConnectDialog->getTabLabel();
                     // Allow tabs to be closed
-                    ui->tabWidget->setTabsClosable(true);
+                    m_tabWidget->setTabsClosable(true);
                     // If start tab, remove
                     if(nextTabIndex == 0)
                     {
-                        ui->tabWidget->removeTab(0);
+                        m_tabWidget->removeTab(0);
                     }
                     // Add tab
-                    ui->tabWidget->addTab(m_cameraViewMap[deviceNumber], tabLabel + " [" + QString::number(deviceNumber) + "]");
-                    ui->tabWidget->setCurrentWidget(m_cameraViewMap[deviceNumber]);
+                    m_tabWidget->addTab(m_cameraViewMap[deviceNumber], QString("%1 [%2]").arg(tabLabel).arg(deviceNumber));
+                    m_tabWidget->setCurrentWidget(m_cameraViewMap[deviceNumber]);
                     // Set tooltips
-                    setTabCloseToolTips(ui->tabWidget, tr("Disconnect Camera"));
+                    setTabCloseToolTips(m_tabWidget, tr("Disconnect Camera"));
                     // Prevent user from enabling/disabling stream synchronization after a camera has been connected
-                    ui->actionSynchronizeStreams->setEnabled(false);
+                    m_actionSynchronizeStreams->setEnabled(false);
                 }
                 // Could not connect to camera
                 else
@@ -182,11 +216,10 @@ void MainWindow::connectToCamera()
 
 void MainWindow::disconnectCamera(int index)
 {
-    // Local variable(s)
     bool doDisconnect = true;
 
     // Check if stream synchronization is enabled, more than 1 camera connected, and frame processing is not in progress
-    if (ui->actionSynchronizeStreams->isChecked() && (m_cameraViewMap.size() > 1) && !m_sharedImageBuffer->getSyncEnabled())
+    if (m_actionSynchronizeStreams->isChecked() && (m_cameraViewMap.size() > 1) && !m_sharedImageBuffer->getSyncEnabled())
     {
         // Prompt user
         int ret = QMessageBox::question(this,
@@ -210,9 +243,9 @@ void MainWindow::disconnectCamera(int index)
     if(doDisconnect)
     {
         // Save number of tabs
-        int nTabs = ui->tabWidget->count();
+        int nTabs = m_tabWidget->count();
         // Close tab
-        ui->tabWidget->removeTab(index);
+        m_tabWidget->removeTab(index);
 
         // Delete widget (CameraView) contained in tab
         delete m_cameraViewMap[m_deviceNumberMap.key(index)];
@@ -229,12 +262,12 @@ void MainWindow::disconnectCamera(int index)
         // If start tab, set tab as blank
         if(nTabs == 1)
         {
-            QLabel *newTab = new QLabel(ui->tabWidget);
+            QLabel *newTab = new QLabel(m_tabWidget);
             newTab->setText(tr("No camera connected."));
             newTab->setAlignment(Qt::AlignCenter);
-            ui->tabWidget->addTab(newTab, "");
-            ui->tabWidget->setTabsClosable(false);
-            ui->actionSynchronizeStreams->setEnabled(true);
+            m_tabWidget->addTab(newTab, "");
+            m_tabWidget->setTabsClosable(false);
+            m_actionSynchronizeStreams->setEnabled(true);
         }
     }
 }

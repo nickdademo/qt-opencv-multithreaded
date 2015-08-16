@@ -36,13 +36,13 @@
 #include <QMainWindow>
 #include <QMap>
 
-namespace Ui {
-    class MainWindow;
-}
-
 class SharedImageBuffer;
 class CameraView;
+
 class QPushButton;
+class QMenu;
+class QAction;
+class QTabWidget;
 
 class MainWindow : public QMainWindow
 {
@@ -53,10 +53,19 @@ class MainWindow : public QMainWindow
         ~MainWindow();
 
     private:
+        void initUi();
         bool removeFromMapByTabIndex(QMap<int, int>& map, int tabIndex);
         void updateMapValues(QMap<int, int>& map, int tabIndex);
         void setTabCloseToolTips(QTabWidget *tabs, QString tooltip);
-        Ui::MainWindow *ui;
+        QMenu *m_menuFile;
+        QMenu *m_menuOptions;
+        QMenu *m_menuView;
+        QMenu *m_menuHelp;
+        QAction *m_actionQuit;
+        QAction *m_actionSynchronizeStreams;
+        QAction *m_actionFullScreen;
+        QAction *m_actionAbout;
+        QTabWidget *m_tabWidget;
         QPushButton *m_connectToCameraButton;
         QMap<int, int> m_deviceNumberMap;
         QMap<int, CameraView*> m_cameraViewMap;
