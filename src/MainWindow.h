@@ -62,11 +62,11 @@ class MainWindow : public QMainWindow
         QMap<int, CameraView*> m_cameraViewMap;
         SharedImageBuffer *m_sharedImageBuffer;
 
-    public slots:
+    private slots:
         void connectToCamera();
         void disconnectCamera(int index);
         void showAboutDialog();
-        void setFullScreen(bool enable);
+        void setFullScreen(bool checked);
 };
 
 #endif // MAINWINDOW_H

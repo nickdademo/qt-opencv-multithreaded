@@ -44,7 +44,7 @@ template<class T> class Buffer
         Buffer(int size);
         void add(const T& data, bool dropIfFull = false);
         T get();
-        bool clear();
+        int clear();
         int size() const
         {
             return m_queue.size();
@@ -88,7 +88,7 @@ template<class T> void Buffer<T>::add(const T& data, bool dropIfFull)
     m_addProtectSemaphore->acquire();
 
     // If dropping is enabled, do not block if buffer is full
-    if(dropIfFull)
+    if (dropIfFull)
     {
         // Try and acquire semaphore to add item
         if (m_freeSlotsSemaphore->tryAcquire())
@@ -122,21 +122,23 @@ template<class T> T Buffer<T>::get()
     T data;
     m_getProtectSemaphore->acquire();
 
-    // Acquire semaphores
+    // Acquire semaphore
     m_usedSlotsSemaphore->acquire();
     // Take item from queue
     m_queueProtectMutex.lock();
     data = m_queue.dequeue();
     m_queueProtectMutex.unlock();
-    // Release semaphores
+    // Release semaphore
     m_freeSlotsSemaphore->release();
 
     m_getProtectSemaphore->release();
     return data;
 }
 
-template<class T> bool Buffer<T>::clear()
+template<class T> int Buffer<T>::clear()
 {
+    int clearedCount = 0;
+
     // Check if buffer contains items
     if (m_queue.size() > 0)
     {
@@ -153,29 +155,20 @@ template<class T> bool Buffer<T>::clear()
                 // Reset usedSlots to zero
                 m_usedSlotsSemaphore->acquire(m_queue.size());
                 // Clear buffer
+                clearedCount = m_queue.size();
                 m_queue.clear();
                 // Release all slots
                 m_freeSlotsSemaphore->release(m_bufferSize);
                 // Allow get method to resume
                 m_getProtectSemaphore->release();
             }
-            else
-            {
-                return false;
-            }
+
             // Allow add method to resume
             m_addProtectSemaphore->release();
-            return true;
-        }
-        else
-        {
-            return false;
         }
     }
-    else
-    {
-        return false;
-    }
+
+    return clearedCount;
 }
 
 #endif // BUFFER_H

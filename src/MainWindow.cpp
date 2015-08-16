@@ -285,9 +285,9 @@ void MainWindow::setTabCloseToolTips(QTabWidget *tabs, QString tooltip)
     }
 }
 
-void MainWindow::setFullScreen(bool input)
+void MainWindow::setFullScreen(bool checked)
 {
-    if(input)
+    if (checked)
     {
         showFullScreen();
     }
