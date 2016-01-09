@@ -8,9 +8,9 @@ Official project page: http://code.google.com/p/qt-opencv-multithreaded/
 The build procedure has been tested and verified using:  
 - Windows 7 Ultimate Service Pack 1 64-bit
 - Visual Studio 2013 Ultimate Update 5  
-- CMake 3.2.3: http://www.cmake.org/download/  
-- OpenCV 3.0.0: http://opencv.org/downloads.html  
-- Qt 5.5.0 (msvc2013_64): http://www.qt.io/download/
+- CMake 3.4.0: http://www.cmake.org/download/  
+- OpenCV 3.1.0: http://opencv.org/downloads.html  
+- Qt 5.5.1 (msvc2013_64): http://www.qt.io/download/
 
 #### Building
 Firstly, ensure the path to the CMake executable (e.g: ```C:\Program Files (x86)\CMake\bin```) and the path to the Qt installation (e.g: ```C:\Qt\Qt5.5.0\5.5\msvc2013_64\bin```) are added to the Windows ```PATH``` variable.  

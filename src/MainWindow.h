@@ -35,6 +35,7 @@
 
 #include <QMainWindow>
 #include <QMap>
+#include <QPointer>
 
 class SharedImageBuffer;
 class CameraView;
@@ -43,6 +44,7 @@ class QPushButton;
 class QMenu;
 class QAction;
 class QTabWidget;
+class QLabel;
 
 class MainWindow : public QMainWindow
 {
@@ -54,8 +56,6 @@ class MainWindow : public QMainWindow
 
     private:
         void initUi();
-        bool removeFromMapByTabIndex(QMap<int, int>& map, int tabIndex);
-        void updateMapValues(QMap<int, int>& map, int tabIndex);
         void setTabCloseToolTips(QTabWidget *tabs, QString tooltip);
         QMenu *m_menuFile;
         QMenu *m_menuOptions;
@@ -67,15 +67,16 @@ class MainWindow : public QMainWindow
         QAction *m_actionAbout;
         QTabWidget *m_tabWidget;
         QPushButton *m_connectToCameraButton;
-        QMap<int, int> m_deviceNumberMap;
         QMap<int, CameraView*> m_cameraViewMap;
         SharedImageBuffer *m_sharedImageBuffer;
+        QPointer<QLabel> m_initialTab;
 
     private slots:
         void connectToCamera();
         void disconnectCamera(int index);
         void showAboutDialog();
         void setFullScreen(bool checked);
+        void tabWidgetCurrentIndexChanged(int index);
 };
 
 #endif // MAINWINDOW_H
