@@ -97,7 +97,7 @@ void CaptureThread::run()
         emit updateStatisticsInGUI(m_statsData);
     }
 
-    qDebug() << "Stopping capture thread...";
+    qDebug().noquote() << "Stopping capture thread...";
 }
 
 bool CaptureThread::connectToCamera()
@@ -143,7 +143,7 @@ void CaptureThread::updateFPS(int timeElapsed)
         m_sampleNumber++;
     }
     // Maximum size of queue is DEFAULT_CAPTURE_FPS_STAT_QUEUE_LENGTH
-    if (m_fps.size()>CAPTURE_FPS_STAT_QUEUE_LENGTH)
+    if (m_fps.size() > CAPTURE_FPS_STAT_QUEUE_LENGTH)
     {
         m_fps.dequeue();
     }

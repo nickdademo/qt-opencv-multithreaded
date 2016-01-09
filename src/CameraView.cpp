@@ -105,11 +105,11 @@ CameraView::~CameraView()
         // Disconnect camera
         if (m_captureThread->disconnectCamera())
         {
-            qDebug() << "[" << m_deviceNumber << "] Camera successfully disconnected.";
+            qDebug().noquote() << QString("[%1] Camera successfully disconnected.").arg(m_deviceNumber);
         }
         else
         {
-            qDebug() << "[" << m_deviceNumber << "] WARNING: Camera already disconnected.";
+            qWarning().noquote() << QString("[%1] Camera already disconnected.").arg(m_deviceNumber);
         }
     }
     // Delete UI
@@ -143,14 +143,14 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         connect(m_captureThread, &CaptureThread::updateStatisticsInGUI, this, &CameraView::updateCaptureThreadStats);
         connect(m_imageProcessingSettingsDialog, &ImageProcessingSettingsDialog::newImageProcessingSettings, m_processingThread, &ProcessingThread::updateImageProcessingSettings);
         connect(this, &CameraView::newImageProcessingFlags, m_processingThread, &ProcessingThread::updateImageProcessingFlags);
-        connect(this, &CameraView::setROI, m_processingThread, &ProcessingThread::setROI);
+        connect(this, &CameraView::setRoi, m_processingThread, &ProcessingThread::setROI);
         // Only enable ROI setting/resetting if frame processing is enabled
         if(enableFrameProcessing)
         {
             connect(ui->frameLabel, &FrameLabel::newMouseData, this, &CameraView::newMouseData);
         }
         // Set initial data in processing thread
-        emit setROI(QRect(0, 0, m_captureThread->getInputSourceWidth(), m_captureThread->getInputSourceHeight()));
+        emit setRoi(QRect(0, 0, m_captureThread->getInputSourceWidth(), m_captureThread->getInputSourceHeight()));
         emit newImageProcessingFlags(m_imageProcessingFlags);
         m_imageProcessingSettingsDialog->updateStoredSettingsFromDialog();
 
@@ -186,7 +186,8 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
 
 void CameraView::stopCaptureThread()
 {
-    qDebug() << "[" << m_deviceNumber << "] About to stop capture thread...";
+    qDebug().noquote() << QString("[%1]: About to stop capture thread...").arg(m_deviceNumber);
+
     m_captureThread->stop();
     m_sharedImageBuffer->wakeAll(); // This allows the thread to be stopped if it is in a wait-state
     // Take one frame off a FULL queue to allow the capture thread to finish
@@ -195,16 +196,19 @@ void CameraView::stopCaptureThread()
         m_sharedImageBuffer->get(m_deviceNumber)->get();
     }
     m_captureThread->wait();
-    qDebug() << "[" << m_deviceNumber << "] Capture thread successfully stopped.";
+
+    qDebug().noquote() << QString("[%1]: Capture thread successfully stopped.").arg(m_deviceNumber);
 }
 
 void CameraView::stopProcessingThread()
 {
-    qDebug() << "[" << m_deviceNumber << "] About to stop processing thread...";
+    qDebug().noquote() << QString("[%1]: About to stop processing thread...").arg(m_deviceNumber);
+
     m_processingThread->stop();
     m_sharedImageBuffer->wakeAll(); // This allows the thread to be stopped if it is in a wait-state
     m_processingThread->wait();
-    qDebug() << "[" << m_deviceNumber << "] Processing thread successfully stopped.";
+
+    qDebug().noquote() << QString("[%1]: Processing thread successfully stopped.").arg(m_deviceNumber);
 }
 
 void CameraView::updateCaptureThreadStats(ThreadStatisticsData statData)
@@ -244,11 +248,11 @@ void CameraView::clearImageBuffer()
 {
     if (m_sharedImageBuffer->get(m_deviceNumber)->clear())
     {
-        qDebug() << "[" << m_deviceNumber << "] Image buffer successfully cleared.";
+        qDebug().noquote() << QString("[%1]: Image buffer successfully cleared.").arg(m_deviceNumber);
     }
     else
     {
-        qDebug() << "[" << m_deviceNumber << "] WARNING: Could not clear image buffer.";
+        qWarning().noquote() << QString("[%1]: Could not clear image buffer.").arg(m_deviceNumber);
     }
 }
 
@@ -318,15 +322,15 @@ void CameraView::newMouseData(MouseData mouseData)
         // Selection box calculation depends on whether frame is scaled to fit label or not
         if(!ui->frameLabel->hasScaledContents())
         {
-            xScalingFactor=((double) mouseData.selectionBox.x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double) ui->frameLabel->pixmap()->width();
-            yScalingFactor=((double) mouseData.selectionBox.y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double) ui->frameLabel->pixmap()->height();
+            xScalingFactor = ((double) mouseData.selectionBox.x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double) ui->frameLabel->pixmap()->width();
+            yScalingFactor = ((double) mouseData.selectionBox.y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double) ui->frameLabel->pixmap()->height();
             wScalingFactor = (double)m_processingThread->getCurrentROI().width() / (double)ui->frameLabel->pixmap()->width();
             hScalingFactor = (double)m_processingThread->getCurrentROI().height() / (double)ui->frameLabel->pixmap()->height();
         }
         else
         {
-            xScalingFactor=(double) mouseData.selectionBox.x() / (double) ui->frameLabel->width();
-            yScalingFactor=(double) mouseData.selectionBox.y() / (double) ui->frameLabel->height();
+            xScalingFactor = (double) mouseData.selectionBox.x() / (double) ui->frameLabel->width();
+            yScalingFactor = (double) mouseData.selectionBox.y() / (double) ui->frameLabel->height();
             wScalingFactor = (double)m_processingThread->getCurrentROI().width() / (double)ui->frameLabel->width();
             hScalingFactor = (double)m_processingThread->getCurrentROI().height() / (double)ui->frameLabel->height();
         }
@@ -364,12 +368,12 @@ void CameraView::newMouseData(MouseData mouseData)
                 (selectionBox.y() < m_processingThread->getCurrentROI().y()))
             {
                 // Display error message
-                QMessageBox::critical(this, "Invalid Selection", tr("Selection box outside allowable range. Please try again."));
+                QMessageBox::critical(this, "Invalid Selection", tr("Selection box outside allowable range."));
             }
             // Set ROI
             else
             {
-                emit setROI(selectionBox);
+                emit setRoi(selectionBox);
             }
         }
     }
@@ -379,7 +383,7 @@ void CameraView::handleContextMenuAction(QAction *action)
 {
     if(action->text() == "Reset ROI")
     {
-        emit setROI(QRect(0, 0, m_captureThread->getInputSourceWidth(), m_captureThread->getInputSourceHeight()));
+        emit setRoi(QRect(0, 0, m_captureThread->getInputSourceWidth(), m_captureThread->getInputSourceHeight()));
     }
     else if(action->text() == "Scale to Fit Frame")
     {

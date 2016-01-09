@@ -59,7 +59,7 @@ QImage MatToQImage(const cv::Mat& mat)
     }
     else
     {
-        qCritical() << QString("Cannot convert cv::Mat to QImage. Unrecognized input image type: %1").arg(mat.type());
+        qCritical() << QString("Cannot convert cv::Mat to QImage: Unrecognized input image type (%1)").arg(mat.type());
         return QImage();
     }
 }

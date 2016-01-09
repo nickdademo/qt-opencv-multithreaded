@@ -81,7 +81,7 @@ class CameraView : public QWidget
 
     signals:
         void newImageProcessingFlags(ImageProcessingFlags imageProcessingFlags);
-        void setROI(QRect roi);
+        void setRoi(QRect roi);
 };
 
 #endif // CAMERAVIEW_H
