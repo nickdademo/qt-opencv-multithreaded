@@ -50,16 +50,16 @@ class ProcessingThread : public QThread
 
     public:
         ProcessingThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber);
-        QRect getCurrentROI();
+        QRect currentRoi();
         void stop();
 
     private:
-        void updateFPS(int);
-        void resetROI();
+        void updateFps(int timeElapsed);
+        void resetRoi();
         SharedImageBuffer *m_sharedImageBuffer;
         cv::Mat m_currentFrame;
         cv::Mat m_currentFrameGrayscale;
-        cv::Rect m_currentROI;
+        cv::Rect m_currentRoi;
         QImage m_frame;
         QTime m_t;
         QQueue<int> m_fps;
@@ -83,11 +83,11 @@ class ProcessingThread : public QThread
     public slots:
         void updateImageProcessingFlags(ImageProcessingFlags flags);
         void updateImageProcessingSettings(ImageProcessingSettings settings);
-        void setROI(QRect roi);
+        void setRoi(QRect roi);
 
     signals:
         void newFrame(const QImage& frame);
-        void updateStatisticsInGUI(ThreadStatisticsData statData);
+        void newStatistics(ThreadStatisticsData statData);
 };
 
 #endif // PROCESSINGTHREAD_H

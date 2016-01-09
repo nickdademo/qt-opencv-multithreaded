@@ -94,13 +94,12 @@ void CaptureThread::run()
         }
 
         // Update statistics
-        updateFPS(m_captureTime);
+        updateFps(m_captureTime);
         m_statsData.nFramesProcessed++;
-        // Inform GUI of updated statistics
-        emit updateStatisticsInGUI(m_statsData);
+        emit newStatistics(m_statsData);
     }
 
-    qDebug().noquote() << "Stopping capture thread...";
+    qDebug().noquote() << QString("[%1]: Stopping capture thread...").arg(m_deviceNumber);
 }
 
 bool CaptureThread::connectToCamera()
@@ -134,13 +133,12 @@ void CaptureThread::disconnectCamera()
     m_cap.release();
 }
 
-
 bool CaptureThread::isCameraConnected()
 {
     return m_cap.isOpened();
 }
 
-void CaptureThread::updateFPS(int timeElapsed)
+void CaptureThread::updateFps(int timeElapsed)
 {
     // Add instantaneous FPS value to queue
     if(timeElapsed > 0)

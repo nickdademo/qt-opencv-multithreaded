@@ -57,7 +57,7 @@ class CaptureThread : public QThread
         int getInputSourceHeight();
 
     private:
-        void updateFPS(int);
+        void updateFps(int timeElapsed);
         SharedImageBuffer *m_sharedImageBuffer;
         cv::VideoCapture m_cap;
         cv::Mat m_grabbedFrame;
@@ -78,7 +78,7 @@ class CaptureThread : public QThread
         void run();
 
     signals:
-        void updateStatisticsInGUI(ThreadStatisticsData statData);
+        void newStatistics(ThreadStatisticsData statData);
 };
 
 #endif // CAPTURETHREAD_H

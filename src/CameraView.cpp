@@ -117,7 +117,7 @@ CameraView::~CameraView()
     delete ui;
 }
 
-bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, int procThreadPrio, bool enableFrameProcessing, int width, int height)
+bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPriority, int procThreadPriority, bool enableFrameProcessing, int width, int height)
 {
     // Set frame label text
     if (m_sharedImageBuffer->isSyncEnabled(m_deviceNumber))
@@ -140,11 +140,11 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         m_imageProcessingSettingsDialog = new ImageProcessingSettingsDialog(this);
         // Setup signal/slot connections
         connect(m_processingThread, &ProcessingThread::newFrame, this, &CameraView::updateFrame);
-        connect(m_processingThread, &ProcessingThread::updateStatisticsInGUI, this, &CameraView::updateProcessingThreadStats);
-        connect(m_captureThread, &CaptureThread::updateStatisticsInGUI, this, &CameraView::updateCaptureThreadStats);
+        connect(m_processingThread, &ProcessingThread::newStatistics, this, &CameraView::updateProcessingThreadStatistics);
+        connect(m_captureThread, &CaptureThread::newStatistics, this, &CameraView::updateCaptureThreadStatistics);
         connect(m_imageProcessingSettingsDialog, &ImageProcessingSettingsDialog::newImageProcessingSettings, m_processingThread, &ProcessingThread::updateImageProcessingSettings);
         connect(this, &CameraView::newImageProcessingFlags, m_processingThread, &ProcessingThread::updateImageProcessingFlags);
-        connect(this, &CameraView::setRoi, m_processingThread, &ProcessingThread::setROI);
+        connect(this, &CameraView::setRoi, m_processingThread, &ProcessingThread::setRoi);
         // Only enable ROI setting/resetting if frame processing is enabled
         if(enableFrameProcessing)
         {
@@ -156,11 +156,11 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
         m_imageProcessingSettingsDialog->updateStoredSettingsFromDialog();
 
         // Start capturing frames from camera
-        m_captureThread->start((QThread::Priority)capThreadPrio);
+        m_captureThread->start((QThread::Priority)capThreadPriority);
         // Start processing captured frames (if enabled)
         if(enableFrameProcessing)
         {
-            m_processingThread->start((QThread::Priority)procThreadPrio);
+            m_processingThread->start((QThread::Priority)procThreadPriority);
         }
 
         // Setup imageBufferBar with minimum and maximum values
@@ -191,6 +191,7 @@ void CameraView::stopCaptureThread()
 
     m_captureThread->stop();
     m_sharedImageBuffer->wakeAll(); // This allows the thread to be stopped if it is in a wait-state
+
     // Take one frame off a FULL queue to allow the capture thread to finish
     if (m_sharedImageBuffer->get(m_deviceNumber)->isFull())
     {
@@ -212,37 +213,33 @@ void CameraView::stopProcessingThread()
     qDebug().noquote() << QString("[%1]: Processing thread successfully stopped.").arg(m_deviceNumber);
 }
 
-void CameraView::updateCaptureThreadStats(ThreadStatisticsData statData)
+void CameraView::updateCaptureThreadStatistics(ThreadStatisticsData data)
 {
     // Show [number of images in buffer / image buffer size] in imageBufferLabel
-    ui->imageBufferLabel->setText(QString("[") + QString::number(m_sharedImageBuffer->get(m_deviceNumber)->size()) +
-        QString("/") + QString::number(m_sharedImageBuffer->get(m_deviceNumber)->maxSize()) + QString("]"));
+    ui->imageBufferLabel->setText(QString("[%1/%2]").arg(m_sharedImageBuffer->get(m_deviceNumber)->size()).arg(m_sharedImageBuffer->get(m_deviceNumber)->maxSize()));
     // Show percentage of image bufffer full in imageBufferBar
     ui->imageBufferBar->setValue(m_sharedImageBuffer->get(m_deviceNumber)->size());
 
     // Show processing rate in captureRateLabel
-    ui->captureRateLabel->setText(QString::number(statData.averageFPS) + " fps");
+    ui->captureRateLabel->setText(QString("%1 fps").arg(data.averageFPS));
     // Show number of frames captured in nFramesCapturedLabel
-    ui->nFramesCapturedLabel->setText(QString("[") + QString::number(statData.nFramesProcessed) + QString("]"));
+    ui->nFramesCapturedLabel->setText(QString("[%1]").arg(data.nFramesProcessed));
 }
 
-void CameraView::updateProcessingThreadStats(ThreadStatisticsData statData)
+void CameraView::updateProcessingThreadStatistics(ThreadStatisticsData data)
 {
+    // Show ROI information in roiLabel   
+    ui->roiLabel->setText(QString("(%1, %2) %3x%4").arg(m_processingThread->currentRoi().x()).arg(m_processingThread->currentRoi().y()).arg(m_processingThread->currentRoi().width()).arg(m_processingThread->currentRoi().height()));
+    
     // Show processing rate in processingRateLabel
-    ui->processingRateLabel->setText(QString::number(statData.averageFPS) + " fps");
-    // Show ROI information in roiLabel
-    ui->roiLabel->setText(QString("(") + QString::number(m_processingThread->getCurrentROI().x()) + QString(",") +
-        QString::number(m_processingThread->getCurrentROI().y()) + QString(") ") +
-        QString::number(m_processingThread->getCurrentROI().width()) +
-        QString("x") + QString::number(m_processingThread->getCurrentROI().height()));
+    ui->processingRateLabel->setText(QString("%1 fps").arg(data.averageFPS));
     // Show number of frames processed in nFramesProcessedLabel
-    ui->nFramesProcessedLabel->setText(QString("[") + QString::number(statData.nFramesProcessed) + QString("]"));
+    ui->nFramesProcessedLabel->setText(QString("[%1]").arg(data.nFramesProcessed));
 }
 
 void CameraView::updateFrame(const QImage &frame)
 {
-    // Display frame
-    ui->frameLabel->setPixmap(QPixmap::fromImage(frame).scaled(ui->frameLabel->width(), ui->frameLabel->height(),Qt::KeepAspectRatio));
+    ui->frameLabel->setPixmap(QPixmap::fromImage(frame).scaled(ui->frameLabel->width(), ui->frameLabel->height(), Qt::KeepAspectRatio));
 }
 
 void CameraView::clearImageBuffer()
@@ -294,7 +291,7 @@ void CameraView::updateMouseCursorPosLabel()
             yScalingFactor = (double)ui->frameLabel->getMouseCursorPos().y() / (double)ui->frameLabel->height();
         }
 
-        ui->mouseCursorPosLabel->setText(QString("%1 [%2, %3]").arg(ui->mouseCursorPosLabel->text()).arg((int)(xScalingFactor*m_processingThread->getCurrentROI().width())).arg((int)(yScalingFactor*m_processingThread->getCurrentROI().height())));
+        ui->mouseCursorPosLabel->setText(QString("%1 [%2, %3]").arg(ui->mouseCursorPosLabel->text()).arg((int)(xScalingFactor*m_processingThread->currentRoi().width())).arg((int)(yScalingFactor*m_processingThread->currentRoi().height())));
     }
 }
 
@@ -316,20 +313,20 @@ void CameraView::newMouseData(MouseData mouseData)
         {
             xScalingFactor = ((double)mouseData.selectionBox.x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double)ui->frameLabel->pixmap()->width();
             yScalingFactor = ((double)mouseData.selectionBox.y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double)ui->frameLabel->pixmap()->height();
-            wScalingFactor = (double)m_processingThread->getCurrentROI().width() / (double)ui->frameLabel->pixmap()->width();
-            hScalingFactor = (double)m_processingThread->getCurrentROI().height() / (double)ui->frameLabel->pixmap()->height();
+            wScalingFactor = (double)m_processingThread->currentRoi().width() / (double)ui->frameLabel->pixmap()->width();
+            hScalingFactor = (double)m_processingThread->currentRoi().height() / (double)ui->frameLabel->pixmap()->height();
         }
         else
         {
             xScalingFactor = (double)mouseData.selectionBox.x() / (double)ui->frameLabel->width();
             yScalingFactor = (double)mouseData.selectionBox.y() / (double)ui->frameLabel->height();
-            wScalingFactor = (double)m_processingThread->getCurrentROI().width() / (double)ui->frameLabel->width();
-            hScalingFactor = (double)m_processingThread->getCurrentROI().height() / (double)ui->frameLabel->height();
+            wScalingFactor = (double)m_processingThread->currentRoi().width() / (double)ui->frameLabel->width();
+            hScalingFactor = (double)m_processingThread->currentRoi().height() / (double)ui->frameLabel->height();
         }
 
         // Set selection box properties (new ROI)
-        selectionBox.setX(xScalingFactor * m_processingThread->getCurrentROI().width() + m_processingThread->getCurrentROI().x());
-        selectionBox.setY(yScalingFactor * m_processingThread->getCurrentROI().height() + m_processingThread->getCurrentROI().y());
+        selectionBox.setX(xScalingFactor * m_processingThread->currentRoi().width() + m_processingThread->currentRoi().x());
+        selectionBox.setY(yScalingFactor * m_processingThread->currentRoi().height() + m_processingThread->currentRoi().y());
         selectionBox.setWidth(wScalingFactor * mouseData.selectionBox.width());
         selectionBox.setHeight(hScalingFactor * mouseData.selectionBox.height());
 
@@ -354,10 +351,10 @@ void CameraView::newMouseData(MouseData mouseData)
 
             // Check if selection box is not outside window
             if((selectionBox.x() < 0) || (selectionBox.y() < 0)||
-                ((selectionBox.x() + selectionBox.width()) > (m_processingThread->getCurrentROI().x() + m_processingThread->getCurrentROI().width())) ||
-                ((selectionBox.y() + selectionBox.height()) > (m_processingThread->getCurrentROI().y() + m_processingThread->getCurrentROI().height())) ||
-                (selectionBox.x() < m_processingThread->getCurrentROI().x()) ||
-                (selectionBox.y() < m_processingThread->getCurrentROI().y()))
+                ((selectionBox.x() + selectionBox.width()) > (m_processingThread->currentRoi().x() + m_processingThread->currentRoi().width())) ||
+                ((selectionBox.y() + selectionBox.height()) > (m_processingThread->currentRoi().y() + m_processingThread->currentRoi().height())) ||
+                (selectionBox.x() < m_processingThread->currentRoi().x()) ||
+                (selectionBox.y() < m_processingThread->currentRoi().y()))
             {
                 // Display error message
                 QMessageBox::critical(this, "Invalid Selection", tr("Selection box outside allowable range."));

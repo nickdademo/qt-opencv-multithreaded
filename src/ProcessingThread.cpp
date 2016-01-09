@@ -76,8 +76,9 @@ void ProcessingThread::run()
         m_t.start();
 
         m_processingMutex.lock();
+
         // Get frame from queue, store in currentFrame, set ROI
-        m_currentFrame = cv::Mat(m_sharedImageBuffer->get(m_deviceNumber)->get().clone(), m_currentROI);
+        m_currentFrame = cv::Mat(m_sharedImageBuffer->get(m_deviceNumber)->get().clone(), m_currentRoi);
 
         // Example of how to grab a frame from another stream (where Device Number=1)
         // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
@@ -176,16 +177,15 @@ void ProcessingThread::run()
         emit newFrame(m_frame);
 
         // Update statistics
-        updateFPS(m_processingTime);
+        updateFps(m_processingTime);
         m_statsData.nFramesProcessed++;
-        // Inform GUI of updated statistics
-        emit updateStatisticsInGUI(m_statsData);
+        emit newStatistics(m_statsData);
     }
 
-    qDebug() << "Stopping processing thread...";
+    qDebug().noquote() << QString("[%1]: Stopping processing thread...").arg(m_deviceNumber);
 }
 
-void ProcessingThread::updateFPS(int timeElapsed)
+void ProcessingThread::updateFps(int timeElapsed)
 {
     // Add instantaneous FPS value to queue
     if(timeElapsed > 0)
@@ -252,16 +252,16 @@ void ProcessingThread::updateImageProcessingSettings(ImageProcessingSettings img
     m_imgProcSettings.cannyL2gradient=imgProcSettings.cannyL2gradient;
 }
 
-void ProcessingThread::setROI(QRect roi)
+void ProcessingThread::setRoi(QRect roi)
 {
     QMutexLocker locker(&m_processingMutex);
-    m_currentROI.x = roi.x();
-    m_currentROI.y = roi.y();
-    m_currentROI.width = roi.width();
-    m_currentROI.height = roi.height();
+    m_currentRoi.x = roi.x();
+    m_currentRoi.y = roi.y();
+    m_currentRoi.width = roi.width();
+    m_currentRoi.height = roi.height();
 }
 
-QRect ProcessingThread::getCurrentROI()
+QRect ProcessingThread::currentRoi()
 {
-    return QRect(m_currentROI.x, m_currentROI.y, m_currentROI.width, m_currentROI.height);
+    return QRect(m_currentRoi.x, m_currentRoi.y, m_currentRoi.width, m_currentRoi.height);
 }

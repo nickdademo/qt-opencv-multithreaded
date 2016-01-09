@@ -53,7 +53,7 @@ class CameraView : public QWidget
     public:
         explicit CameraView(int deviceNumber, SharedImageBuffer *sharedImageBuffer, QWidget *parent = 0);
         ~CameraView();
-        bool connectToCamera(bool dropFrame, int capThreadPrio, int procThreadPrio, bool createProcThread, int width, int height);
+        bool connectToCamera(bool dropFrameIfBufferFull, int capThreadPriority, int procThreadPriority, bool enableFrameProcessing, int width, int height);
 
     private:
         void stopCaptureThread();
@@ -75,8 +75,8 @@ class CameraView : public QWidget
 
     private slots:
         void updateFrame(const QImage &frame);
-        void updateProcessingThreadStats(ThreadStatisticsData statData);
-        void updateCaptureThreadStats(ThreadStatisticsData statData);
+        void updateProcessingThreadStatistics(ThreadStatisticsData data);
+        void updateCaptureThreadStatistics(ThreadStatisticsData data);
         void handleContextMenuAction(QAction *action);
 
     signals:
