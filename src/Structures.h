@@ -70,7 +70,7 @@ typedef struct
 
 typedef struct
 {
-    int averageFPS;
+    int averageFps;
     int nFramesProcessed;
 } ThreadStatisticsData;
 

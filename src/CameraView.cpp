@@ -221,7 +221,7 @@ void CameraView::updateCaptureThreadStatistics(ThreadStatisticsData data)
     ui->imageBufferBar->setValue(m_sharedImageBuffer->get(m_deviceNumber)->size());
 
     // Show processing rate in captureRateLabel
-    ui->captureRateLabel->setText(QString("%1 fps").arg(data.averageFPS));
+    ui->captureRateLabel->setText(QString("%1 fps").arg(data.averageFps));
     // Show number of frames captured in nFramesCapturedLabel
     ui->nFramesCapturedLabel->setText(QString("[%1]").arg(data.nFramesProcessed));
 }
@@ -232,7 +232,7 @@ void CameraView::updateProcessingThreadStatistics(ThreadStatisticsData data)
     ui->roiLabel->setText(QString("(%1, %2) %3x%4").arg(m_processingThread->currentRoi().x()).arg(m_processingThread->currentRoi().y()).arg(m_processingThread->currentRoi().width()).arg(m_processingThread->currentRoi().height()));
     
     // Show processing rate in processingRateLabel
-    ui->processingRateLabel->setText(QString("%1 fps").arg(data.averageFPS));
+    ui->processingRateLabel->setText(QString("%1 fps").arg(data.averageFps));
     // Show number of frames processed in nFramesProcessedLabel
     ui->nFramesProcessedLabel->setText(QString("[%1]").arg(data.nFramesProcessed));
 }

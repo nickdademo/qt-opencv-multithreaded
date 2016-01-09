@@ -61,7 +61,7 @@ class ProcessingThread : public QThread
         cv::Mat m_currentFrameGrayscale;
         cv::Rect m_currentRoi;
         QImage m_frame;
-        QTime m_t;
+        QTime m_time;
         QQueue<int> m_fps;
         QMutex m_doStopMutex;
         QMutex m_processingMutex;

@@ -49,7 +49,7 @@ CaptureThread::CaptureThread(SharedImageBuffer *sharedImageBuffer, int deviceNum
     m_sampleNumber = 0;
     m_fpsSum = 0;
     m_fps.clear();
-    m_statsData.averageFPS = 0;
+    m_statsData.averageFps = 0;
     m_statsData.nFramesProcessed = 0;
 }
 
@@ -161,7 +161,7 @@ void CaptureThread::updateFps(int timeElapsed)
             m_fpsSum += m_fps.dequeue();
         }
         // Calculate average FPS
-        m_statsData.averageFPS = m_fpsSum / CAPTURE_FPS_STAT_QUEUE_LENGTH;
+        m_statsData.averageFps = m_fpsSum / CAPTURE_FPS_STAT_QUEUE_LENGTH;
         // Reset sum
         m_fpsSum = 0;
         // Reset sample number

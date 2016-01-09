@@ -48,7 +48,7 @@ ProcessingThread::ProcessingThread(SharedImageBuffer *sharedImageBuffer, int dev
     m_sampleNumber = 0;
     m_fpsSum = 0;
     m_fps.clear();
-    m_statsData.averageFPS = 0;
+    m_statsData.averageFps = 0;
     m_statsData.nFramesProcessed = 0;
 }
 
@@ -71,9 +71,9 @@ void ProcessingThread::run()
         ///////////////////////
 
         // Save processing time
-        m_processingTime = m_t.elapsed();
+        m_processingTime = m_time.elapsed();
         // Start timer (used to calculate processing rate)
-        m_t.start();
+        m_time.start();
 
         m_processingMutex.lock();
 
@@ -83,10 +83,10 @@ void ProcessingThread::run()
         // Example of how to grab a frame from another stream (where Device Number=1)
         // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
         /*
-        if(sharedImageBuffer->containsImageBufferForDeviceNumber(1))
+        if(sharedImageBuffer->contains(1))
         {
             // Grab frame from another stream (connected to camera with Device Number=1)
-            cv::Mat frameFromAnotherStream = cv::Mat(sharedImageBuffer->getByDeviceNumber(1)->getFrame(), currentROI);
+            cv::Mat frameFromAnotherStream = cv::Mat(sharedImageBuffer->get(1)->getFrame(), currentRoi);
             // Linear blend images together using OpenCV and save the result to currentFrame. Note: beta = 1 - alpha
             cv::addWeighted(frameFromAnotherStream, 0.5, currentFrame, 0.5, 0.0, currentFrame);
         }
@@ -98,9 +98,11 @@ void ProcessingThread::run()
         // Grayscale conversion
         if (m_imgProcFlags.grayscaleOn && (m_currentFrame.channels() == 3 || m_currentFrame.channels() == 4))
         {
-            cvtColor(m_currentFrame,
+            cvtColor(
                 m_currentFrame,
-                CV_BGR2GRAY);
+                m_currentFrame,
+                CV_BGR2GRAY
+            );
         }
 
         // Smooth
@@ -110,60 +112,74 @@ void ProcessingThread::run()
             {
                 // Blur
                 case 0:
-                    blur(m_currentFrame,
+                    blur(
                         m_currentFrame,
-                        cv::Size(m_imgProcSettings.smoothParam1, m_imgProcSettings.smoothParam2));
+                        m_currentFrame,
+                        cv::Size(m_imgProcSettings.smoothParam1, m_imgProcSettings.smoothParam2)
+                    );
                     break;
                 // Gaussian
                 case 1:
-                    GaussianBlur(m_currentFrame,
+                    GaussianBlur(
+                        m_currentFrame,
                         m_currentFrame,
                         cv::Size(m_imgProcSettings.smoothParam1, m_imgProcSettings.smoothParam2),
                         m_imgProcSettings.smoothParam3,
-                        m_imgProcSettings.smoothParam4);
+                        m_imgProcSettings.smoothParam4
+                    );
                     break;
                 // Median
                 case 2:
-                    medianBlur(m_currentFrame,
+                    medianBlur(
                         m_currentFrame,
-                        m_imgProcSettings.smoothParam1);
+                        m_currentFrame,
+                        m_imgProcSettings.smoothParam1
+                    );
                     break;
             }
         }
         // Dilate
         if (m_imgProcFlags.dilateOn)
         {
-            dilate(m_currentFrame,
+            dilate(
+                m_currentFrame,
                 m_currentFrame,
                 cv::Mat(),
                 cv::Point(-1, -1),
-                m_imgProcSettings.dilateNumberOfIterations);
+                m_imgProcSettings.dilateNumberOfIterations
+            );
         }
         // Erode
         if (m_imgProcFlags.erodeOn)
         {
-            erode(m_currentFrame,
+            erode(
+                m_currentFrame,
                 m_currentFrame,
                 cv::Mat(),
                 cv::Point(-1, -1),
-                m_imgProcSettings.erodeNumberOfIterations);
+                m_imgProcSettings.erodeNumberOfIterations
+            );
         }
         // Flip
         if (m_imgProcFlags.flipOn)
         {
-            flip(m_currentFrame,
+            flip(
                 m_currentFrame,
-                m_imgProcSettings.flipCode);
+                m_currentFrame,
+                m_imgProcSettings.flipCode
+            );
         }
         // Canny edge detection
         if (m_imgProcFlags.cannyOn)
         {
-            Canny(m_currentFrame,
+            Canny(
+                m_currentFrame,
                 m_currentFrame,
                 m_imgProcSettings.cannyThreshold1,
                 m_imgProcSettings.cannyThreshold2,
                 m_imgProcSettings.cannyApertureSize,
-                m_imgProcSettings.cannyL2gradient);
+                m_imgProcSettings.cannyL2gradient
+            );
         }
         ////////////////////////////////////
         // PERFORM IMAGE PROCESSING ABOVE //
@@ -173,8 +189,11 @@ void ProcessingThread::run()
         m_frame = MatToQImage(m_currentFrame);
         m_processingMutex.unlock();
 
-        // Inform GUI thread of new frame (QImage)
-        emit newFrame(m_frame);
+        // Only emit valid frames
+        if (!m_frame.isNull())
+        {
+            emit newFrame(m_frame);
+        }
 
         // Update statistics
         updateFps(m_processingTime);
@@ -210,7 +229,7 @@ void ProcessingThread::updateFps(int timeElapsed)
             m_fpsSum += m_fps.dequeue();
         }
         // Calculate average FPS
-        m_statsData.averageFPS = m_fpsSum / PROCESSING_FPS_STAT_QUEUE_LENGTH;
+        m_statsData.averageFps = m_fpsSum / PROCESSING_FPS_STAT_QUEUE_LENGTH;
         // Reset sum
         m_fpsSum = 0;
         // Reset sample number
