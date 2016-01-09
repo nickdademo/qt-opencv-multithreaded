@@ -105,11 +105,11 @@ CameraView::~CameraView()
         // Disconnect camera
         if (m_captureThread->disconnectCamera())
         {
-            qDebug().noquote() << QString("[%1] Camera successfully disconnected.").arg(m_deviceNumber);
+            qDebug().noquote() << QString("[%1]: Camera successfully disconnected.").arg(m_deviceNumber);
         }
         else
         {
-            qWarning().noquote() << QString("[%1] Camera already disconnected.").arg(m_deviceNumber);
+            qWarning().noquote() << QString("[%1]: Camera already disconnected.").arg(m_deviceNumber);
         }
     }
     // Delete UI
@@ -274,40 +274,31 @@ void CameraView::setImageProcessingSettings()
 void CameraView::updateMouseCursorPosLabel()
 {
     // Update mouse cursor position in mouseCursorPosLabel
-    ui->mouseCursorPosLabel->setText(QString("(") + QString::number(ui->frameLabel->getMouseCursorPos().x()) +
-                                     QString(",") + QString::number(ui->frameLabel->getMouseCursorPos().y()) +
-                                     QString(")"));
+    ui->mouseCursorPosLabel->setText(QString("(%1, %2)").arg(ui->frameLabel->getMouseCursorPos().x()).arg((ui->frameLabel->getMouseCursorPos().y())));
 
-    // Show pixel cursor position if camera is connected (image is being shown)
+    // Also show pixel cursor position if camera is connected (frame is being shown)
     if(ui->frameLabel->pixmap() != 0)
     {
         // Scaling factor calculation depends on whether frame is scaled to fit label or not
+        double xScalingFactor;
+        double yScalingFactor;
         if(!ui->frameLabel->hasScaledContents())
         {
-            double xScalingFactor = ((double) ui->frameLabel->getMouseCursorPos().x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double) ui->frameLabel->pixmap()->width();
-            double yScalingFactor = ((double) ui->frameLabel->getMouseCursorPos().y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double) ui->frameLabel->pixmap()->height();
-
-            ui->mouseCursorPosLabel->setText(ui->mouseCursorPosLabel->text() +
-                QString(" [") + QString::number((int)(xScalingFactor*m_processingThread->getCurrentROI().width())) +
-                QString(",") + QString::number((int)(yScalingFactor*m_processingThread->getCurrentROI().height())) +
-                                             QString("]"));
+            xScalingFactor = ((double)ui->frameLabel->getMouseCursorPos().x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double)ui->frameLabel->pixmap()->width();
+            yScalingFactor = ((double)ui->frameLabel->getMouseCursorPos().y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double)ui->frameLabel->pixmap()->height();
         }
         else
         {
-            double xScalingFactor = (double) ui->frameLabel->getMouseCursorPos().x() / (double) ui->frameLabel->width();
-            double yScalingFactor = (double) ui->frameLabel->getMouseCursorPos().y() / (double) ui->frameLabel->height();
-
-            ui->mouseCursorPosLabel->setText(ui->mouseCursorPosLabel->text() +
-                QString(" [") + QString::number((int)(xScalingFactor*m_processingThread->getCurrentROI().width())) +
-                QString(",") + QString::number((int)(yScalingFactor*m_processingThread->getCurrentROI().height())) +
-                                             QString("]"));
+            xScalingFactor = (double)ui->frameLabel->getMouseCursorPos().x() / (double)ui->frameLabel->width();
+            yScalingFactor = (double)ui->frameLabel->getMouseCursorPos().y() / (double)ui->frameLabel->height();
         }
+
+        ui->mouseCursorPosLabel->setText(QString("%1 [%2, %3]").arg(ui->mouseCursorPosLabel->text()).arg((int)(xScalingFactor*m_processingThread->getCurrentROI().width())).arg((int)(yScalingFactor*m_processingThread->getCurrentROI().height())));
     }
 }
 
 void CameraView::newMouseData(MouseData mouseData)
 {
-    // Local variable(s)
     int x_temp, y_temp, width_temp, height_temp;
     QRect selectionBox;
 
@@ -322,15 +313,15 @@ void CameraView::newMouseData(MouseData mouseData)
         // Selection box calculation depends on whether frame is scaled to fit label or not
         if(!ui->frameLabel->hasScaledContents())
         {
-            xScalingFactor = ((double) mouseData.selectionBox.x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double) ui->frameLabel->pixmap()->width();
-            yScalingFactor = ((double) mouseData.selectionBox.y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double) ui->frameLabel->pixmap()->height();
+            xScalingFactor = ((double)mouseData.selectionBox.x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double)ui->frameLabel->pixmap()->width();
+            yScalingFactor = ((double)mouseData.selectionBox.y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double)ui->frameLabel->pixmap()->height();
             wScalingFactor = (double)m_processingThread->getCurrentROI().width() / (double)ui->frameLabel->pixmap()->width();
             hScalingFactor = (double)m_processingThread->getCurrentROI().height() / (double)ui->frameLabel->pixmap()->height();
         }
         else
         {
-            xScalingFactor = (double) mouseData.selectionBox.x() / (double) ui->frameLabel->width();
-            yScalingFactor = (double) mouseData.selectionBox.y() / (double) ui->frameLabel->height();
+            xScalingFactor = (double)mouseData.selectionBox.x() / (double)ui->frameLabel->width();
+            yScalingFactor = (double)mouseData.selectionBox.y() / (double)ui->frameLabel->height();
             wScalingFactor = (double)m_processingThread->getCurrentROI().width() / (double)ui->frameLabel->width();
             hScalingFactor = (double)m_processingThread->getCurrentROI().height() / (double)ui->frameLabel->height();
         }
