@@ -103,8 +103,9 @@ CameraView::~CameraView()
         // Remove from shared buffer
         m_sharedImageBuffer->remove(m_deviceNumber);
         // Disconnect camera
-        if (m_captureThread->disconnectCamera())
+        if (m_captureThread->isCameraConnected())
         {
+            m_captureThread->disconnectCamera();
             qDebug().noquote() << QString("[%1]: Camera successfully disconnected.").arg(m_deviceNumber);
         }
         else

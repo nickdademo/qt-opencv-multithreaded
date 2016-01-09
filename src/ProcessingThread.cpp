@@ -56,9 +56,9 @@ void ProcessingThread::run()
 {
     while(1)
     {
-        ////////////////////////////////
-        // Stop thread if doStop=TRUE //
-        ////////////////////////////////
+        ///////////////////////
+        // Stop thread logic //
+        ///////////////////////
         m_doStopMutex.lock();
         if (m_doStop)
         {
@@ -67,8 +67,8 @@ void ProcessingThread::run()
             break;
         }
         m_doStopMutex.unlock();
-        /////////////////////////////////
-        /////////////////////////////////
+        ///////////////////////
+        ///////////////////////
 
         // Save processing time
         m_processingTime = m_t.elapsed();

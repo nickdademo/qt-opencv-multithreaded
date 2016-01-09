@@ -51,7 +51,7 @@ class CaptureThread : public QThread
         CaptureThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber, bool dropFrameIfBufferFull, int width, int height);
         void stop();
         bool connectToCamera();
-        bool disconnectCamera();
+        void disconnectCamera();
         bool isCameraConnected();
         int getInputSourceWidth();
         int getInputSourceHeight();
@@ -61,7 +61,7 @@ class CaptureThread : public QThread
         SharedImageBuffer *m_sharedImageBuffer;
         cv::VideoCapture m_cap;
         cv::Mat m_grabbedFrame;
-        QTime m_t;
+        QTime m_time;
         QMutex m_doStopMutex;
         QQueue<int> m_fps;
         ThreadStatisticsData m_statsData;

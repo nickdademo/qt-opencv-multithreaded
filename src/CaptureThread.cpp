@@ -57,9 +57,9 @@ void CaptureThread::run()
 {
     while(1)
     {
-        ////////////////////////////////
-        // Stop thread if doStop=TRUE //
-        ////////////////////////////////
+        ///////////////////////
+        // Stop thread logic //
+        ///////////////////////
         m_doStopMutex.lock();
         if (m_doStop)
         {
@@ -68,13 +68,13 @@ void CaptureThread::run()
             break;
         }
         m_doStopMutex.unlock();
-        /////////////////////////////////
-        /////////////////////////////////
+        ///////////////////////
+        ///////////////////////
 
         // Save capture time
-        m_captureTime = m_t.elapsed();
+        m_captureTime = m_time.elapsed();
         // Start timer (used to calculate capture rate)
-        m_t.start();
+        m_time.start();
 
         // Synchronize with other streams (if enabled for this stream)
         m_sharedImageBuffer->sync(m_deviceNumber);
@@ -87,8 +87,11 @@ void CaptureThread::run()
 
         // Retrieve frame
         m_cap.retrieve(m_grabbedFrame);
-        // Add frame to buffer
-        m_sharedImageBuffer->get(m_deviceNumber)->add(m_grabbedFrame, m_dropFrameIfBufferFull);
+        // Add frame to buffer (if valid)
+        if (!m_grabbedFrame.empty())
+        {
+            m_sharedImageBuffer->get(m_deviceNumber)->add(m_grabbedFrame, m_dropFrameIfBufferFull);
+        }
 
         // Update statistics
         updateFPS(m_captureTime);
@@ -103,34 +106,38 @@ void CaptureThread::run()
 bool CaptureThread::connectToCamera()
 {
     // Open camera
-    bool camOpenResult = m_cap.open(m_deviceNumber);
-    // Set resolution
-    if (m_width != -1)
+    bool result = m_cap.open(m_deviceNumber);
+    if (result)
     {
-        m_cap.set(CV_CAP_PROP_FRAME_WIDTH, m_width);
+        // Set resolution
+        if (m_width != -1)
+        {
+            if (!m_cap.set(CV_CAP_PROP_FRAME_WIDTH, m_width))
+            {
+                result = false;
+            }
+        }
+        if (m_height != -1)
+        {
+            if (!m_cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_height))
+            {
+                result = false;
+            }
+        }
     }
-    if (m_height != -1)
-    {
-        m_cap.set(CV_CAP_PROP_FRAME_HEIGHT, m_height);
-    }
-    // Return result
-    return camOpenResult;
+
+    return result;
 }
 
-bool CaptureThread::disconnectCamera()
+void CaptureThread::disconnectCamera()
 {
-    // Camera is connected
-    if (m_cap.isOpened())
-    {
-        // Disconnect camera
-        m_cap.release();
-        return true;
-    }
-    // Camera is NOT connected
-    else
-    {
-        return false;
-    }
+    m_cap.release();
+}
+
+
+bool CaptureThread::isCameraConnected()
+{
+    return m_cap.isOpened();
 }
 
 void CaptureThread::updateFPS(int timeElapsed)
@@ -168,11 +175,6 @@ void CaptureThread::stop()
 {
     QMutexLocker locker(&m_doStopMutex);
     m_doStop = true;
-}
-
-bool CaptureThread::isCameraConnected()
-{
-    return m_cap.isOpened();
 }
 
 int CaptureThread::getInputSourceWidth()
