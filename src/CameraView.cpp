@@ -56,7 +56,6 @@ CameraView::CameraView(int deviceNumber, SharedImageBuffer *sharedImageBuffer, Q
     // Set initial GUI state
     ui->frameLabel->setText(tr("No camera connected."));
     ui->imageBufferBar->setValue(0);
-    ui->imageBufferLabel->setText("[000/000]");
     ui->captureRateLabel->setText("");
     ui->processingRateLabel->setText("");
     ui->deviceNumberLabel->setText("");
@@ -64,6 +63,8 @@ CameraView::CameraView(int deviceNumber, SharedImageBuffer *sharedImageBuffer, Q
     ui->roiLabel->setText("");
     ui->mouseCursorPosLabel->setText("");
     ui->clearImageBufferButton->setDisabled(true);
+    ui->imageBufferBar->setFormat("%p% (%v/%m)");
+    ui->imageBufferBar->setAlignment(Qt::AlignCenter);
     // Initialize ImageProcessingFlags structure
     m_imageProcessingFlags.grayscaleOn = false;
     m_imageProcessingFlags.smoothOn = false;
@@ -217,9 +218,7 @@ void CameraView::stopProcessingThread()
 
 void CameraView::updateCaptureThreadStatistics(ThreadStatisticsData data)
 {
-    // Show [number of images in buffer / image buffer size] in label
-    ui->imageBufferLabel->setText(QString("[%1/%2]").arg(m_sharedImageBuffer->get(m_deviceNumber)->size()).arg(m_sharedImageBuffer->get(m_deviceNumber)->maxSize()));
-    // Show percentage of image bufffer full in label
+    // Show percentage of image bufffer full in progress bar
     ui->imageBufferBar->setValue(m_sharedImageBuffer->get(m_deviceNumber)->size());
     // Show processing rate in label
     ui->captureRateLabel->setText(QString("%1 fps").arg(data.averageFps));
