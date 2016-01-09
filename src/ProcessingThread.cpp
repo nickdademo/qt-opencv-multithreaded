@@ -77,7 +77,7 @@ void ProcessingThread::run()
 
         m_processingMutex.lock();
         // Get frame from queue, store in currentFrame, set ROI
-        m_currentFrame = cv::Mat(m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->get().clone(), m_currentROI);
+        m_currentFrame = cv::Mat(m_sharedImageBuffer->get(m_deviceNumber)->get().clone(), m_currentROI);
 
         // Example of how to grab a frame from another stream (where Device Number=1)
         // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.

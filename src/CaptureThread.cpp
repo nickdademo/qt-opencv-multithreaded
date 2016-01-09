@@ -88,7 +88,7 @@ void CaptureThread::run()
         // Retrieve frame
         m_cap.retrieve(m_grabbedFrame);
         // Add frame to buffer
-        m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->add(m_grabbedFrame, m_dropFrameIfBufferFull);
+        m_sharedImageBuffer->get(m_deviceNumber)->add(m_grabbedFrame, m_dropFrameIfBufferFull);
 
         // Update statistics
         updateFPS(m_captureTime);

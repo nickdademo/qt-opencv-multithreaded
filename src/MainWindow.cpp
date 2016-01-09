@@ -115,7 +115,7 @@ void MainWindow::initUi()
 void MainWindow::connectToCamera()
 {
     // We cannot connect to a camera if devices are already connected AND stream synchronization is in progress
-    if ((m_cameraViewMap.size() > 0) && m_sharedImageBuffer->getSyncEnabled())
+    if ((m_cameraViewMap.size() > 0) && m_sharedImageBuffer->isSyncStarted())
     {
         QMessageBox::warning(
             this,
@@ -164,7 +164,7 @@ void MainWindow::connectToCamera()
                 QMessageBox::Yes
             );
             // Start streaming if requested
-            m_sharedImageBuffer->setSyncEnabled(ret == QMessageBox::Yes);
+            m_sharedImageBuffer->setSyncStarted(ret == QMessageBox::Yes);
         }
 
         // Attempt to connect to camera
@@ -205,7 +205,7 @@ void MainWindow::connectToCamera()
             // Delete widget
             delete cameraView;
             // Remove from shared buffer
-            m_sharedImageBuffer->removeByDeviceNumber(deviceNumber);
+            m_sharedImageBuffer->remove(deviceNumber);
             // Delete buffer
             delete imageBuffer;
         }
@@ -217,7 +217,7 @@ void MainWindow::disconnectCamera(int index)
     bool doDisconnect = true;
 
     // Check if more than one camera is connected AND stream synchronization is in progress
-    if ((m_cameraViewMap.size() > 1) && !m_sharedImageBuffer->getSyncEnabled())
+    if ((m_cameraViewMap.size() > 1) && !m_sharedImageBuffer->isSyncStarted())
     {
         // Prompt user
         int ret = QMessageBox::question(

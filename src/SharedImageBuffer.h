@@ -47,19 +47,22 @@ class SharedImageBuffer
     public:
         SharedImageBuffer();
         void add(int deviceNumber, Buffer<cv::Mat> *imageBuffer, bool sync = false);
-        Buffer<cv::Mat>* getByDeviceNumber(int deviceNumber);
-        void removeByDeviceNumber(int deviceNumber);
+        Buffer<cv::Mat>* get(int deviceNumber);
+        void remove(int deviceNumber);
         void sync(int deviceNumber);
         void wakeAll();
-        void setSyncEnabled(bool enable);
-        bool isSyncEnabledForDeviceNumber(int deviceNumber);
-        bool getSyncEnabled();
-        bool containsImageBufferForDeviceNumber(int deviceNumber);
+        void setSyncStarted(bool start);
+        bool isSyncStarted()
+        {
+            return m_doSync;
+        }
+        bool isSyncEnabled(int deviceNumber);
+        bool contains(int deviceNumber);
 
     private:
         QHash<int, Buffer<cv::Mat>*> m_imageBufferMap;
         QSet<int> m_syncSet;
-        QWaitCondition m_wc;
+        QWaitCondition m_waitCondition;
         QMutex m_mutex;
         int m_nArrived;
         bool m_doSync;

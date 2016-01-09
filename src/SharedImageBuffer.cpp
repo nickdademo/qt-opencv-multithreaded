@@ -51,22 +51,22 @@ void SharedImageBuffer::add(int deviceNumber, Buffer<cv::Mat>* imageBuffer, bool
     m_imageBufferMap[deviceNumber] = imageBuffer;
 }
 
-Buffer<cv::Mat>* SharedImageBuffer::getByDeviceNumber(int deviceNumber)
+Buffer<cv::Mat>* SharedImageBuffer::get(int deviceNumber)
 {
     return m_imageBufferMap[deviceNumber];
 }
 
-void SharedImageBuffer::removeByDeviceNumber(int deviceNumber)
+void SharedImageBuffer::remove(int deviceNumber)
 {
-    // Remove buffer for device from imageBufferMap
+    // Remove buffer for device from image buffer map
     m_imageBufferMap.remove(deviceNumber);
 
-    // Also remove from syncSet (if present)
+    // Also remove from set (if present)
     m_mutex.lock();
     if (m_syncSet.contains(deviceNumber))
     {
         m_syncSet.remove(deviceNumber);
-        m_wc.wakeAll();
+        m_waitCondition.wakeAll();
     }
     m_mutex.unlock();
 }
@@ -82,12 +82,12 @@ void SharedImageBuffer::sync(int deviceNumber)
         // We are the last to arrive: wake all waiting threads
         if (m_doSync && (m_nArrived == m_syncSet.size()))
         {
-            m_wc.wakeAll();
+            m_waitCondition.wakeAll();
         }
         // Still waiting for other streams to arrive: wait
         else
         {
-            m_wc.wait(&m_mutex);
+            m_waitCondition.wait(&m_mutex);
         }
         // Decrement arrived count
         m_nArrived--;
@@ -98,25 +98,20 @@ void SharedImageBuffer::sync(int deviceNumber)
 void SharedImageBuffer::wakeAll()
 {
     QMutexLocker locker(&m_mutex);
-    m_wc.wakeAll();
+    m_waitCondition.wakeAll();
 }
 
-void SharedImageBuffer::setSyncEnabled(bool enable)
+void SharedImageBuffer::setSyncStarted(bool start)
 {
-    m_doSync = enable;
+    m_doSync = start;
 }
 
-bool SharedImageBuffer::isSyncEnabledForDeviceNumber(int deviceNumber)
+bool SharedImageBuffer::isSyncEnabled(int deviceNumber)
 {
     return m_syncSet.contains(deviceNumber);
 }
 
-bool SharedImageBuffer::getSyncEnabled()
-{
-    return m_doSync;
-}
-
-bool SharedImageBuffer::containsImageBufferForDeviceNumber(int deviceNumber)
+bool SharedImageBuffer::contains(int deviceNumber)
 {
     return m_imageBufferMap.contains(deviceNumber);
 }

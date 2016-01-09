@@ -94,14 +94,14 @@ CameraView::~CameraView()
             stopCaptureThread();
         }
 
-        // Automatically start frame processing (for other streams)
-        if (m_sharedImageBuffer->isSyncEnabledForDeviceNumber(m_deviceNumber))
+        // Automatically start frame processing for other streams if sync was enabled for camera we are disconnecting
+        if (m_sharedImageBuffer->isSyncEnabled(m_deviceNumber))
         {
-            m_sharedImageBuffer->setSyncEnabled(true);
+            m_sharedImageBuffer->setSyncStarted(true);
         }
 
         // Remove from shared buffer
-        m_sharedImageBuffer->removeByDeviceNumber(m_deviceNumber);
+        m_sharedImageBuffer->remove(m_deviceNumber);
         // Disconnect camera
         if (m_captureThread->disconnectCamera())
         {
@@ -119,7 +119,7 @@ CameraView::~CameraView()
 bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, int procThreadPrio, bool enableFrameProcessing, int width, int height)
 {
     // Set frame label text
-    if (m_sharedImageBuffer->isSyncEnabledForDeviceNumber(m_deviceNumber))
+    if (m_sharedImageBuffer->isSyncEnabled(m_deviceNumber))
     {
         ui->frameLabel->setText(tr("Camera connected. Waiting..."));
     }
@@ -164,7 +164,7 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPrio, 
 
         // Setup imageBufferBar with minimum and maximum values
         ui->imageBufferBar->setMinimum(0);
-        ui->imageBufferBar->setMaximum(m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->maxSize());
+        ui->imageBufferBar->setMaximum(m_sharedImageBuffer->get(m_deviceNumber)->maxSize());
         // Enable "Clear Image Buffer" push button
         ui->clearImageBufferButton->setEnabled(true);
         // Set text in labels
@@ -190,9 +190,9 @@ void CameraView::stopCaptureThread()
     m_captureThread->stop();
     m_sharedImageBuffer->wakeAll(); // This allows the thread to be stopped if it is in a wait-state
     // Take one frame off a FULL queue to allow the capture thread to finish
-    if (m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->isFull())
+    if (m_sharedImageBuffer->get(m_deviceNumber)->isFull())
     {
-        m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->get();
+        m_sharedImageBuffer->get(m_deviceNumber)->get();
     }
     m_captureThread->wait();
     qDebug() << "[" << m_deviceNumber << "] Capture thread successfully stopped.";
@@ -210,10 +210,10 @@ void CameraView::stopProcessingThread()
 void CameraView::updateCaptureThreadStats(ThreadStatisticsData statData)
 {
     // Show [number of images in buffer / image buffer size] in imageBufferLabel
-    ui->imageBufferLabel->setText(QString("[") + QString::number(m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->size()) +
-        QString("/") + QString::number(m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->maxSize()) + QString("]"));
+    ui->imageBufferLabel->setText(QString("[") + QString::number(m_sharedImageBuffer->get(m_deviceNumber)->size()) +
+        QString("/") + QString::number(m_sharedImageBuffer->get(m_deviceNumber)->maxSize()) + QString("]"));
     // Show percentage of image bufffer full in imageBufferBar
-    ui->imageBufferBar->setValue(m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->size());
+    ui->imageBufferBar->setValue(m_sharedImageBuffer->get(m_deviceNumber)->size());
 
     // Show processing rate in captureRateLabel
     ui->captureRateLabel->setText(QString::number(statData.averageFPS) + " fps");
@@ -242,7 +242,7 @@ void CameraView::updateFrame(const QImage &frame)
 
 void CameraView::clearImageBuffer()
 {
-    if (m_sharedImageBuffer->getByDeviceNumber(m_deviceNumber)->clear())
+    if (m_sharedImageBuffer->get(m_deviceNumber)->clear())
     {
         qDebug() << "[" << m_deviceNumber << "] Image buffer successfully cleared.";
     }
