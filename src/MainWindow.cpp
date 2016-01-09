@@ -286,12 +286,15 @@ void MainWindow::tabWidgetCurrentIndexChanged(int index)
     if (index != -1)
     {
         QWidget *widget = m_tabWidget->widget(index);
+
+        // New tab is not initial tab
         if (widget != m_initialTab)
         {
-            // Remove initial tab
-            if (!m_initialTab.isNull())
+            // Ensure initial tab is not present
+            int initialTabIndex = m_tabWidget->indexOf(m_initialTab);
+            if (initialTabIndex != -1)
             {
-                m_tabWidget->removeTab(m_tabWidget->indexOf(m_initialTab));
+                m_tabWidget->removeTab(initialTabIndex);
             }
             m_tabWidget->setTabsClosable(true);
         }
@@ -300,9 +303,6 @@ void MainWindow::tabWidgetCurrentIndexChanged(int index)
     else
     {
         // Add initial tab
-        m_initialTab = new QLabel;
-        m_initialTab->setText(tr("No camera connected."));
-        m_initialTab->setAlignment(Qt::AlignCenter);
         m_tabWidget->addTab(m_initialTab, "");
         m_tabWidget->setTabsClosable(false);
 

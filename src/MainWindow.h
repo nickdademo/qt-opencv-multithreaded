@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2012-2015 Nick D'Ademo                                 */
+/* Copyright (c) 2012-2016 Nick D'Ademo                                 */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -35,7 +35,6 @@
 
 #include <QMainWindow>
 #include <QMap>
-#include <QPointer>
 
 class SharedImageBuffer;
 class CameraView;
@@ -69,7 +68,7 @@ class MainWindow : public QMainWindow
         QPushButton *m_connectToCameraButton;
         QMap<int, CameraView*> m_cameraViewMap;
         SharedImageBuffer *m_sharedImageBuffer;
-        QPointer<QLabel> m_initialTab;
+        QLabel *m_initialTab;
 
     private slots:
         void connectToCamera();
