@@ -70,7 +70,7 @@ void MainWindow::initUi()
 
     // Options menu
     m_menuOptions = menuBar()->addMenu(tr("Options"));
-    m_actionSynchronizeStreams = new QAction(tr("Synchronize streams"), this);
+    m_actionSynchronizeStreams = new QAction(tr("Synchronize Streams"), this);
     m_actionSynchronizeStreams->setCheckable(true);
     m_menuOptions->addAction(m_actionSynchronizeStreams);
 
@@ -114,13 +114,13 @@ void MainWindow::initUi()
 
 void MainWindow::connectToCamera()
 {
-    // We cannot connect to a camera if devices are already connected AND stream synchronization is enabled
+    // We cannot connect to a camera if devices are already connected AND stream synchronization is in progress
     if ((m_cameraViewMap.size() > 0) && m_sharedImageBuffer->getSyncEnabled())
     {
         QMessageBox::warning(
             this,
-            APP_NAME,
-            QString("%1\n\n%2").arg(tr("Stream synchronization is in progress.")).arg(tr("Please close all currently open streams before attempting to open a new stream.")),
+            tr("Stream Synchronization in Progress"),
+            tr("Please close all currently open streams before attempting to open a new stream."),
             QMessageBox::Ok
         );
         return;
@@ -140,7 +140,7 @@ void MainWindow::connectToCamera()
             QMessageBox::warning(
                 this,
                 tr("Connect to Camera"),
-                tr("Could not connect to camera. Already connected.")
+                QString("%1\n\n%2").arg(tr("Failed to connect to camera.")).arg(QString("%1: %2").arg(tr("Device already connected")).arg(deviceNumber))
             );
             return;
         }
@@ -158,8 +158,8 @@ void MainWindow::connectToCamera()
             // Prompt user
             int ret = QMessageBox::question(
                 this,
-                APP_NAME,
-                QString("%1\n\n%2\n\n%3").arg(tr("Stream synchronization is enabled.")).arg(tr("Do you want to start processing?")).arg(tr("Choose 'No' if you would like to open additional streams.")),
+                tr("Stream Synchronization Enabled"),
+                QString("%1\n\n%2").arg(tr("Do you want to start processing?")).arg(tr("Choose 'No' if you would like to open additional streams.")),
                 QMessageBox::Yes | QMessageBox::No,
                 QMessageBox::Yes
             );
@@ -199,7 +199,7 @@ void MainWindow::connectToCamera()
             QMessageBox::critical(
                 this,
                 tr("Connect to Camera"),
-                tr("Could not connect to camera. Please check device number.")
+                QString("%1\n\n%2").arg(tr("Failed to connect to camera.")).arg(QString("%1: %2").arg(tr("Please check device number")).arg(deviceNumber))
             );
 
             // Delete widget
@@ -216,14 +216,14 @@ void MainWindow::disconnectCamera(int index)
 {
     bool doDisconnect = true;
 
-    // Check if more than one camera is connected AND stream synchronization is enabled
+    // Check if more than one camera is connected AND stream synchronization is in progress
     if ((m_cameraViewMap.size() > 1) && !m_sharedImageBuffer->getSyncEnabled())
     {
         // Prompt user
         int ret = QMessageBox::question(
             this,
-            APP_NAME,
-            QString("%1\n\n%2\n\n%3").arg(tr("Stream synchronization is enabled.")).arg(tr("Disconnecting this camera will cause frame processing to begin on all other streams.")).arg(tr("Do you wish to proceed?")),
+            tr("Stream Synchronization in Progress"),
+            QString("%1\n\n%2").arg(tr("Disconnecting this camera will cause frame processing to begin on all other streams.")).arg(tr("Do you wish to proceed?")),
             QMessageBox::Yes | QMessageBox::No,
             QMessageBox::Yes
         );
