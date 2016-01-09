@@ -131,6 +131,7 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPriori
 
     // Create capture thread
     m_captureThread = new CaptureThread(m_sharedImageBuffer, m_deviceNumber, dropFrameIfBufferFull, width, height);
+
     // Attempt to connect to camera
     if (m_captureThread->connectToCamera())
     {
@@ -178,11 +179,12 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPriori
         {
             ui->frameLabel->setText(tr("Frame processing disabled."));
         }
+
         return true;
     }
+    
     // Failed to connect to camera
-    else
-        return false;
+    return false;
 }
 
 void CameraView::stopCaptureThread()
@@ -215,25 +217,23 @@ void CameraView::stopProcessingThread()
 
 void CameraView::updateCaptureThreadStatistics(ThreadStatisticsData data)
 {
-    // Show [number of images in buffer / image buffer size] in imageBufferLabel
+    // Show [number of images in buffer / image buffer size] in label
     ui->imageBufferLabel->setText(QString("[%1/%2]").arg(m_sharedImageBuffer->get(m_deviceNumber)->size()).arg(m_sharedImageBuffer->get(m_deviceNumber)->maxSize()));
-    // Show percentage of image bufffer full in imageBufferBar
+    // Show percentage of image bufffer full in label
     ui->imageBufferBar->setValue(m_sharedImageBuffer->get(m_deviceNumber)->size());
-
-    // Show processing rate in captureRateLabel
+    // Show processing rate in label
     ui->captureRateLabel->setText(QString("%1 fps").arg(data.averageFps));
-    // Show number of frames captured in nFramesCapturedLabel
+    // Show number of frames captured in label
     ui->nFramesCapturedLabel->setText(QString("[%1]").arg(data.nFramesProcessed));
 }
 
 void CameraView::updateProcessingThreadStatistics(ThreadStatisticsData data)
 {
-    // Show ROI information in roiLabel   
+    // Show ROI information in label   
     ui->roiLabel->setText(QString("(%1, %2) %3x%4").arg(m_processingThread->currentRoi().x()).arg(m_processingThread->currentRoi().y()).arg(m_processingThread->currentRoi().width()).arg(m_processingThread->currentRoi().height()));
-    
-    // Show processing rate in processingRateLabel
+    // Show processing rate in label
     ui->processingRateLabel->setText(QString("%1 fps").arg(data.averageFps));
-    // Show number of frames processed in nFramesProcessedLabel
+    // Show number of frames processed in label
     ui->nFramesProcessedLabel->setText(QString("[%1]").arg(data.nFramesProcessed));
 }
 
@@ -244,14 +244,8 @@ void CameraView::updateFrame(const QImage &frame)
 
 void CameraView::clearImageBuffer()
 {
-    if (m_sharedImageBuffer->get(m_deviceNumber)->clear())
-    {
-        qDebug().noquote() << QString("[%1]: Image buffer successfully cleared.").arg(m_deviceNumber);
-    }
-    else
-    {
-        qWarning().noquote() << QString("[%1]: Could not clear image buffer.").arg(m_deviceNumber);
-    }
+    int nCleared = m_sharedImageBuffer->get(m_deviceNumber)->clear();
+    qDebug().noquote() << QString("[%1]: %2 frame(s) cleared from buffer.").arg(m_deviceNumber).arg(nCleared);
 }
 
 void CameraView::setImageProcessingSettings()
@@ -271,7 +265,7 @@ void CameraView::setImageProcessingSettings()
 
 void CameraView::updateMouseCursorPosLabel()
 {
-    // Update mouse cursor position in mouseCursorPosLabel
+    // Update mouse cursor position in label
     ui->mouseCursorPosLabel->setText(QString("(%1, %2)").arg(ui->frameLabel->getMouseCursorPos().x()).arg((ui->frameLabel->getMouseCursorPos().y())));
 
     // Also show pixel cursor position if camera is connected (frame is being shown)
@@ -291,6 +285,7 @@ void CameraView::updateMouseCursorPosLabel()
             yScalingFactor = (double)ui->frameLabel->getMouseCursorPos().y() / (double)ui->frameLabel->height();
         }
 
+        // Append text to label
         ui->mouseCursorPosLabel->setText(QString("%1 [%2, %3]").arg(ui->mouseCursorPosLabel->text()).arg((int)(xScalingFactor*m_processingThread->currentRoi().width())).arg((int)(yScalingFactor*m_processingThread->currentRoi().height())));
     }
 }
