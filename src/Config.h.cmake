@@ -42,13 +42,17 @@ namespace {
     const char* APP_AUTHOR_WEBSITE          = "@PROJECT_AUTHOR_WEBSITE@";
 }
 
+// Initial Main Window size
+#define INITIAL_MAINWINDOW_SIZE_W           640
+#define INITIAL_MAINWINDOW_SIZE_H           480
+
 // Capture statistics settings
-#define CAPTURE__FPS_STAT_QUEUE_LENGTH   	32
-#define CAPTURE__EMIT_DATA_N_SAMPLES		1
+#define CAPTURE__FPS_STAT_QUEUE_LENGTH      32
+#define CAPTURE__EMIT_DATA_N_SAMPLES        1
 
 // Processing statistics settings
 #define PROCESSING__FPS_STAT_QUEUE_LENGTH   32
-#define PROCESSING__EMIT_DATA_N_SAMPLES		1
+#define PROCESSING__EMIT_DATA_N_SAMPLES     1
 
 // Image buffer size
 #define DEFAULT_IMAGE_BUFFER_SIZE           1
@@ -58,7 +62,7 @@ namespace {
 #define DEFAULT_CAP_THREAD_PRIO             QThread::NormalPriority
 #define DEFAULT_PROC_THREAD_PRIO            QThread::HighPriority
 // Enable Frame Processing
-#define DEFAULT_ENABLE_FRAME_PROCESSING		true
+#define DEFAULT_ENABLE_FRAME_PROCESSING     true
 
 // Image Processing
 // Smooth

@@ -48,6 +48,8 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
 {
+    // Initial window size
+    resize(INITIAL_MAINWINDOW_SIZE_W, INITIAL_MAINWINDOW_SIZE_H);
     // Metatypes
     qRegisterMetaType<ThreadStatistics>("ThreadStatistics");
     // Create SharedImageBuffer instance
