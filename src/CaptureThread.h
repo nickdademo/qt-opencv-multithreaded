@@ -53,8 +53,10 @@ class CaptureThread : public QThread
         bool connectToCamera();
         void disconnectCamera();
         bool isCameraConnected();
-        int getInputSourceWidth();
-        int getInputSourceHeight();
+        cv::VideoCapture& videoCapture()
+        {
+            return m_cap;
+        }
 
     private:
         void updateFps(int timeElapsed);

@@ -174,13 +174,3 @@ void CaptureThread::stop()
     QMutexLocker locker(&m_doStopMutex);
     m_doStop = true;
 }
-
-int CaptureThread::getInputSourceWidth()
-{
-    return m_cap.get(CV_CAP_PROP_FRAME_WIDTH);
-}
-
-int CaptureThread::getInputSourceHeight()
-{
-    return m_cap.get(CV_CAP_PROP_FRAME_HEIGHT);
-}

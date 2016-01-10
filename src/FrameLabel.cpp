@@ -60,6 +60,7 @@ void FrameLabel::mouseMoveEvent(QMouseEvent *ev)
         m_box->setWidth(getMouseCursorPos().x() - m_startPoint.x());
         m_box->setHeight(getMouseCursorPos().y() - m_startPoint.y());
     }
+
     // Inform main window of mouse move event
     emit onMouseMoveEvent();
 }

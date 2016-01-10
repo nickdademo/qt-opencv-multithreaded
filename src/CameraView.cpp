@@ -31,40 +31,123 @@
 /************************************************************************/
 
 #include "CameraView.h"
-#include "ui_CameraView.h"
 
 #include "CaptureThread.h"
 #include "ProcessingThread.h"
 #include "ImageProcessingSettingsDialog.h"
 #include "SharedImageBuffer.h"
+#include "FrameLabel.h"
 
 #include <QMessageBox>
 #include <QDebug>
 #include <QMenu>
+#include <QVBoxLayout>
+#include <QProgressBar>
+#include <QPushButton>
+#include <QLabel>
 
 CameraView::CameraView(int deviceNumber, SharedImageBuffer *sharedImageBuffer, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::CameraView),
-    m_sharedImageBuffer(sharedImageBuffer)
+    m_sharedImageBuffer(sharedImageBuffer),
+    m_isCameraConnected(false),
+    m_deviceNumber(deviceNumber)
 {
-    // Setup UI
-    ui->setupUi(this);
-    // Save Device Number
-    m_deviceNumber = deviceNumber;
-    // Initialize internal flag
-    m_isCameraConnected = false;
-    // Set initial GUI state
-    ui->frameLabel->setText(tr("No camera connected."));
-    ui->imageBufferBar->setValue(0);
-    ui->captureRateLabel->setText("");
-    ui->processingRateLabel->setText("");
-    ui->deviceNumberLabel->setText("");
-    ui->cameraResolutionLabel->setText("");
-    ui->roiLabel->setText("");
-    ui->mouseCursorPosLabel->setText("");
-    ui->clearImageBufferButton->setDisabled(true);
-    ui->imageBufferBar->setFormat("%p% (%v/%m)");
-    ui->imageBufferBar->setAlignment(Qt::AlignCenter);
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+
+    // Frame label
+    m_frameLabel = new FrameLabel;
+    m_frameLabel->setMouseTracking(true);
+    m_frameLabel->setAlignment(Qt::AlignCenter);
+    m_frameLabel->setText(tr("No camera connected."));
+    m_frameLabel->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
+    m_frameLabel->setAutoFillBackground(true);
+    connect(m_frameLabel, &FrameLabel::onMouseMoveEvent, this, &CameraView::updateMouseCursorPosLabel);
+    mainLayout->addWidget(m_frameLabel, 1);
+
+    // Grid layout
+    QGridLayout *gridLayout = new QGridLayout;
+
+    // Bold font
+    QFont boldFont;
+    boldFont.setBold(true);
+
+    // Device Number
+    QLabel *deviceNumberLabel = new QLabel(tr("Device Number") + ":");
+    deviceNumberLabel->setFont(boldFont);
+    deviceNumberLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_deviceNumberLabel = new QLabel;
+    m_deviceNumberLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    gridLayout->addWidget(deviceNumberLabel, 0, 0);
+    gridLayout->addWidget(m_deviceNumberLabel, 0, 1);
+    // Camera Resolution
+    QLabel *cameraResolutionLabel = new QLabel(tr("Camera Resolution") + ":");
+    cameraResolutionLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    cameraResolutionLabel->setFont(boldFont);
+    m_cameraResolutionLabel = new QLabel;
+    m_cameraResolutionLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    gridLayout->addWidget(cameraResolutionLabel, 1, 0);
+    gridLayout->addWidget(m_cameraResolutionLabel, 1, 1);
+    // Capture Rate
+    QLabel *captureRateLabel = new QLabel(tr("Capture Rate") + ":");
+    captureRateLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    captureRateLabel->setFont(boldFont);
+    m_captureRateLabel = new QLabel;
+    m_captureRateLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_nFramesCapturedLabel = new QLabel;
+    m_nFramesCapturedLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    gridLayout->addWidget(captureRateLabel, 2, 0); 
+    gridLayout->addWidget(m_captureRateLabel, 2, 1);
+    gridLayout->addWidget(m_nFramesCapturedLabel, 2, 2);
+    // Processing Rate
+    QLabel *processingRateLabel = new QLabel(tr("Processing Rate") + ":");
+    processingRateLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    processingRateLabel->setFont(boldFont);
+    m_processingRateLabel = new QLabel;
+    m_processingRateLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_nFramesProcessedLabel = new QLabel;
+    m_nFramesProcessedLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    gridLayout->addWidget(processingRateLabel, 3, 0);
+    gridLayout->addWidget(m_processingRateLabel, 3, 1);
+    gridLayout->addWidget(m_nFramesProcessedLabel, 3, 2);
+    // ROI
+    QLabel *roiLabel = new QLabel(tr("ROI") + ":");
+    roiLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    roiLabel->setFont(boldFont);
+    m_roiLabel = new QLabel;
+    m_roiLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    gridLayout->addWidget(roiLabel, 4, 0);
+    gridLayout->addWidget(m_roiLabel, 4, 1);
+    // Mouse Cursor Position
+    QLabel *mouseCursorPosLabel = new QLabel(tr("Cursor") + ":");
+    mouseCursorPosLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    mouseCursorPosLabel->setFont(boldFont);
+    m_mouseCursorPosLabel = new QLabel;
+    m_mouseCursorPosLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    gridLayout->addWidget(mouseCursorPosLabel, 5, 0);
+    gridLayout->addWidget(m_mouseCursorPosLabel, 5, 1);
+    // Image Buffer Status
+    m_imageBufferStatusProgressBar = new QProgressBar;
+    m_imageBufferStatusProgressBar->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_imageBufferStatusProgressBar->setValue(0);
+    m_imageBufferStatusProgressBar->setFormat("%p% (%v/%m)");
+    m_imageBufferStatusProgressBar->setAlignment(Qt::AlignCenter);
+    // Clear Image Buffer
+    QLabel *imageBufferLabel = new QLabel(tr("Image Buffer") + ":");
+    imageBufferLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    imageBufferLabel->setFont(boldFont);
+    m_clearImageBufferButton = new QPushButton(tr("Clear Buffer"));
+    m_clearImageBufferButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_clearImageBufferButton->setEnabled(false);
+    connect(m_clearImageBufferButton, &QPushButton::released, this, &CameraView::clearImageBuffer);
+    gridLayout->addWidget(imageBufferLabel, 6, 0);
+    gridLayout->addWidget(m_imageBufferStatusProgressBar, 6, 1, 1, 2);
+    gridLayout->addWidget(m_clearImageBufferButton, 6, 3);
+
+    mainLayout->addLayout(gridLayout);
+
+    // Set layout
+    setLayout(mainLayout);
+
     // Initialize ImageProcessingFlags structure
     m_imageProcessingFlags.grayscaleOn = false;
     m_imageProcessingFlags.smoothOn = false;
@@ -72,12 +155,10 @@ CameraView::CameraView(int deviceNumber, SharedImageBuffer *sharedImageBuffer, Q
     m_imageProcessingFlags.erodeOn = false;
     m_imageProcessingFlags.flipOn = false;
     m_imageProcessingFlags.cannyOn = false;
-    // Connect signals/slots
-    connect(ui->frameLabel, &FrameLabel::onMouseMoveEvent, this, &CameraView::updateMouseCursorPosLabel);
-    connect(ui->clearImageBufferButton, &QPushButton::released, this, &CameraView::clearImageBuffer);
-    connect(ui->frameLabel->menu, &QMenu::triggered, this, &CameraView::handleContextMenuAction);
-    // Register type
-    qRegisterMetaType<ThreadStatisticsData>("ThreadStatisticsData");
+
+    
+    
+    //connect(m_frameLabel->menu, &QMenu::triggered, this, &CameraView::handleContextMenuAction);
 }
 
 CameraView::~CameraView()
@@ -114,8 +195,6 @@ CameraView::~CameraView()
             qWarning().noquote() << QString("[%1]: Camera already disconnected.").arg(m_deviceNumber);
         }
     }
-    // Delete UI
-    delete ui;
 }
 
 bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPriority, int procThreadPriority, bool enableFrameProcessing, int width, int height)
@@ -123,11 +202,11 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPriori
     // Set frame label text
     if (m_sharedImageBuffer->isSyncEnabled(m_deviceNumber))
     {
-        ui->frameLabel->setText(tr("Camera connected. Waiting..."));
+        m_frameLabel->setText(tr("Camera connected. Waiting..."));
     }
     else
     {
-        ui->frameLabel->setText(tr("Connecting to camera..."));
+        m_frameLabel->setText(tr("Connecting to camera..."));
     }
 
     // Create capture thread
@@ -136,6 +215,9 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPriori
     // Attempt to connect to camera
     if (m_captureThread->connectToCamera())
     {
+        // Set initial frame label size
+        adjustSize();
+
         // Create processing thread
         m_processingThread = new ProcessingThread(m_sharedImageBuffer, m_deviceNumber);
         // Create image processing settings dialog
@@ -150,10 +232,10 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPriori
         // Only enable ROI setting/resetting if frame processing is enabled
         if(enableFrameProcessing)
         {
-            connect(ui->frameLabel, &FrameLabel::newMouseData, this, &CameraView::newMouseData);
+            connect(m_frameLabel, &FrameLabel::newMouseData, this, &CameraView::newMouseData);
         }
         // Set initial data in processing thread
-        emit setRoi(QRect(0, 0, m_captureThread->getInputSourceWidth(), m_captureThread->getInputSourceHeight()));
+        emit setRoi(QRect(0, 0, m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH), m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
         emit newImageProcessingFlags(m_imageProcessingFlags);
         m_imageProcessingSettingsDialog->updateStoredSettingsFromDialog();
 
@@ -166,19 +248,19 @@ bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPriori
         }
 
         // Setup imageBufferBar with minimum and maximum values
-        ui->imageBufferBar->setMinimum(0);
-        ui->imageBufferBar->setMaximum(m_sharedImageBuffer->get(m_deviceNumber)->maxSize());
+        m_imageBufferStatusProgressBar->setMinimum(0);
+        m_imageBufferStatusProgressBar->setMaximum(m_sharedImageBuffer->get(m_deviceNumber)->maxSize());
         // Enable "Clear Image Buffer" push button
-        ui->clearImageBufferButton->setEnabled(true);
+        m_clearImageBufferButton->setEnabled(true);
         // Set text in labels
-        ui->deviceNumberLabel->setNum(m_deviceNumber);
-        ui->cameraResolutionLabel->setText(QString::number(m_captureThread->getInputSourceWidth()) + QString("x") + QString::number(m_captureThread->getInputSourceHeight()));
+        m_deviceNumberLabel->setNum(m_deviceNumber);
+        m_cameraResolutionLabel->setText(QString::number(m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH)) + QString("x") + QString::number(m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
         // Set internal flag and return
         m_isCameraConnected = true;
         // Set frame label text
         if(!enableFrameProcessing)
         {
-            ui->frameLabel->setText(tr("Frame processing disabled."));
+            m_frameLabel->setText(tr("Frame processing disabled."));
         }
 
         return true;
@@ -219,26 +301,26 @@ void CameraView::stopProcessingThread()
 void CameraView::updateCaptureThreadStatistics(ThreadStatisticsData data)
 {
     // Show percentage of image bufffer full in progress bar
-    ui->imageBufferBar->setValue(m_sharedImageBuffer->get(m_deviceNumber)->size());
+    m_imageBufferStatusProgressBar->setValue(m_sharedImageBuffer->get(m_deviceNumber)->size());
     // Show processing rate in label
-    ui->captureRateLabel->setText(QString("%1 fps").arg(data.averageFps));
+    m_captureRateLabel->setText(QString("%1 fps").arg(data.averageFps));
     // Show number of frames captured in label
-    ui->nFramesCapturedLabel->setText(QString("[%1]").arg(data.nFramesProcessed));
+    m_nFramesCapturedLabel->setText(QString("[%1]").arg(data.nFramesProcessed));
 }
 
 void CameraView::updateProcessingThreadStatistics(ThreadStatisticsData data)
 {
     // Show ROI information in label   
-    ui->roiLabel->setText(QString("(%1, %2) %3x%4").arg(m_processingThread->currentRoi().x()).arg(m_processingThread->currentRoi().y()).arg(m_processingThread->currentRoi().width()).arg(m_processingThread->currentRoi().height()));
+    m_roiLabel->setText(QString("(%1, %2) %3x%4").arg(m_processingThread->currentRoi().x()).arg(m_processingThread->currentRoi().y()).arg(m_processingThread->currentRoi().width()).arg(m_processingThread->currentRoi().height()));
     // Show processing rate in label
-    ui->processingRateLabel->setText(QString("%1 fps").arg(data.averageFps));
+    m_processingRateLabel->setText(QString("%1 fps").arg(data.averageFps));
     // Show number of frames processed in label
-    ui->nFramesProcessedLabel->setText(QString("[%1]").arg(data.nFramesProcessed));
+    m_nFramesProcessedLabel->setText(QString("[%1]").arg(data.nFramesProcessed));
 }
 
 void CameraView::updateFrame(const QImage &frame)
 {
-    ui->frameLabel->setPixmap(QPixmap::fromImage(frame).scaled(ui->frameLabel->width(), ui->frameLabel->height(), Qt::KeepAspectRatio));
+    m_frameLabel->setPixmap(QPixmap::fromImage(frame).scaled(m_frameLabel->width(), m_frameLabel->height(), Qt::KeepAspectRatio));
 }
 
 void CameraView::clearImageBuffer()
@@ -265,27 +347,27 @@ void CameraView::setImageProcessingSettings()
 void CameraView::updateMouseCursorPosLabel()
 {
     // Update mouse cursor position in label
-    ui->mouseCursorPosLabel->setText(QString("(%1, %2)").arg(ui->frameLabel->getMouseCursorPos().x()).arg((ui->frameLabel->getMouseCursorPos().y())));
+    m_mouseCursorPosLabel->setText(QString("(%1, %2)").arg(m_frameLabel->getMouseCursorPos().x()).arg((m_frameLabel->getMouseCursorPos().y())));
 
     // Also show pixel cursor position if camera is connected (frame is being shown)
-    if(ui->frameLabel->pixmap() != 0)
+    if(m_frameLabel->pixmap() != 0)
     {
         // Scaling factor calculation depends on whether frame is scaled to fit label or not
         double xScalingFactor;
         double yScalingFactor;
-        if(!ui->frameLabel->hasScaledContents())
+        if(!m_frameLabel->hasScaledContents())
         {
-            xScalingFactor = ((double)ui->frameLabel->getMouseCursorPos().x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double)ui->frameLabel->pixmap()->width();
-            yScalingFactor = ((double)ui->frameLabel->getMouseCursorPos().y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double)ui->frameLabel->pixmap()->height();
+            xScalingFactor = ((double)m_frameLabel->getMouseCursorPos().x() - ((m_frameLabel->width() - m_frameLabel->pixmap()->width()) / 2)) / (double)m_frameLabel->pixmap()->width();
+            yScalingFactor = ((double)m_frameLabel->getMouseCursorPos().y() - ((m_frameLabel->height() - m_frameLabel->pixmap()->height()) / 2)) / (double)m_frameLabel->pixmap()->height();
         }
         else
         {
-            xScalingFactor = (double)ui->frameLabel->getMouseCursorPos().x() / (double)ui->frameLabel->width();
-            yScalingFactor = (double)ui->frameLabel->getMouseCursorPos().y() / (double)ui->frameLabel->height();
+            xScalingFactor = (double)m_frameLabel->getMouseCursorPos().x() / (double)m_frameLabel->width();
+            yScalingFactor = (double)m_frameLabel->getMouseCursorPos().y() / (double)m_frameLabel->height();
         }
 
         // Append text to label
-        ui->mouseCursorPosLabel->setText(QString("%1 [%2, %3]").arg(ui->mouseCursorPosLabel->text()).arg((int)(xScalingFactor*m_processingThread->currentRoi().width())).arg((int)(yScalingFactor*m_processingThread->currentRoi().height())));
+        m_mouseCursorPosLabel->setText(QString("%1 [%2, %3]").arg(m_mouseCursorPosLabel->text()).arg((int)(xScalingFactor*m_processingThread->currentRoi().width())).arg((int)(yScalingFactor*m_processingThread->currentRoi().height())));
     }
 }
 
@@ -303,19 +385,19 @@ void CameraView::newMouseData(MouseData mouseData)
         double hScalingFactor;
 
         // Selection box calculation depends on whether frame is scaled to fit label or not
-        if(!ui->frameLabel->hasScaledContents())
+        if(!m_frameLabel->hasScaledContents())
         {
-            xScalingFactor = ((double)mouseData.selectionBox.x() - ((ui->frameLabel->width() - ui->frameLabel->pixmap()->width()) / 2)) / (double)ui->frameLabel->pixmap()->width();
-            yScalingFactor = ((double)mouseData.selectionBox.y() - ((ui->frameLabel->height() - ui->frameLabel->pixmap()->height()) / 2)) / (double)ui->frameLabel->pixmap()->height();
-            wScalingFactor = (double)m_processingThread->currentRoi().width() / (double)ui->frameLabel->pixmap()->width();
-            hScalingFactor = (double)m_processingThread->currentRoi().height() / (double)ui->frameLabel->pixmap()->height();
+            xScalingFactor = ((double)mouseData.selectionBox.x() - ((m_frameLabel->width() - m_frameLabel->pixmap()->width()) / 2)) / (double)m_frameLabel->pixmap()->width();
+            yScalingFactor = ((double)mouseData.selectionBox.y() - ((m_frameLabel->height() - m_frameLabel->pixmap()->height()) / 2)) / (double)m_frameLabel->pixmap()->height();
+            wScalingFactor = (double)m_processingThread->currentRoi().width() / (double)m_frameLabel->pixmap()->width();
+            hScalingFactor = (double)m_processingThread->currentRoi().height() / (double)m_frameLabel->pixmap()->height();
         }
         else
         {
-            xScalingFactor = (double)mouseData.selectionBox.x() / (double)ui->frameLabel->width();
-            yScalingFactor = (double)mouseData.selectionBox.y() / (double)ui->frameLabel->height();
-            wScalingFactor = (double)m_processingThread->currentRoi().width() / (double)ui->frameLabel->width();
-            hScalingFactor = (double)m_processingThread->currentRoi().height() / (double)ui->frameLabel->height();
+            xScalingFactor = (double)mouseData.selectionBox.x() / (double)m_frameLabel->width();
+            yScalingFactor = (double)mouseData.selectionBox.y() / (double)m_frameLabel->height();
+            wScalingFactor = (double)m_processingThread->currentRoi().width() / (double)m_frameLabel->width();
+            hScalingFactor = (double)m_processingThread->currentRoi().height() / (double)m_frameLabel->height();
         }
 
         // Set selection box properties (new ROI)
@@ -366,11 +448,11 @@ void CameraView::handleContextMenuAction(QAction *action)
 {
     if(action->text() == "Reset ROI")
     {
-        emit setRoi(QRect(0, 0, m_captureThread->getInputSourceWidth(), m_captureThread->getInputSourceHeight()));
+        emit setRoi(QRect(0, 0, m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH), m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
     }
     else if(action->text() == "Scale to Fit Frame")
     {
-        ui->frameLabel->setScaledContents(action->isChecked());
+        m_frameLabel->setScaledContents(action->isChecked());
     }
     else if(action->text() == "Grayscale")
     {

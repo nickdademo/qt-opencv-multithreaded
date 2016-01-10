@@ -48,9 +48,10 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
 {
+    // Metatypes
+    qRegisterMetaType<ThreadStatisticsData>("ThreadStatisticsData");
     // Create SharedImageBuffer instance
     m_sharedImageBuffer = new SharedImageBuffer();
-
     // Initialize UI
     initUi();
 }

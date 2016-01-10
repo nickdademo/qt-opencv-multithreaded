@@ -37,14 +37,15 @@
 
 #include "Structures.h"
 
-namespace Ui {
-    class CameraView;
-}
-
+class FrameLabel;
 class ProcessingThread;
 class CaptureThread;
 class SharedImageBuffer;
 class ImageProcessingSettingsDialog;
+
+class QProgressBar;
+class QPushButton;
+class QLabel;
 
 class CameraView : public QWidget
 {
@@ -58,9 +59,22 @@ class CameraView : public QWidget
     private:
         void stopCaptureThread();
         void stopProcessingThread();
-        Ui::CameraView *ui;
+
+        FrameLabel *m_frameLabel;
+        QLabel *m_captureRateLabel;
+        QLabel *m_nFramesCapturedLabel;
+        QLabel *m_processingRateLabel;
+        QLabel *m_nFramesProcessedLabel;
+        QLabel *m_deviceNumberLabel;
+        QLabel *m_cameraResolutionLabel;
+        QLabel *m_roiLabel;
+        QLabel *m_mouseCursorPosLabel;
+        QProgressBar *m_imageBufferStatusProgressBar;
+        QPushButton *m_clearImageBufferButton;
+
         int m_deviceNumber;
         bool m_isCameraConnected;
+
         ProcessingThread *m_processingThread;
         CaptureThread *m_captureThread;
         SharedImageBuffer *m_sharedImageBuffer;
