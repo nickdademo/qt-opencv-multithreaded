@@ -78,12 +78,12 @@ void ProcessingThread::run()
         // Example of how to grab a frame from another stream (where Device Number=1)
         // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
         /*
-        if(sharedImageBuffer->contains(1))
+        if (m_sharedImageBuffer->contains(1))
         {
             // Grab frame from another stream (connected to camera with Device Number=1)
-            cv::Mat frameFromAnotherStream = cv::Mat(sharedImageBuffer->get(1)->getFrame(), currentRoi);
+            cv::Mat frameFromAnotherStream = cv::Mat(m_sharedImageBuffer->get(1)->get(), m_currentRoi);
             // Linear blend images together using OpenCV and save the result to currentFrame. Note: beta = 1 - alpha
-            cv::addWeighted(frameFromAnotherStream, 0.5, currentFrame, 0.5, 0.0, currentFrame);
+            cv::addWeighted(frameFromAnotherStream, 0.5, m_currentFrame, 0.5, 0.0, m_currentFrame);
         }
         */
 

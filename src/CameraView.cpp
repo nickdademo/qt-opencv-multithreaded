@@ -94,6 +94,7 @@ CameraView::CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, 
     captureRateLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     captureRateLabel->setFont(boldFont);
     m_captureRateLabel = new QLabel;
+    m_captureRateLabel->setText("-");
     m_captureRateLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     m_nFramesCapturedLabel = new QLabel;
     m_nFramesCapturedLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -105,6 +106,7 @@ CameraView::CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, 
     processingRateLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     processingRateLabel->setFont(boldFont);
     m_processingRateLabel = new QLabel;
+    m_processingRateLabel->setText("-");
     m_processingRateLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     m_nFramesProcessedLabel = new QLabel;
     m_nFramesProcessedLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -116,6 +118,7 @@ CameraView::CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, 
     roiLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     roiLabel->setFont(boldFont);
     m_roiLabel = new QLabel;
+    m_roiLabel->setText("-");
     m_roiLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     gridLayout->addWidget(roiLabel, 4, 0);
     gridLayout->addWidget(m_roiLabel, 4, 1);
@@ -226,8 +229,20 @@ bool CameraView::connectToCamera()
     // Attempt to connect to camera
     if (m_captureThread->connectToCamera())
     {
+        // Create processing thread
+        m_processingThread = new ProcessingThread(m_sharedImageBuffer, m_settings.deviceNumber);
+        m_processingThread->setRoi(QRect(0, 0, m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH), m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
+
         // Add image buffer to SharedImageBuffer object
         m_sharedImageBuffer->add(m_settings.deviceNumber, m_imageBuffer, m_settings.streamControl);
+
+        // Start capturing frames from camera
+        m_captureThread->start(m_settings.captureThreadPriority);
+        // Start processing captured frames (if enabled)
+        if (m_settings.enableFrameProcessing)
+        {
+            m_processingThread->start(m_settings.processingThreadPriority);
+        }
 
         // Update UI
         m_frameLabel->setText(tr("Camera connected."));
@@ -236,31 +251,6 @@ bool CameraView::connectToCamera()
         m_clearImageBufferButton->setEnabled(true);
         m_imageBufferStatusProgressBar->setMinimum(0);
         m_imageBufferStatusProgressBar->setMaximum(m_sharedImageBuffer->get(m_settings.deviceNumber)->maxSize());
-
-        // Create processing thread
-        m_processingThread = new ProcessingThread(m_sharedImageBuffer, m_settings.deviceNumber);
-        m_processingThread->setRoi(QRect(0, 0, m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH), m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
-
-        // Setup signal/slot connections
-        connect(m_processingThread, &ProcessingThread::newFrame, this, &CameraView::updateFrame);
-        connect(m_processingThread, &ProcessingThread::newStatistics, this, &CameraView::updateProcessingThreadStatistics);
-        connect(m_captureThread, &CaptureThread::newStatistics, this, &CameraView::updateCaptureThreadStatistics);
-        connect(this, &CameraView::setRoi, m_processingThread, &ProcessingThread::setRoi);
-        // Only enable ROI setting if frame processing is enabled
-        if (m_settings.enableFrameProcessing)
-        {
-            connect(m_frameLabel, &FrameLabel::newSelection, this, &CameraView::onNewSelection);
-        }
-
-        // Start capturing frames from camera
-        m_captureThread->start(m_settings.captureThreadPriority);
-
-        // Start processing captured frames (if enabled)
-        if (m_settings.enableFrameProcessing)
-        {
-            m_processingThread->start(m_settings.processingThreadPriority);
-        }
-
         return true;
     }
     
@@ -417,7 +407,7 @@ void CameraView::onNewSelection(QRect box)
         // Set ROI
         else
         {
-            emit setRoi(selectionBox);
+            m_processingThread->setRoi(selectionBox);
         }
     }
 }
@@ -443,6 +433,18 @@ void CameraView::onStreamRun(int deviceNumber)
         m_streamControlRunButton->setEnabled(false);
         m_streamControlPauseButton->setEnabled(true);
         m_streamControlStatusLabel->setText(tr("Running"));
+        // Only enable ROI setting if frame processing is enabled
+        if (m_settings.enableFrameProcessing)
+        {
+            disconnect(m_newSelectionConnection);
+            m_newSelectionConnection = connect(m_frameLabel, &FrameLabel::newSelection, this, &CameraView::onNewSelection);
+        }
+        disconnect(m_captureStatisticsConnection);
+        m_captureStatisticsConnection = connect(m_captureThread, &CaptureThread::newStatistics, this, &CameraView::updateCaptureThreadStatistics);
+        disconnect(m_processingStatisticsConnection);
+        m_processingStatisticsConnection = connect(m_processingThread, &ProcessingThread::newStatistics, this, &CameraView::updateProcessingThreadStatistics);
+        disconnect(m_newFrameConnection);
+        m_newFrameConnection = connect(m_processingThread, &ProcessingThread::newFrame, this, &CameraView::updateFrame);
     }
 }
 
@@ -453,5 +455,12 @@ void CameraView::onStreamPaused(int deviceNumber)
         m_streamControlRunButton->setEnabled(true);
         m_streamControlPauseButton->setEnabled(false);
         m_streamControlStatusLabel->setText(tr("Paused"));
+        disconnect(m_newSelectionConnection);
+        disconnect(m_captureStatisticsConnection);
+        disconnect(m_processingStatisticsConnection);
+        disconnect(m_newFrameConnection);
+        m_captureRateLabel->setText("-");
+        m_processingRateLabel->setText("-");
+        m_frameLabel->clear();
     }
 }

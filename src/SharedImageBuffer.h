@@ -53,7 +53,7 @@ class SharedImageBuffer : public QObject
         {
             Run,
             Pause,
-            Sync
+            Synchronize
         };
         SharedImageBuffer();
         void add(int deviceNumber, Buffer<cv::Mat> *imageBuffer, StreamControl streamControl);

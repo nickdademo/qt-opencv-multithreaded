@@ -46,16 +46,14 @@ QImage MatToQImage(const cv::Mat& mat)
         }
 
         // Create QImage from cv::Mat
-        const unsigned char *qImageBuffer = (const unsigned char*)mat.data;
-        QImage img(qImageBuffer, mat.cols, mat.rows, (int)mat.step, QImage::Format_Indexed8);
+        QImage img(mat.data, mat.cols, mat.rows, (int)mat.step, QImage::Format_Indexed8);
         img.setColorTable(colorTable);
         return img;
     }
     else if(mat.type() == CV_8UC3)
     {
         // Create QImage from cv::Mat
-        const unsigned char *qImageBuffer = (const unsigned char*)mat.data;
-        return QImage(qImageBuffer, mat.cols, mat.rows, (int)mat.step, QImage::Format_RGB888).rgbSwapped();
+        return QImage(mat.data, mat.cols, mat.rows, (int)mat.step, QImage::Format_RGB888).rgbSwapped();
     }
     else
     {

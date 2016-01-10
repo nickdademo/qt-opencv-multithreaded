@@ -80,7 +80,7 @@ void SharedImageBuffer::streamControl(int deviceNumber)
             semaphore->release();
         }
     }
-    else if (streamControl == StreamControl::Sync)
+    else if (streamControl == StreamControl::Synchronize)
     {
         m_syncedStreams.wait(&m_mutex);
     }
@@ -112,7 +112,7 @@ void SharedImageBuffer::setStreamControl(int deviceNumber, StreamControl streamC
 
         emit streamPaused(deviceNumber);
     }
-    else if (streamControl == StreamControl::Sync)
+    else if (streamControl == StreamControl::Synchronize)
     {
 
     }

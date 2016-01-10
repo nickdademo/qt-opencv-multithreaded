@@ -99,6 +99,10 @@ class CameraView : public QWidget
         SharedImageBuffer *m_sharedImageBuffer;
         ImageProcessing m_imageProcessing;
         Settings m_settings;
+        QMetaObject::Connection m_newSelectionConnection;
+        QMetaObject::Connection m_captureStatisticsConnection;
+        QMetaObject::Connection m_processingStatisticsConnection;
+        QMetaObject::Connection m_newFrameConnection;
 
     private slots:
         void onNewSelection(QRect box);
@@ -115,7 +119,6 @@ class CameraView : public QWidget
 
     signals:
         void updateImageProcessing(ImageProcessing imageProcessing);
-        void setRoi(QRect roi);
 };
 
 #endif // CAMERAVIEW_H

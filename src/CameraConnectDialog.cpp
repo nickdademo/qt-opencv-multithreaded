@@ -71,7 +71,7 @@ CameraConnectDialog::CameraConnectDialog(int nextDeviceNumber, QWidget *parent) 
     m_streamControlComboBox = new QComboBox;
     m_streamControlComboBox->addItem(tr("Run"), (int)SharedImageBuffer::StreamControl::Run);
     m_streamControlComboBox->addItem(tr("Pause"), (int)SharedImageBuffer::StreamControl::Pause);
-    m_streamControlComboBox->addItem(tr("Synchronize"), (int)SharedImageBuffer::StreamControl::Sync);
+    m_streamControlComboBox->addItem(tr("Synchronize"), (int)SharedImageBuffer::StreamControl::Synchronize);
     mainLayout->addWidget(streamControlLabel, 2, 0);
     mainLayout->addWidget(m_streamControlComboBox, 2, 1);
 
@@ -83,6 +83,10 @@ CameraConnectDialog::CameraConnectDialog(int nextDeviceNumber, QWidget *parent) 
     m_cameraDeviceNumberLineEdit = new QLineEdit;
     cameraGridLayout->addWidget(cameraDeviceNumberLabel, 0, 0);
     cameraGridLayout->addWidget(m_cameraDeviceNumberLineEdit, 0, 1);
+    // Device Number Validator
+    QRegExp rx1("^[0-9]{1,3}$"); // Integers 0 to 999
+    QRegExpValidator *validator1 = new QRegExpValidator(rx1, 0);
+    m_cameraDeviceNumberLineEdit->setValidator(validator1);
     // Resolution
     QLabel *cameraResolutionLabel = new QLabel(tr("Resolution (W x H)") + ":");
     m_cameraResolutionWidthLineEdit = new QLineEdit;
@@ -92,6 +96,14 @@ CameraConnectDialog::CameraConnectDialog(int nextDeviceNumber, QWidget *parent) 
     cameraGridLayout->addWidget(new QLabel("x"), 1, 2);
     cameraGridLayout->addWidget(m_cameraResolutionHeightLineEdit, 1, 3);
     cameraGridLayout->addWidget(new QLabel("(optional)"), 1, 4);
+    // Resolution (Width) Validator
+    QRegExp rx2("^[0-9]{1,4}$"); // Integers 0 to 9999
+    QRegExpValidator *validator2 = new QRegExpValidator(rx2, 0);
+    m_cameraResolutionWidthLineEdit->setValidator(validator2);
+    // Resolution (Height) Validator
+    QRegExp rx3("^[0-9]{1,4}$"); // Integers 0 to 9999
+    QRegExpValidator *validator3 = new QRegExpValidator(rx3, 0);
+    m_cameraResolutionHeightLineEdit->setValidator(validator3);
 
     cameraGroupBox->setLayout(cameraGridLayout);
     mainLayout->addWidget(cameraGroupBox, 3, 0, 1, 2);
@@ -104,6 +116,10 @@ CameraConnectDialog::CameraConnectDialog(int nextDeviceNumber, QWidget *parent) 
     m_imageBufferSizeLineEdit = new QLineEdit;
     imageBufferGridLayout->addWidget(imageBufferSizeLabel, 0, 0);
     imageBufferGridLayout->addWidget(m_imageBufferSizeLineEdit, 0, 1);
+    // Image Buffer Size Validator
+    QRegExp rx4("^[0-9]{1,4}$"); // Integers 0 to 9999
+    QRegExpValidator *validator4 = new QRegExpValidator(rx4, 0);
+    m_imageBufferSizeLineEdit->setValidator(validator4);
     // Drop Frame if Buffer is Full
     m_dropFrameIfBufferFullCheckbox = new QCheckBox(tr("Drop frame if buffer full"));
     imageBufferGridLayout->addWidget(m_dropFrameIfBufferFullCheckbox, 1, 0, 1, 2);

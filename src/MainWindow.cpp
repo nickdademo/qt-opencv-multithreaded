@@ -152,7 +152,7 @@ void MainWindow::connectToCamera()
         if (result)
         {
             // Check if stream synchronization is enabled
-            if (dialog.settings().streamControl == SharedImageBuffer::StreamControl::Sync)
+            if (dialog.settings().streamControl == SharedImageBuffer::StreamControl::Synchronize)
             {
                 // Prompt user
                 QMessageBox::StandardButton ret = QMessageBox::question(
