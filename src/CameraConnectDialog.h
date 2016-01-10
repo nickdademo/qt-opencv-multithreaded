@@ -65,6 +65,7 @@ class CameraConnectDialog : public QDialog
         QLineEdit *m_tabNameLineEdit;
         QCheckBox *m_enableFrameProcessingCheckbox;
         QComboBox *m_streamControlComboBox;
+        QCheckBox *m_syncStreamCheckbox;
 
     private slots:
         void resetToDefaults();

@@ -52,24 +52,36 @@ class SharedImageBuffer : public QObject
         enum class StreamControl
         {
             Run,
-            Pause,
-            Synchronize
+            Pause
         };
         SharedImageBuffer();
-        void add(int deviceNumber, Buffer<cv::Mat> *imageBuffer, StreamControl streamControl);
+        void add(int deviceNumber, Buffer<cv::Mat> *imageBuffer, StreamControl streamControl, bool sync);
         Buffer<cv::Mat>* get(int deviceNumber);
         void remove(int deviceNumber);
         bool contains(int deviceNumber);
 
         void setStreamControl(int deviceNumber, StreamControl streamControl);
+        StreamControl getStreamControl(int deviceNumber);
         void streamControl(int deviceNumber);
 
+        void startSync();
+        void stopSync();
+        bool isSyncInProgress()
+        {
+            return m_doSync;
+        }
+        bool isSyncEnabled(int deviceNumber);
+
     private:
+        void _setStreamControl(int deviceNumber, StreamControl streamControl);
         QHash<int, Buffer<cv::Mat>*> m_imageBufferMap;
         QHash<int, StreamControl> m_streamControlMap;
         QHash<int, QSemaphore*> m_runPauseStreamMap;
         QWaitCondition m_syncedStreams;
+        QSet<int> m_syncSet;
         QMutex m_mutex;
+        bool m_doSync;
+        int m_nArrived;
 
     signals:
         void streamRun(int deviceNumber);

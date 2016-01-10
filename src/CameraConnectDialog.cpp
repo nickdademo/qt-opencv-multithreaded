@@ -59,21 +59,24 @@ CameraConnectDialog::CameraConnectDialog(int nextDeviceNumber, QWidget *parent) 
     // Tab Name
     QLabel *tabNameLabel = new QLabel(tr("Tab Name") + ":");
     m_tabNameLineEdit = new QLineEdit;
-    mainLayout->addWidget(tabNameLabel, 0, 0);
-    mainLayout->addWidget(m_tabNameLineEdit, 0, 1);
+    mainLayout->addWidget(tabNameLabel, 0, 0, 1, 2);
+    mainLayout->addWidget(m_tabNameLineEdit, 0, 2, 1, 2);
 
     // Enable Frame Processing
     m_enableFrameProcessingCheckbox = new QCheckBox(tr("Enable frame processing"));
-    mainLayout->addWidget(m_enableFrameProcessingCheckbox, 1, 0, 1, 2);
+    mainLayout->addWidget(m_enableFrameProcessingCheckbox, 1, 0, 1, 4);
 
     // Stream Control
     QLabel *streamControlLabel = new QLabel(tr("Stream Control") + ":");
     m_streamControlComboBox = new QComboBox;
     m_streamControlComboBox->addItem(tr("Run"), (int)SharedImageBuffer::StreamControl::Run);
     m_streamControlComboBox->addItem(tr("Pause"), (int)SharedImageBuffer::StreamControl::Pause);
-    m_streamControlComboBox->addItem(tr("Synchronize"), (int)SharedImageBuffer::StreamControl::Synchronize);
     mainLayout->addWidget(streamControlLabel, 2, 0);
-    mainLayout->addWidget(m_streamControlComboBox, 2, 1);
+    mainLayout->addWidget(m_streamControlComboBox, 2, 1, 1, 2);
+
+    // Synchronize Stream
+    m_syncStreamCheckbox = new QCheckBox(tr("Synchronize stream"));
+    mainLayout->addWidget(m_syncStreamCheckbox, 2, 3);
 
     // Camera group box
     QGroupBox *cameraGroupBox = new QGroupBox(tr("Camera"));
@@ -106,7 +109,7 @@ CameraConnectDialog::CameraConnectDialog(int nextDeviceNumber, QWidget *parent) 
     m_cameraResolutionHeightLineEdit->setValidator(validator3);
 
     cameraGroupBox->setLayout(cameraGridLayout);
-    mainLayout->addWidget(cameraGroupBox, 3, 0, 1, 2);
+    mainLayout->addWidget(cameraGroupBox, 3, 0, 1, 4);
 
     // Image Buffer group box
     QGroupBox *imageBufferGroupBox = new QGroupBox(tr("Image Buffer"));
@@ -125,7 +128,7 @@ CameraConnectDialog::CameraConnectDialog(int nextDeviceNumber, QWidget *parent) 
     imageBufferGridLayout->addWidget(m_dropFrameIfBufferFullCheckbox, 1, 0, 1, 2);
 
     imageBufferGroupBox->setLayout(imageBufferGridLayout);
-    mainLayout->addWidget(imageBufferGroupBox, 4, 0, 1, 2);
+    mainLayout->addWidget(imageBufferGroupBox, 4, 0, 1, 4);
 
     // Thread Priorities group box
     QGroupBox *threadPrioritiesGroupBox = new QGroupBox(tr("Thread Priorities"));
@@ -156,24 +159,24 @@ CameraConnectDialog::CameraConnectDialog(int nextDeviceNumber, QWidget *parent) 
     threadPrioritiesGridLayout->addWidget(m_processingThreadPriorityComboBox, 1, 1);
 
     threadPrioritiesGroupBox->setLayout(threadPrioritiesGridLayout);
-    mainLayout->addWidget(threadPrioritiesGroupBox, 5, 0, 1, 2);
+    mainLayout->addWidget(threadPrioritiesGroupBox, 5, 0, 1, 4);
 
     // Horizontal line
     QFrame *horizontalLine = new QFrame;
     horizontalLine->setFrameShape(QFrame::HLine);
     horizontalLine->setFrameShadow(QFrame::Sunken);
-    mainLayout->addWidget(horizontalLine, 6, 0, 1, 2);
+    mainLayout->addWidget(horizontalLine, 6, 0, 1, 4);
 
     // Reset to Defaults
     QPushButton *resetToDefaultsButton = new QPushButton(tr("Reset to Defaults"));
     connect(resetToDefaultsButton, &QPushButton::released, this, &CameraConnectDialog::resetToDefaults);
-    mainLayout->addWidget(resetToDefaultsButton, 7, 0, 1, 2);
+    mainLayout->addWidget(resetToDefaultsButton, 7, 0, 1, 4);
 
     // Dialog button
     QDialogButtonBox *dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
     connect(dialogButtonBox->button(QDialogButtonBox::Ok), &QPushButton::released, this, &CameraConnectDialog::accept);
     connect(dialogButtonBox->button(QDialogButtonBox::Cancel), &QPushButton::released, this, &CameraConnectDialog::reject);
-    mainLayout->addWidget(dialogButtonBox, 8, 0, 1, 2);
+    mainLayout->addWidget(dialogButtonBox, 8, 0, 1, 4);
 
     // Update UI
     updateUi();
@@ -195,6 +198,7 @@ void CameraConnectDialog::updateUi()
     m_tabNameLineEdit->setText("");
     m_enableFrameProcessingCheckbox->setChecked(DEFAULT_ENABLE_FRAME_PROCESSING);
     setComboBoxByData(m_streamControlComboBox, (int)SharedImageBuffer::StreamControl::Run, index);
+    m_syncStreamCheckbox->setChecked(false);
 }
 
 CameraView::Settings CameraConnectDialog::settings()
@@ -209,6 +213,7 @@ CameraView::Settings CameraConnectDialog::settings()
     settings.processingThreadPriority = (QThread::Priority)m_processingThreadPriorityComboBox->currentData().toInt();
     settings.enableFrameProcessing = m_enableFrameProcessingCheckbox->isChecked();
     settings.streamControl = (SharedImageBuffer::StreamControl)m_streamControlComboBox->currentData().toInt();
+    settings.synchronizeStream = m_syncStreamCheckbox->isChecked();
     return settings;
 }
 

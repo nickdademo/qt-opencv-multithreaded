@@ -69,6 +69,7 @@ class CameraView : public QWidget
                 bool enableFrameProcessing;
                 int width;
                 int height;
+                bool synchronizeStream;
         };
         CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, QWidget *parent = 0);
         ~CameraView();
@@ -116,6 +117,8 @@ class CameraView : public QWidget
         void pauseStream();
         void onStreamRun(int deviceNumber);
         void onStreamPaused(int deviceNumber);
+        void onSyncStarted();
+        void onSyncStopped();
 
     signals:
         void updateImageProcessing(ImageProcessing imageProcessing);

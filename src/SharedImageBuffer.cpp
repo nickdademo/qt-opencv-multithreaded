@@ -36,17 +36,25 @@
 
 SharedImageBuffer::SharedImageBuffer()
 {
+    m_doSync = false;
+    m_nArrived = 0;
 }
 
-void SharedImageBuffer::add(int deviceNumber, Buffer<cv::Mat>* imageBuffer, StreamControl streamControl)
+void SharedImageBuffer::add(int deviceNumber, Buffer<cv::Mat>* imageBuffer, StreamControl streamControl, bool sync)
 {
+    QMutexLocker locker(&m_mutex);
+
     // Add to maps
     m_imageBufferMap[deviceNumber] = imageBuffer;
+    if (sync)
+    {
+        m_syncSet.insert(deviceNumber);
+    }
     if (!m_runPauseStreamMap.contains(deviceNumber))
     {
         QSemaphore *semaphore = new QSemaphore(0);
         m_runPauseStreamMap[deviceNumber] = semaphore;
-        setStreamControl(deviceNumber, streamControl);
+        _setStreamControl(deviceNumber, streamControl);
     }
 }
 
@@ -57,8 +65,11 @@ Buffer<cv::Mat>* SharedImageBuffer::get(int deviceNumber)
 
 void SharedImageBuffer::remove(int deviceNumber)
 {
+    QMutexLocker locker(&m_mutex);
+
     // Remove from maps
     m_imageBufferMap.remove(deviceNumber);
+    m_syncSet.remove(deviceNumber);
     m_streamControlMap.remove(deviceNumber);
     m_runPauseStreamMap.remove(deviceNumber);
 }
@@ -66,30 +77,52 @@ void SharedImageBuffer::remove(int deviceNumber)
 void SharedImageBuffer::streamControl(int deviceNumber)
 {
     m_mutex.lock();
-    StreamControl streamControl = m_streamControlMap[deviceNumber];
+    QSemaphore *semaphore = m_runPauseStreamMap[deviceNumber];
+    m_mutex.unlock();
 
-    if (streamControl == StreamControl::Run || streamControl == StreamControl::Pause)
+    // Wait if paused (i.e. if no semaphore is available)
+    if (semaphore->available() == 0)
     {
-        QSemaphore *semaphore = m_runPauseStreamMap[deviceNumber];
-        m_mutex.unlock();
+        semaphore->acquire();
+        semaphore->release();
+    }
 
-        // Wait if paused (i.e. if no semaphore is available)
-        if (semaphore->available() == 0)
+    // Perform sync if enabled
+    m_mutex.lock();
+    if (m_syncSet.contains(deviceNumber))
+    {
+        // Increment arrived count
+        m_nArrived++;
+        // We are the last to arrive: wake all waiting threads
+        if (m_doSync && (m_nArrived == m_syncSet.size()))
         {
-            semaphore->acquire();
-            semaphore->release();
+            m_syncedStreams.wakeAll();
         }
+        // Still waiting for other streams to arrive: wait
+        else
+        {
+            m_syncedStreams.wait(&m_mutex);
+        }
+        // Decrement arrived count
+        m_nArrived--;
     }
-    else if (streamControl == StreamControl::Synchronize)
-    {
-        m_syncedStreams.wait(&m_mutex);
-    }
+    m_mutex.unlock();
+}
+
+SharedImageBuffer::StreamControl SharedImageBuffer::getStreamControl(int deviceNumber)
+{
+    QMutexLocker locker(&m_mutex);
+    return m_streamControlMap[deviceNumber];
 }
 
 void SharedImageBuffer::setStreamControl(int deviceNumber, StreamControl streamControl)
 {
     QMutexLocker locker(&m_mutex);
+    _setStreamControl(deviceNumber, streamControl);
+}
 
+void SharedImageBuffer::_setStreamControl(int deviceNumber, StreamControl streamControl)
+{
     if (streamControl == StreamControl::Run)
     {
         // Run stream if no semaphore is available
@@ -112,10 +145,6 @@ void SharedImageBuffer::setStreamControl(int deviceNumber, StreamControl streamC
 
         emit streamPaused(deviceNumber);
     }
-    else if (streamControl == StreamControl::Synchronize)
-    {
-
-    }
 
     m_streamControlMap[deviceNumber] = streamControl;
 }
@@ -123,4 +152,25 @@ void SharedImageBuffer::setStreamControl(int deviceNumber, StreamControl streamC
 bool SharedImageBuffer::contains(int deviceNumber)
 {
     return m_imageBufferMap.contains(deviceNumber);
+}
+
+void SharedImageBuffer::startSync()
+{
+    QMutexLocker locker(&m_mutex);
+    m_doSync = true;
+    m_syncedStreams.wakeAll();
+    emit syncStarted();
+}
+
+void SharedImageBuffer::stopSync()
+{
+    QMutexLocker locker(&m_mutex);
+    m_doSync = false;
+    emit syncStopped();
+}
+
+bool SharedImageBuffer::isSyncEnabled(int deviceNumber)
+{
+    QMutexLocker locker(&m_mutex);
+    return m_syncSet.contains(deviceNumber);
 }

@@ -173,8 +173,11 @@ CameraView::CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, 
     setLayout(mainLayout);
 
     // Connections related to stream state
-    connect(m_sharedImageBuffer, &SharedImageBuffer::streamRun, this, &CameraView::onStreamRun);
-    connect(m_sharedImageBuffer, &SharedImageBuffer::streamPaused, this, &CameraView::onStreamPaused);
+    // We use Queued Connections here to prevent dead locks due to the SharedImageBuffer mutex
+    connect(m_sharedImageBuffer, &SharedImageBuffer::streamRun, this, &CameraView::onStreamRun, Qt::QueuedConnection);
+    connect(m_sharedImageBuffer, &SharedImageBuffer::streamPaused, this, &CameraView::onStreamPaused, Qt::QueuedConnection);
+    connect(m_sharedImageBuffer, &SharedImageBuffer::syncStarted, this, &CameraView::onSyncStarted, Qt::QueuedConnection);
+    connect(m_sharedImageBuffer, &SharedImageBuffer::syncStarted, this, &CameraView::onSyncStopped, Qt::QueuedConnection);
     // Create image buffer with user-defined size
     m_imageBuffer = new Buffer<cv::Mat>(settings.imageBufferSize);
 }
@@ -234,7 +237,7 @@ bool CameraView::connectToCamera()
         m_processingThread->setRoi(QRect(0, 0, m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH), m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
 
         // Add image buffer to SharedImageBuffer object
-        m_sharedImageBuffer->add(m_settings.deviceNumber, m_imageBuffer, m_settings.streamControl);
+        m_sharedImageBuffer->add(m_settings.deviceNumber, m_imageBuffer, m_settings.streamControl, m_settings.synchronizeStream);
 
         // Start capturing frames from camera
         m_captureThread->start(m_settings.captureThreadPriority);
@@ -432,7 +435,15 @@ void CameraView::onStreamRun(int deviceNumber)
     {
         m_streamControlRunButton->setEnabled(false);
         m_streamControlPauseButton->setEnabled(true);
-        m_streamControlStatusLabel->setText(tr("Running"));
+        if (m_sharedImageBuffer->isSyncEnabled(deviceNumber) && m_sharedImageBuffer->isSyncInProgress())
+        {
+            m_streamControlStatusLabel->setText(tr("Running (synchronized)"));
+        }
+        else
+        {
+            m_streamControlStatusLabel->setText(m_settings.synchronizeStream ? tr("Running (waiting for sync)") : tr("Running"));
+        }
+        
         // Only enable ROI setting if frame processing is enabled
         if (m_settings.enableFrameProcessing)
         {
@@ -454,7 +465,14 @@ void CameraView::onStreamPaused(int deviceNumber)
     {
         m_streamControlRunButton->setEnabled(true);
         m_streamControlPauseButton->setEnabled(false);
-        m_streamControlStatusLabel->setText(tr("Paused"));
+        if (m_sharedImageBuffer->isSyncEnabled(deviceNumber) && m_sharedImageBuffer->isSyncInProgress())
+        {
+            m_streamControlStatusLabel->setText(tr("Paused (synchronized)"));
+        }
+        else
+        {
+            m_streamControlStatusLabel->setText(m_settings.synchronizeStream ? tr("Paused (waiting for sync)") : tr("Paused"));
+        }
         disconnect(m_newSelectionConnection);
         disconnect(m_captureStatisticsConnection);
         disconnect(m_processingStatisticsConnection);
@@ -463,4 +481,25 @@ void CameraView::onStreamPaused(int deviceNumber)
         m_processingRateLabel->setText("-");
         m_frameLabel->clear();
     }
+}
+
+void CameraView::onSyncStarted()
+{
+    if (m_sharedImageBuffer->isSyncEnabled(m_settings.deviceNumber))
+    {
+        SharedImageBuffer::StreamControl streamControl = m_sharedImageBuffer->getStreamControl(m_settings.deviceNumber);
+        if (streamControl == SharedImageBuffer::StreamControl::Run)
+        {
+            m_streamControlStatusLabel->setText(tr("Running (synchronized)"));
+        }
+        else if (streamControl == SharedImageBuffer::StreamControl::Pause)
+        {
+            m_streamControlStatusLabel->setText(tr("Paused (synchronized)"));
+        }
+    }
+}
+
+void CameraView::onSyncStopped()
+{
+    // Do nothing
 }
