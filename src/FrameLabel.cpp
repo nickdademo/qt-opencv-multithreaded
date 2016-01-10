@@ -38,15 +38,13 @@
 #include <QMenu>
 
 FrameLabel::FrameLabel(QWidget *parent) : 
-    QLabel(parent)
+    QLabel(parent),
+    m_drawBox(false)
 {
     m_startPoint.setX(0);
     m_startPoint.setY(0);
     m_mouseCursorPos.setX(0);
     m_mouseCursorPos.setY(0);
-    m_drawBox = false;
-    m_mouseData.leftButtonRelease = false;
-    m_mouseData.rightButtonRelease = false;
     createContextMenu();
 }
 
@@ -82,24 +80,14 @@ void FrameLabel::mouseReleaseEvent(QMouseEvent *ev)
     // On left mouse button release
     if(ev->button() == Qt::LeftButton)
     {
-        // Set leftButtonRelease flag to TRUE
-        m_mouseData.leftButtonRelease = true;
         if (m_drawBox)
         {
             // Stop drawing box
             m_drawBox = false;
             // Save box dimensions
-            m_mouseData.selectionBox.setX(m_box->left());
-            m_mouseData.selectionBox.setY(m_box->top());
-            m_mouseData.selectionBox.setWidth(m_box->width());
-            m_mouseData.selectionBox.setHeight(m_box->height());
-            // Set leftButtonRelease flag to TRUE
-            m_mouseData.leftButtonRelease = true;
-            // Inform main window of event
-            emit newMouseData(m_mouseData);
+            QRect rect(m_box->left(), m_box->top(), m_box->width(), m_box->height());
+            emit newSelection(rect);
         }
-        // Set leftButtonRelease flag to FALSE
-        m_mouseData.leftButtonRelease = false;
     }
     // On right mouse button release
     else if(ev->button() == Qt::RightButton)
@@ -112,7 +100,7 @@ void FrameLabel::mouseReleaseEvent(QMouseEvent *ev)
         else
         {
             // Show context menu
-            menu->exec(ev->globalPos());
+            m_menu->exec(ev->globalPos());
         }
     }
 }
@@ -134,6 +122,7 @@ void FrameLabel::paintEvent(QPaintEvent *ev)
 {
     QLabel::paintEvent(ev);
     QPainter painter(this);
+
     // Draw box
     if (m_drawBox)
     {
@@ -144,49 +133,52 @@ void FrameLabel::paintEvent(QPaintEvent *ev)
 
 void FrameLabel::createContextMenu()
 {
-    // Create top-level menu object
-    menu = new QMenu(this);
+    // Top level menu
+    m_menu = new QMenu(this);
+
     // Add actions
     QAction *action;
     action = new QAction(this);
     action->setText(tr("Reset ROI"));
-    menu->addAction(action);
+    m_menu->addAction(action);
     action = new QAction(this);
     action->setText(tr("Scale to Fit Frame"));
     action->setCheckable(true);
-    menu->addAction(action);
-    menu->addSeparator();
-    // Create image processing menu object
-    QMenu* menu_imgProc = new QMenu(this);
-    menu_imgProc->setTitle(tr("Image Processing"));
-    menu->addMenu(menu_imgProc);
+    m_menu->addAction(action);
+    m_menu->addSeparator();
+
+    // Create image processing menu
+    QMenu* menuImageProcessing = new QMenu(this);
+    menuImageProcessing->setTitle(tr("Image Processing"));
+    m_menu->addMenu(menuImageProcessing);
+
     // Add actions
     action = new QAction(this);
     action->setText(tr("Grayscale"));
     action->setCheckable(true);
-    menu_imgProc->addAction(action);
+    menuImageProcessing->addAction(action);
     action = new QAction(this);
     action->setText(tr("Smooth"));
     action->setCheckable(true);
-    menu_imgProc->addAction(action);
+    menuImageProcessing->addAction(action);
     action = new QAction(this);
     action->setText(tr("Dilate"));
     action->setCheckable(true);
-    menu_imgProc->addAction(action);
+    menuImageProcessing->addAction(action);
     action = new QAction(this);
     action->setText(tr("Erode"));
     action->setCheckable(true);
-    menu_imgProc->addAction(action);
+    menuImageProcessing->addAction(action);
     action = new QAction(this);
     action->setText(tr("Flip"));
     action->setCheckable(true);
-    menu_imgProc->addAction(action);
+    menuImageProcessing->addAction(action);
     action = new QAction(this);
     action->setText(tr("Canny"));
     action->setCheckable(true);
-    menu_imgProc->addAction(action);
-    menu_imgProc->addSeparator();
+    menuImageProcessing->addAction(action);
+    menuImageProcessing->addSeparator();
     action = new QAction(this);
     action->setText(tr("Settings..."));
-    menu_imgProc->addAction(action);
+    menuImageProcessing->addAction(action);
 }

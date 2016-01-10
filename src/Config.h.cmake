@@ -6,7 +6,7 @@
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
-/* Copyright (c) 2012-2015 Nick D'Ademo                                 */
+/* Copyright (c) 2012-2016 Nick D'Ademo                                 */
 /*                                                                      */
 /* Permission is hereby granted, free of charge, to any person          */
 /* obtaining a copy of this software and associated documentation       */
@@ -48,15 +48,15 @@ namespace {
 
 // Image buffer size
 #define DEFAULT_IMAGE_BUFFER_SIZE           1
-// Drop frame if image/frame buffer is full
+// Drop frame if buffer is full
 #define DEFAULT_DROP_FRAMES                 false
 // Thread priorities
 #define DEFAULT_CAP_THREAD_PRIO             QThread::NormalPriority
 #define DEFAULT_PROC_THREAD_PRIO            QThread::HighPriority
 
-// IMAGE PROCESSING
+// Image Processing
 // Smooth
-#define DEFAULT_SMOOTH_TYPE                 0 // Options: [BLUR=0,GAUSSIAN=1,MEDIAN=2]
+#define DEFAULT_SMOOTH_TYPE                 0 // Options: [Blur=0, Gaussian=1, Median=2]
 #define DEFAULT_SMOOTH_PARAM_1              3
 #define DEFAULT_SMOOTH_PARAM_2              3
 #define DEFAULT_SMOOTH_PARAM_3              0
@@ -66,7 +66,7 @@ namespace {
 // Erode
 #define DEFAULT_ERODE_ITERATIONS            1
 // Flip
-#define DEFAULT_FLIP_CODE                   0 // Options: [x-axis=0,y-axis=1,both axes=-1]
+#define DEFAULT_FLIP_CODE                   0 // Options: [X-axis=0, Y-axis=1, Both axes=-1]
 // Canny
 #define DEFAULT_CANNY_THRESHOLD_1           10
 #define DEFAULT_CANNY_THRESHOLD_2           00

@@ -2,7 +2,7 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* ImageProcessingSettingsDialog.h                                      */
+/* ThreadStatistics.h                                                   */
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
@@ -30,47 +30,20 @@
 /*                                                                      */
 /************************************************************************/
 
-#ifndef IMAGEPROCESSINGSETTINGSDIALOG_H
-#define IMAGEPROCESSINGSETTINGSDIALOG_H
+#ifndef THREADSTATISTICS_H
+#define THREADSTATISTICS_H
 
-#include <QDialog>
-
-#include "Structures.h"
-
-namespace Ui {
-class ImageProcessingSettingsDialog;
-}
-
-class QAbstractButton;
-
-class ImageProcessingSettingsDialog : public QDialog
+class ThreadStatistics
 {
-    Q_OBJECT
-
     public:
-        explicit ImageProcessingSettingsDialog(QWidget *parent = 0);
-        ~ImageProcessingSettingsDialog();
-        void updateDialogSettingsFromStored();
+        int averageFps;
+        int nFramesProcessed;
 
-    private:
-        Ui::ImageProcessingSettingsDialog *ui;
-        ImageProcessingSettings m_imageProcessingSettings;
-
-    public slots:
-        void resetAllDialogToDefaults();
-        void updateStoredSettingsFromDialog();
-
-    private slots:
-        void resetSmoothDialogToDefaults();
-        void resetDilateDialogToDefaults();
-        void resetErodeDialogToDefaults();
-        void resetFlipDialogToDefaults();
-        void resetCannyDialogToDefaults();
-        void validateDialog();
-        void smoothTypeChange(QAbstractButton *button);
-
-    signals:
-        void newImageProcessingSettings(ImageProcessingSettings settings);
+        void init()
+        {
+            averageFps = 0;
+            nFramesProcessed = 0;
+        }
 };
 
-#endif // IMAGEPROCESSINGSETTINGSDIALOG_H
+#endif // THREADSTATISTICS_H

@@ -2,7 +2,7 @@
 /* qt-opencv-multithreaded:                                             */
 /* A multithreaded OpenCV application using the Qt framework.           */
 /*                                                                      */
-/* Structures.h                                                         */
+/* ImageProcessing.h                                                    */
 /*                                                                      */
 /* Nick D'Ademo <nickdademo@gmail.com>                                  */
 /*                                                                      */
@@ -30,48 +30,78 @@
 /*                                                                      */
 /************************************************************************/
 
-#ifndef STRUCTURES_H
-#define STRUCTURES_H
+#ifndef IMAGEPROCESSING_H
+#define IMAGEPROCESSING_H
 
-#include <QRect>
+#include "Config.h"
 
-typedef struct
+class ImageProcessing
 {
-    int smoothType;
-    int smoothParam1;
-    int smoothParam2;
-    double smoothParam3;
-    double smoothParam4;
-    int dilateNumberOfIterations;
-    int erodeNumberOfIterations;
-    int flipCode;
-    double cannyThreshold1;
-    double cannyThreshold2;
-    int cannyApertureSize;
-    bool cannyL2gradient;
-} ImageProcessingSettings;
+    public:
+        struct Grayscale
+        {
+            bool enabled;
+        } grayscale;
+        struct Smooth
+        {
+            bool enabled;
+            int type;
+            int parameter1;
+            int parameter2;
+            double parameter3;
+            double parameter4;
+        } smooth;
+        struct Dilate
+        {
+            bool enabled;
+            int nIterations;
+        } dilate;
+        struct Erode
+        {
+            bool enabled;
+            int nIterations;
+        } erode;
+        struct Flip
+        {
+            bool enabled;
+            int code;
+        } flip;
+        struct Canny
+        {
+            bool enabled;
+            double threshold1;
+            double threshold2;
+            int apertureSize;
+            bool l2gradient;
+        } canny;
 
-typedef struct
-{
-    bool grayscaleOn;
-    bool smoothOn;
-    bool dilateOn;
-    bool erodeOn;
-    bool flipOn;
-    bool cannyOn;
-} ImageProcessingFlags;
+        void init()
+        {
+            // Grayscale
+            grayscale.enabled = false;
+            // Smooth
+            smooth.enabled = false;
+            smooth.type = DEFAULT_SMOOTH_TYPE;
+            smooth.parameter1 = DEFAULT_SMOOTH_PARAM_1;
+            smooth.parameter2 = DEFAULT_SMOOTH_PARAM_2;
+            smooth.parameter3 = DEFAULT_SMOOTH_PARAM_3;
+            smooth.parameter4 = DEFAULT_SMOOTH_PARAM_4;
+            // Dilate
+            dilate.enabled = false;
+            dilate.nIterations = DEFAULT_DILATE_ITERATIONS;
+            // Erode
+            erode.enabled = false;
+            erode.nIterations = DEFAULT_ERODE_ITERATIONS;
+            // Flip
+            flip.enabled = false;
+            flip.code = DEFAULT_FLIP_CODE;
+            // Canny
+            canny.enabled = false;
+            canny.threshold1 = DEFAULT_CANNY_THRESHOLD_1;
+            canny.threshold2 = DEFAULT_CANNY_THRESHOLD_2;
+            canny.apertureSize = DEFAULT_CANNY_APERTURE_SIZE;
+            canny.l2gradient = DEFAULT_CANNY_L2GRADIENT;
+        }
+};
 
-typedef struct
-{
-    QRect selectionBox;
-    bool leftButtonRelease;
-    bool rightButtonRelease;
-} MouseData;
-
-typedef struct
-{
-    int averageFps;
-    int nFramesProcessed;
-} ThreadStatisticsData;
-
-#endif // STRUCTURES_H
+#endif // IMAGEPROCESSING_H

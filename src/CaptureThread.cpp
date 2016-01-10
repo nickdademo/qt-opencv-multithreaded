@@ -39,26 +39,25 @@
 
 CaptureThread::CaptureThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber, bool dropFrameIfBufferFull, int width, int height) :
     QThread(),
-    m_sharedImageBuffer(sharedImageBuffer)
+    m_sharedImageBuffer(sharedImageBuffer),
+    m_deviceNumber(deviceNumber),
+    m_dropFrameIfBufferFull(dropFrameIfBufferFull),
+    m_width(width),
+    m_height(height),
+    m_doStop(false),
+    m_sampleNumber(0),
+    m_fpsSum(0)
 {
-    m_dropFrameIfBufferFull = dropFrameIfBufferFull;
-    m_deviceNumber = deviceNumber;
-    m_width = width;
-    m_height = height;
-    m_doStop = false;
-    m_sampleNumber = 0;
-    m_fpsSum = 0;
     m_fps.clear();
-    m_statsData.averageFps = 0;
-    m_statsData.nFramesProcessed = 0;
+    m_statistics.init();
 }
 
 void CaptureThread::run()
 {
-    while(1)
+    while(true)
     {
         ///////////////////////
-        // Stop thread logic //
+        // Thread stop logic //
         ///////////////////////
         m_doStopMutex.lock();
         if (m_doStop)
@@ -95,8 +94,8 @@ void CaptureThread::run()
 
         // Update statistics
         updateFps(m_captureTime);
-        m_statsData.nFramesProcessed++;
-        emit newStatistics(m_statsData);
+        m_statistics.nFramesProcessed++;
+        emit newStatistics(m_statistics);
     }
 
     qDebug().noquote() << QString("[%1]: Stopping capture thread...").arg(m_deviceNumber);
@@ -161,7 +160,7 @@ void CaptureThread::updateFps(int timeElapsed)
             m_fpsSum += m_fps.dequeue();
         }
         // Calculate average FPS
-        m_statsData.averageFps = m_fpsSum / CAPTURE_FPS_STAT_QUEUE_LENGTH;
+        m_statistics.averageFps = m_fpsSum / CAPTURE_FPS_STAT_QUEUE_LENGTH;
         // Reset sum
         m_fpsSum = 0;
         // Reset sample number

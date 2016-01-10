@@ -35,13 +35,13 @@
 
 #include <QWidget>
 
-#include "Structures.h"
+#include "ImageProcessing.h"
+#include "ThreadStatistics.h"
 
 class FrameLabel;
 class ProcessingThread;
 class CaptureThread;
 class SharedImageBuffer;
-class ImageProcessingSettingsDialog;
 
 class QProgressBar;
 class QPushButton;
@@ -78,23 +78,22 @@ class CameraView : public QWidget
         ProcessingThread *m_processingThread;
         CaptureThread *m_captureThread;
         SharedImageBuffer *m_sharedImageBuffer;
-        ImageProcessingSettingsDialog *m_imageProcessingSettingsDialog;
-        ImageProcessingFlags m_imageProcessingFlags;
+        ImageProcessing m_imageProcessing;
 
     public slots:
         void setImageProcessingSettings();
-        void newMouseData(MouseData mouseData);
+        void newSelection(QRect box);
         void updateMouseCursorPosLabel();
         void clearImageBuffer();
 
     private slots:
         void updateFrame(const QImage &frame);
-        void updateProcessingThreadStatistics(ThreadStatisticsData data);
-        void updateCaptureThreadStatistics(ThreadStatisticsData data);
-        void handleContextMenuAction(QAction *action);
+        void updateProcessingThreadStatistics(ThreadStatistics statistics);
+        void updateCaptureThreadStatistics(ThreadStatistics statistics);
+        void onContextMenuAction(QAction *action);
 
     signals:
-        void newImageProcessingFlags(ImageProcessingFlags imageProcessingFlags);
+        void updateImageProcessing(ImageProcessing imageProcessing);
         void setRoi(QRect roi);
 };
 

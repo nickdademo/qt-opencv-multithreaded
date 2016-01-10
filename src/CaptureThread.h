@@ -39,7 +39,7 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "Structures.h"
+#include "ThreadStatistics.h"
 
 class SharedImageBuffer;
 
@@ -66,7 +66,7 @@ class CaptureThread : public QThread
         QTime m_time;
         QMutex m_doStopMutex;
         QQueue<int> m_fps;
-        ThreadStatisticsData m_statsData;
+        ThreadStatistics m_statistics;
         volatile bool m_doStop;
         int m_captureTime;
         int m_sampleNumber;
@@ -80,7 +80,7 @@ class CaptureThread : public QThread
         void run();
 
     signals:
-        void newStatistics(ThreadStatisticsData statData);
+        void newStatistics(ThreadStatistics statistics);
 };
 
 #endif // CAPTURETHREAD_H

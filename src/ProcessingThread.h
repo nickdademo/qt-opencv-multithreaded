@@ -40,7 +40,8 @@
 
 #include <opencv2/opencv.hpp>
 
-#include "Structures.h"
+#include "ImageProcessing.h"
+#include "ThreadStatistics.h"
 
 class SharedImageBuffer;
 
@@ -67,9 +68,8 @@ class ProcessingThread : public QThread
         QMutex m_processingMutex;
         cv::Size m_frameSize;
         cv::Point m_framePoint;
-        ImageProcessingFlags m_imgProcFlags;
-        ImageProcessingSettings m_imgProcSettings;
-        ThreadStatisticsData m_statsData;
+        ImageProcessing m_imageProcessing;
+        ThreadStatistics m_statistics;
         volatile bool m_doStop;
         int m_processingTime;
         int m_fpsSum;
@@ -81,13 +81,12 @@ class ProcessingThread : public QThread
         void run();
 
     public slots:
-        void updateImageProcessingFlags(ImageProcessingFlags flags);
-        void updateImageProcessingSettings(ImageProcessingSettings settings);
+        void updateImageProcessing(ImageProcessing imageProcessing);
         void setRoi(QRect roi);
 
     signals:
         void newFrame(const QImage& frame);
-        void newStatistics(ThreadStatisticsData statData);
+        void newStatistics(ThreadStatistics statistics);
 };
 
 #endif // PROCESSINGTHREAD_H

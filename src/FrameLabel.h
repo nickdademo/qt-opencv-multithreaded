@@ -36,8 +36,6 @@
 #include <QLabel>
 #include <QPoint>
 
-#include "Structures.h"
-
 class QRect;
 class QMenu;
 
@@ -49,15 +47,18 @@ class FrameLabel : public QLabel
         FrameLabel(QWidget *parent = 0);
         void setMouseCursorPos(QPoint point);
         QPoint getMouseCursorPos();
-        QMenu *menu;
+        QMenu& menu() const
+        {
+            return *m_menu;
+        }
 
     private:
         void createContextMenu();
-        MouseData m_mouseData;
         QPoint m_startPoint;
         QPoint m_mouseCursorPos;
         bool m_drawBox;
         QRect *m_box;
+        QMenu *m_menu;
 
     protected:
         void mouseMoveEvent(QMouseEvent *ev);
@@ -66,7 +67,7 @@ class FrameLabel : public QLabel
         void paintEvent(QPaintEvent *ev);
 
     signals:
-        void newMouseData(MouseData mouseData);
+        void newSelection(QRect box);
         void onMouseMoveEvent();
 };
 

@@ -41,23 +41,23 @@
 
 ProcessingThread::ProcessingThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber) :
     QThread(),
-    m_sharedImageBuffer(sharedImageBuffer)
+    m_sharedImageBuffer(sharedImageBuffer),
+    m_deviceNumber(deviceNumber),
+    m_doStop(false),
+    m_sampleNumber(0),
+    m_fpsSum(0)
 {
-    m_deviceNumber = deviceNumber;
-    m_doStop = false;
-    m_sampleNumber = 0;
-    m_fpsSum = 0;
     m_fps.clear();
-    m_statsData.averageFps = 0;
-    m_statsData.nFramesProcessed = 0;
+    m_statistics.init();
+    m_imageProcessing.init();
 }
 
 void ProcessingThread::run()
 {
-    while(1)
+    while(true)
     {
         ///////////////////////
-        // Stop thread logic //
+        // Thread stop logic //
         ///////////////////////
         m_doStopMutex.lock();
         if (m_doStop)
@@ -96,7 +96,7 @@ void ProcessingThread::run()
         // PERFORM IMAGE PROCESSING BELOW //
         ////////////////////////////////////
         // Grayscale conversion
-        if (m_imgProcFlags.grayscaleOn && (m_currentFrame.channels() == 3 || m_currentFrame.channels() == 4))
+        if (m_imageProcessing.grayscale.enabled && (m_currentFrame.channels() == 3 || m_currentFrame.channels() == 4))
         {
             cvtColor(
                 m_currentFrame,
@@ -106,16 +106,16 @@ void ProcessingThread::run()
         }
 
         // Smooth
-        if (m_imgProcFlags.smoothOn)
+        if (m_imageProcessing.smooth.enabled)
         {
-            switch (m_imgProcSettings.smoothType)
+            switch (m_imageProcessing.smooth.type)
             {
                 // Blur
                 case 0:
                     blur(
                         m_currentFrame,
                         m_currentFrame,
-                        cv::Size(m_imgProcSettings.smoothParam1, m_imgProcSettings.smoothParam2)
+                        cv::Size(m_imageProcessing.smooth.parameter1, m_imageProcessing.smooth.parameter2)
                     );
                     break;
                 // Gaussian
@@ -123,9 +123,9 @@ void ProcessingThread::run()
                     GaussianBlur(
                         m_currentFrame,
                         m_currentFrame,
-                        cv::Size(m_imgProcSettings.smoothParam1, m_imgProcSettings.smoothParam2),
-                        m_imgProcSettings.smoothParam3,
-                        m_imgProcSettings.smoothParam4
+                        cv::Size(m_imageProcessing.smooth.parameter1, m_imageProcessing.smooth.parameter2),
+                        m_imageProcessing.smooth.parameter3,
+                        m_imageProcessing.smooth.parameter4
                     );
                     break;
                 // Median
@@ -133,52 +133,52 @@ void ProcessingThread::run()
                     medianBlur(
                         m_currentFrame,
                         m_currentFrame,
-                        m_imgProcSettings.smoothParam1
+                        m_imageProcessing.smooth.parameter1
                     );
                     break;
             }
         }
         // Dilate
-        if (m_imgProcFlags.dilateOn)
+        if (m_imageProcessing.dilate.enabled)
         {
             dilate(
                 m_currentFrame,
                 m_currentFrame,
                 cv::Mat(),
                 cv::Point(-1, -1),
-                m_imgProcSettings.dilateNumberOfIterations
+                m_imageProcessing.dilate.nIterations
             );
         }
         // Erode
-        if (m_imgProcFlags.erodeOn)
+        if (m_imageProcessing.erode.enabled)
         {
             erode(
                 m_currentFrame,
                 m_currentFrame,
                 cv::Mat(),
                 cv::Point(-1, -1),
-                m_imgProcSettings.erodeNumberOfIterations
+                m_imageProcessing.erode.nIterations
             );
         }
         // Flip
-        if (m_imgProcFlags.flipOn)
+        if (m_imageProcessing.flip.enabled)
         {
             flip(
                 m_currentFrame,
                 m_currentFrame,
-                m_imgProcSettings.flipCode
+                m_imageProcessing.flip.code
             );
         }
         // Canny edge detection
-        if (m_imgProcFlags.cannyOn)
+        if (m_imageProcessing.canny.enabled)
         {
             Canny(
                 m_currentFrame,
                 m_currentFrame,
-                m_imgProcSettings.cannyThreshold1,
-                m_imgProcSettings.cannyThreshold2,
-                m_imgProcSettings.cannyApertureSize,
-                m_imgProcSettings.cannyL2gradient
+                m_imageProcessing.canny.threshold1,
+                m_imageProcessing.canny.threshold2,
+                m_imageProcessing.canny.apertureSize,
+                m_imageProcessing.canny.l2gradient
             );
         }
         ////////////////////////////////////
@@ -197,8 +197,8 @@ void ProcessingThread::run()
 
         // Update statistics
         updateFps(m_processingTime);
-        m_statsData.nFramesProcessed++;
-        emit newStatistics(m_statsData);
+        m_statistics.nFramesProcessed++;
+        emit newStatistics(m_statistics);
     }
 
     qDebug().noquote() << QString("[%1]: Stopping processing thread...").arg(m_deviceNumber);
@@ -229,7 +229,7 @@ void ProcessingThread::updateFps(int timeElapsed)
             m_fpsSum += m_fps.dequeue();
         }
         // Calculate average FPS
-        m_statsData.averageFps = m_fpsSum / PROCESSING_FPS_STAT_QUEUE_LENGTH;
+        m_statistics.averageFps = m_fpsSum / PROCESSING_FPS_STAT_QUEUE_LENGTH;
         // Reset sum
         m_fpsSum = 0;
         // Reset sample number
@@ -243,32 +243,10 @@ void ProcessingThread::stop()
     m_doStop = true;
 }
 
-void ProcessingThread::updateImageProcessingFlags(ImageProcessingFlags imgProcFlags)
+void ProcessingThread::updateImageProcessing(ImageProcessing imageProcessing)
 {
     QMutexLocker locker(&m_processingMutex);
-    m_imgProcFlags.grayscaleOn = imgProcFlags.grayscaleOn;
-    m_imgProcFlags.smoothOn = imgProcFlags.smoothOn;
-    m_imgProcFlags.dilateOn=imgProcFlags.dilateOn;
-    m_imgProcFlags.erodeOn=imgProcFlags.erodeOn;
-    m_imgProcFlags.flipOn=imgProcFlags.flipOn;
-    m_imgProcFlags.cannyOn=imgProcFlags.cannyOn;
-}
-
-void ProcessingThread::updateImageProcessingSettings(ImageProcessingSettings imgProcSettings)
-{
-    QMutexLocker locker(&m_processingMutex);
-    m_imgProcSettings.smoothType=imgProcSettings.smoothType;
-    m_imgProcSettings.smoothParam1=imgProcSettings.smoothParam1;
-    m_imgProcSettings.smoothParam2=imgProcSettings.smoothParam2;
-    m_imgProcSettings.smoothParam3=imgProcSettings.smoothParam3;
-    m_imgProcSettings.smoothParam4=imgProcSettings.smoothParam4;
-    m_imgProcSettings.dilateNumberOfIterations=imgProcSettings.dilateNumberOfIterations;
-    m_imgProcSettings.erodeNumberOfIterations=imgProcSettings.erodeNumberOfIterations;
-    m_imgProcSettings.flipCode=imgProcSettings.flipCode;
-    m_imgProcSettings.cannyThreshold1=imgProcSettings.cannyThreshold1;
-    m_imgProcSettings.cannyThreshold2=imgProcSettings.cannyThreshold2;
-    m_imgProcSettings.cannyApertureSize=imgProcSettings.cannyApertureSize;
-    m_imgProcSettings.cannyL2gradient=imgProcSettings.cannyL2gradient;
+    m_imageProcessing = imageProcessing;
 }
 
 void ProcessingThread::setRoi(QRect roi)
