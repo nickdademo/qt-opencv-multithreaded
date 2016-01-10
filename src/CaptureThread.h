@@ -65,12 +65,9 @@ class CaptureThread : public QThread
         cv::Mat m_grabbedFrame;
         QTime m_time;
         QMutex m_doStopMutex;
-        QQueue<int> m_fps;
         ThreadStatistics m_statistics;
         volatile bool m_doStop;
-        int m_captureTime;
-        int m_sampleNumber;
-        int m_fpsSum;
+        int m_sampleCount;
         bool m_dropFrameIfBufferFull;
         int m_deviceNumber;
         int m_width;

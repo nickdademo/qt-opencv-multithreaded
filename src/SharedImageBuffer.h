@@ -37,35 +37,45 @@
 #include <QSet>
 #include <QWaitCondition>
 #include <QMutex>
+#include <QObject>
+#include <QSemaphore>
 
 #include <opencv2/opencv.hpp>
 
 #include "Buffer.h"
 
-class SharedImageBuffer
+class SharedImageBuffer : public QObject
 {
+    Q_OBJECT
+
     public:
+        enum class StreamControl
+        {
+            Run,
+            Pause,
+            Sync
+        };
         SharedImageBuffer();
-        void add(int deviceNumber, Buffer<cv::Mat> *imageBuffer, bool sync = false);
+        void add(int deviceNumber, Buffer<cv::Mat> *imageBuffer, StreamControl streamControl);
         Buffer<cv::Mat>* get(int deviceNumber);
         void remove(int deviceNumber);
-        void sync(int deviceNumber);
-        void wakeAll();
-        void setSyncStarted(bool start);
-        bool isSyncStarted()
-        {
-            return m_doSync;
-        }
-        bool isSyncEnabled(int deviceNumber);
         bool contains(int deviceNumber);
+
+        void setStreamControl(int deviceNumber, StreamControl streamControl);
+        void streamControl(int deviceNumber);
 
     private:
         QHash<int, Buffer<cv::Mat>*> m_imageBufferMap;
-        QSet<int> m_syncSet;
-        QWaitCondition m_waitCondition;
+        QHash<int, StreamControl> m_streamControlMap;
+        QHash<int, QSemaphore*> m_runPauseStreamMap;
+        QWaitCondition m_syncedStreams;
         QMutex m_mutex;
-        int m_nArrived;
-        bool m_doSync;
+
+    signals:
+        void streamRun(int deviceNumber);
+        void streamPaused(int deviceNumber);
+        void syncStarted();
+        void syncStopped();
 };
 
 #endif // SHAREDIMAGEBUFFER_H

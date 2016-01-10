@@ -31,218 +31,192 @@
 /************************************************************************/
 
 #include "CameraConnectDialog.h"
-#include "ui_CameraConnectDialog.h"
 
 #include "Config.h"
 
 #include <QThread>
 #include <QMessageBox>
+#include <QLabel>
+#include <QComboBox>
+#include <QCheckBox>
+#include <QGroupBox>
+#include <QLineEdit>
+#include <QGridLayout>
+#include <QDialogButtonBox>
+#include <QPushButton>
 
-CameraConnectDialog::CameraConnectDialog(QWidget *parent, bool isStreamSyncEnabled) :
-    QDialog(parent),
-    ui(new Ui::CameraConnectDialog)
+CameraConnectDialog::CameraConnectDialog(int nextDeviceNumber, QWidget *parent) :
+    m_nextDeviceNumber(nextDeviceNumber),
+    QDialog(parent)
 {  
-    // Setup dialog
-    ui->setupUi(this);
-    // deviceNumberEdit (device number) input validation
-    QRegExp rx1("^[0-9]{1,3}$"); // Integers 0 to 999
-    QRegExpValidator *validator1 = new QRegExpValidator(rx1, 0);
-    ui->deviceNumberEdit->setValidator(validator1);
-    // imageBufferSizeEdit (image buffer size) input validation
-    QRegExp rx2("^[0-9]{1,3}$"); // Integers 0 to 999
-    QRegExpValidator *validator2 = new QRegExpValidator(rx2, 0);
-    ui->imageBufferSizeEdit->setValidator(validator2);
-    // resWEdit (resolution: width) input validation
-    QRegExp rx3("^[0-9]{1,4}$"); // Integers 0 to 9999
-    QRegExpValidator *validator3 = new QRegExpValidator(rx3, 0);
-    ui->resWEdit->setValidator(validator3);
-    // resHEdit (resolution: height) input validation
-    QRegExp rx4("^[0-9]{1,4}$"); // Integers 0 to 9999
-    QRegExpValidator *validator4 = new QRegExpValidator(rx4, 0);
-    ui->resHEdit->setValidator(validator4);
-    // Setup combo boxes
-    QStringList threadPriorities;
-    threadPriorities << tr("Idle") << tr("Lowest") << tr("Low") << tr("Normal") << tr("High") << tr("Highest") << tr("Time Critical") << tr("Inherit");
-    ui->capturePrioComboBox->addItems(threadPriorities);
-    ui->processingPrioComboBox->addItems(threadPriorities);
-    // Set dialog to defaults
-    resetToDefaults();
-    // Enable/disable checkbox
-    ui->enableFrameProcessingCheckBox->setEnabled(isStreamSyncEnabled);
-    // Connect button to slot
-    connect(ui->resetToDefaultsPushButton, &QPushButton::released, this, &CameraConnectDialog::resetToDefaults);
+    // Dialog properties
+    setWindowTitle(tr("Connect to Camera"));
+    setStyleSheet("QGroupBox {font-weight: bold;};");
+
+    // Layout
+    QGridLayout *mainLayout = new QGridLayout;
+
+    // Tab Name
+    QLabel *tabNameLabel = new QLabel(tr("Tab Name") + ":");
+    m_tabNameLineEdit = new QLineEdit;
+    mainLayout->addWidget(tabNameLabel, 0, 0);
+    mainLayout->addWidget(m_tabNameLineEdit, 0, 1);
+
+    // Enable Frame Processing
+    m_enableFrameProcessingCheckbox = new QCheckBox(tr("Enable frame processing"));
+    mainLayout->addWidget(m_enableFrameProcessingCheckbox, 1, 0, 1, 2);
+
+    // Stream Control
+    QLabel *streamControlLabel = new QLabel(tr("Stream Control") + ":");
+    m_streamControlComboBox = new QComboBox;
+    m_streamControlComboBox->addItem(tr("Run"), (int)SharedImageBuffer::StreamControl::Run);
+    m_streamControlComboBox->addItem(tr("Pause"), (int)SharedImageBuffer::StreamControl::Pause);
+    m_streamControlComboBox->addItem(tr("Synchronize"), (int)SharedImageBuffer::StreamControl::Sync);
+    mainLayout->addWidget(streamControlLabel, 2, 0);
+    mainLayout->addWidget(m_streamControlComboBox, 2, 1);
+
+    // Camera group box
+    QGroupBox *cameraGroupBox = new QGroupBox(tr("Camera"));
+    QGridLayout *cameraGridLayout = new QGridLayout;
+    // Device Number
+    QLabel *cameraDeviceNumberLabel = new QLabel(tr("Device Number") + ":");
+    m_cameraDeviceNumberLineEdit = new QLineEdit;
+    cameraGridLayout->addWidget(cameraDeviceNumberLabel, 0, 0);
+    cameraGridLayout->addWidget(m_cameraDeviceNumberLineEdit, 0, 1);
+    // Resolution
+    QLabel *cameraResolutionLabel = new QLabel(tr("Resolution (W x H)") + ":");
+    m_cameraResolutionWidthLineEdit = new QLineEdit;
+    m_cameraResolutionHeightLineEdit = new QLineEdit;
+    cameraGridLayout->addWidget(cameraResolutionLabel, 1, 0);
+    cameraGridLayout->addWidget(m_cameraResolutionWidthLineEdit, 1, 1);
+    cameraGridLayout->addWidget(new QLabel("x"), 1, 2);
+    cameraGridLayout->addWidget(m_cameraResolutionHeightLineEdit, 1, 3);
+    cameraGridLayout->addWidget(new QLabel("(optional)"), 1, 4);
+
+    cameraGroupBox->setLayout(cameraGridLayout);
+    mainLayout->addWidget(cameraGroupBox, 3, 0, 1, 2);
+
+    // Image Buffer group box
+    QGroupBox *imageBufferGroupBox = new QGroupBox(tr("Image Buffer"));
+    QGridLayout *imageBufferGridLayout = new QGridLayout;
+    // Size
+    QLabel *imageBufferSizeLabel = new QLabel(tr("Size") + ":");
+    m_imageBufferSizeLineEdit = new QLineEdit;
+    imageBufferGridLayout->addWidget(imageBufferSizeLabel, 0, 0);
+    imageBufferGridLayout->addWidget(m_imageBufferSizeLineEdit, 0, 1);
+    // Drop Frame if Buffer is Full
+    m_dropFrameIfBufferFullCheckbox = new QCheckBox(tr("Drop frame if buffer full"));
+    imageBufferGridLayout->addWidget(m_dropFrameIfBufferFullCheckbox, 1, 0, 1, 2);
+
+    imageBufferGroupBox->setLayout(imageBufferGridLayout);
+    mainLayout->addWidget(imageBufferGroupBox, 4, 0, 1, 2);
+
+    // Thread Priorities group box
+    QGroupBox *threadPrioritiesGroupBox = new QGroupBox(tr("Thread Priorities"));
+    QGridLayout *threadPrioritiesGridLayout = new QGridLayout;
+    // Capture Thread Priority
+    QLabel *captureThreadPriorityLabel = new QLabel(tr("Capture Thread") + ":");
+    m_captureThreadPriorityComboBox = new QComboBox;
+    m_captureThreadPriorityComboBox->addItem(tr("Idle"), QThread::Priority::IdlePriority);
+    m_captureThreadPriorityComboBox->addItem(tr("Lowest"), QThread::Priority::LowestPriority);
+    m_captureThreadPriorityComboBox->addItem(tr("Low"), QThread::Priority::LowPriority);
+    m_captureThreadPriorityComboBox->addItem(tr("Normal"), QThread::Priority::NormalPriority);
+    m_captureThreadPriorityComboBox->addItem(tr("High"), QThread::Priority::HighPriority);
+    m_captureThreadPriorityComboBox->addItem(tr("Highest"), QThread::Priority::HighestPriority);
+    m_captureThreadPriorityComboBox->addItem(tr("Time Critical"), QThread::Priority::TimeCriticalPriority);
+    threadPrioritiesGridLayout->addWidget(captureThreadPriorityLabel, 0, 0);
+    threadPrioritiesGridLayout->addWidget(m_captureThreadPriorityComboBox, 0, 1);
+    // Processing Thread Priority
+    QLabel *processingThreadPriorityLabel = new QLabel(tr("Processing Thread") + ":");
+    m_processingThreadPriorityComboBox = new QComboBox;
+    m_processingThreadPriorityComboBox->addItem(tr("Idle"), QThread::Priority::IdlePriority);
+    m_processingThreadPriorityComboBox->addItem(tr("Lowest"), QThread::Priority::LowestPriority);
+    m_processingThreadPriorityComboBox->addItem(tr("Low"), QThread::Priority::LowPriority);
+    m_processingThreadPriorityComboBox->addItem(tr("Normal"), QThread::Priority::NormalPriority);
+    m_processingThreadPriorityComboBox->addItem(tr("High"), QThread::Priority::HighPriority);
+    m_processingThreadPriorityComboBox->addItem(tr("Highest"), QThread::Priority::HighestPriority);
+    m_processingThreadPriorityComboBox->addItem(tr("Time Critical"), QThread::Priority::TimeCriticalPriority);
+    threadPrioritiesGridLayout->addWidget(processingThreadPriorityLabel, 1, 0);
+    threadPrioritiesGridLayout->addWidget(m_processingThreadPriorityComboBox, 1, 1);
+
+    threadPrioritiesGroupBox->setLayout(threadPrioritiesGridLayout);
+    mainLayout->addWidget(threadPrioritiesGroupBox, 5, 0, 1, 2);
+
+    // Horizontal line
+    QFrame *horizontalLine = new QFrame;
+    horizontalLine->setFrameShape(QFrame::HLine);
+    horizontalLine->setFrameShadow(QFrame::Sunken);
+    mainLayout->addWidget(horizontalLine, 6, 0, 1, 2);
+
+    // Reset to Defaults
+    QPushButton *resetToDefaultsButton = new QPushButton(tr("Reset to Defaults"));
+    connect(resetToDefaultsButton, &QPushButton::released, this, &CameraConnectDialog::resetToDefaults);
+    mainLayout->addWidget(resetToDefaultsButton, 7, 0, 1, 2);
+
+    // Dialog button
+    QDialogButtonBox *dialogButtonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    connect(dialogButtonBox->button(QDialogButtonBox::Ok), &QPushButton::released, this, &CameraConnectDialog::accept);
+    connect(dialogButtonBox->button(QDialogButtonBox::Cancel), &QPushButton::released, this, &CameraConnectDialog::reject);
+    mainLayout->addWidget(dialogButtonBox, 8, 0, 1, 2);
+
+    // Update UI
+    updateUi();
+
+    // Set layout
+    setLayout(mainLayout);
 }
 
-CameraConnectDialog::~CameraConnectDialog()
+void CameraConnectDialog::updateUi()
 {
-    delete ui;
+    int index;
+    m_cameraDeviceNumberLineEdit->setText(QString::number(m_nextDeviceNumber));
+    m_cameraResolutionWidthLineEdit->setText("");
+    m_cameraResolutionHeightLineEdit->setText("");
+    m_imageBufferSizeLineEdit->setText(QString::number(DEFAULT_IMAGE_BUFFER_SIZE));
+    m_dropFrameIfBufferFullCheckbox->setChecked(DEFAULT_DROP_FRAMES);
+    setComboBoxByData(m_captureThreadPriorityComboBox, QThread::Priority::NormalPriority, index);
+    setComboBoxByData(m_processingThreadPriorityComboBox, QThread::Priority::NormalPriority, index);
+    m_tabNameLineEdit->setText("");
+    m_enableFrameProcessingCheckbox->setChecked(DEFAULT_ENABLE_FRAME_PROCESSING);
+    setComboBoxByData(m_streamControlComboBox, (int)SharedImageBuffer::StreamControl::Run, index);
 }
 
-int CameraConnectDialog::getDeviceNumber()
+CameraView::Settings CameraConnectDialog::settings()
 {
-    // Set device number to default (any available camera) if field is blank
-    if(ui->deviceNumberEdit->text().isEmpty())
-    {
-        QMessageBox::warning(parentWidget(), tr("Device Number"), QString("%1\n\n%2").arg(tr("Device Number not specified.")).arg("Automatically set to 0."));
-        return 0;
-    }
-    else
-    {
-        return ui->deviceNumberEdit->text().toInt();
-    }
+    CameraView::Settings settings;
+    settings.deviceNumber = m_cameraDeviceNumberLineEdit->text().toInt();
+    settings.width = m_cameraResolutionHeightLineEdit->text().toInt();
+    settings.height = m_cameraResolutionHeightLineEdit->text().toInt();
+    settings.imageBufferSize = m_imageBufferSizeLineEdit->text().toInt();
+    settings.dropFrameIfBufferFull = m_dropFrameIfBufferFullCheckbox->isChecked();
+    settings.captureThreadPriority = (QThread::Priority)m_captureThreadPriorityComboBox->currentData().toInt();
+    settings.processingThreadPriority = (QThread::Priority)m_processingThreadPriorityComboBox->currentData().toInt();
+    settings.enableFrameProcessing = m_enableFrameProcessingCheckbox->isChecked();
+    settings.streamControl = (SharedImageBuffer::StreamControl)m_streamControlComboBox->currentData().toInt();
+    return settings;
 }
 
-int CameraConnectDialog::getResolutionWidth()
+QString CameraConnectDialog::tabName()
 {
-    // Return -1 if field is blank
-    if(ui->resWEdit->text().isEmpty())
-    {
-        return -1;
-    }
-    else
-    {
-        return ui->resWEdit->text().toInt();
-    }
-}
-
-int CameraConnectDialog::getResolutionHeight()
-{
-    // Return -1 if field is blank
-    if(ui->resHEdit->text().isEmpty())
-    {
-        return -1;
-    }
-    else
-    {
-        return ui->resHEdit->text().toInt();
-    }
-}
-
-int CameraConnectDialog::getImageBufferSize()
-{
-    // Set image buffer size to default if field is blank
-    if(ui->imageBufferSizeEdit->text().isEmpty())
-    {
-        QMessageBox::warning(parentWidget(), tr("Image Buffer Size"), QString("%1\n\n%2").arg(tr("Image Buffer Size not specified.")).arg(tr("Automatically set to default value.")));
-        return DEFAULT_IMAGE_BUFFER_SIZE;
-    }
-    // Set image buffer size to default if field is zero
-    else if(ui->imageBufferSizeEdit->text().toInt() == 0)
-    {
-        QMessageBox::warning(parentWidget(), tr("Image Buffer Size"), QString("%1\n\n%2").arg(tr("Image Buffer Size cannot be zero.")).arg(tr("Automatically set to default value.")));
-        return DEFAULT_IMAGE_BUFFER_SIZE;;
-    }
-    // Use image buffer size specified by user
-    else
-    {
-        return ui->imageBufferSizeEdit->text().toInt();
-    }
-}
-
-bool CameraConnectDialog::getDropFrameCheckBoxState()
-{
-    return ui->dropFrameCheckBox->isChecked();
-}
-
-int CameraConnectDialog::getCaptureThreadPrio()
-{
-    return ui->capturePrioComboBox->currentIndex();
-}
-
-int CameraConnectDialog::getProcessingThreadPrio()
-{
-    return ui->processingPrioComboBox->currentIndex();
-}
-
-QString CameraConnectDialog::getTabLabel()
-{
-    return ui->tabLabelEdit->text();
-}
-
-bool CameraConnectDialog::getEnableFrameProcessingCheckBoxState()
-{
-    return ui->enableFrameProcessingCheckBox->isChecked();
+    return m_tabNameLineEdit->text();
 }
 
 void CameraConnectDialog::resetToDefaults()
 {
-    // Default camera
-    ui->deviceNumberEdit->clear();
-    // Resolution
-    ui->resWEdit->clear();
-    ui->resHEdit->clear();
-    // Image buffer size
-    ui->imageBufferSizeEdit->setText(QString::number(DEFAULT_IMAGE_BUFFER_SIZE));
-    // Drop frames
-    ui->dropFrameCheckBox->setChecked(DEFAULT_DROP_FRAMES);
-    // Capture thread
-    if(DEFAULT_CAP_THREAD_PRIO == QThread::IdlePriority)
+    updateUi();
+}
+
+bool CameraConnectDialog::setComboBoxByData(QComboBox *comboBox, QVariant data, int &index)
+{
+    for (int i = 0; i < comboBox->count(); i++)
     {
-        ui->capturePrioComboBox->setCurrentIndex(0);
+        if (data == comboBox->itemData(i))
+        {
+            index = i;
+            comboBox->setCurrentIndex(index);
+            return true;
+        }
     }
-    else if(DEFAULT_CAP_THREAD_PRIO == QThread::LowestPriority)
-    {
-        ui->capturePrioComboBox->setCurrentIndex(1);
-    }
-    else if(DEFAULT_CAP_THREAD_PRIO == QThread::LowPriority)
-    {
-        ui->capturePrioComboBox->setCurrentIndex(2);
-    }
-    else if(DEFAULT_CAP_THREAD_PRIO == QThread::NormalPriority)
-    {
-        ui->capturePrioComboBox->setCurrentIndex(3);
-    }
-    else if(DEFAULT_CAP_THREAD_PRIO == QThread::HighPriority)
-    {
-        ui->capturePrioComboBox->setCurrentIndex(4);
-    }
-    else if(DEFAULT_CAP_THREAD_PRIO == QThread::HighestPriority)
-    {
-        ui->capturePrioComboBox->setCurrentIndex(5);
-    }
-    else if(DEFAULT_CAP_THREAD_PRIO == QThread::TimeCriticalPriority)
-    {
-        ui->capturePrioComboBox->setCurrentIndex(6);
-    }
-    else if(DEFAULT_CAP_THREAD_PRIO == QThread::InheritPriority)
-    {
-        ui->capturePrioComboBox->setCurrentIndex(7);
-    }
-    // Processing thread
-    if(DEFAULT_PROC_THREAD_PRIO == QThread::IdlePriority)
-    {
-        ui->processingPrioComboBox->setCurrentIndex(0);
-    }
-    else if(DEFAULT_PROC_THREAD_PRIO == QThread::LowestPriority)
-    {
-        ui->processingPrioComboBox->setCurrentIndex(1);
-    }
-    else if(DEFAULT_PROC_THREAD_PRIO == QThread::LowPriority)
-    {
-        ui->processingPrioComboBox->setCurrentIndex(2);
-    }
-    else if(DEFAULT_PROC_THREAD_PRIO == QThread::NormalPriority)
-    {
-        ui->processingPrioComboBox->setCurrentIndex(3);
-    }
-    else if(DEFAULT_PROC_THREAD_PRIO == QThread::HighPriority)
-    {
-        ui->processingPrioComboBox->setCurrentIndex(4);
-    }
-    else if(DEFAULT_PROC_THREAD_PRIO == QThread::HighestPriority)
-    {
-        ui->processingPrioComboBox->setCurrentIndex(5);
-    }
-    else if(DEFAULT_PROC_THREAD_PRIO == QThread::TimeCriticalPriority)
-    {
-        ui->processingPrioComboBox->setCurrentIndex(6);
-    }
-    else if(DEFAULT_PROC_THREAD_PRIO == QThread::InheritPriority)
-    {
-        ui->processingPrioComboBox->setCurrentIndex(7);
-    }
-    // Tab label
-    ui->tabLabelEdit->setText("");
-    // Enable Frame Processing checkbox
-    ui->enableFrameProcessingCheckBox->setChecked(true);
+
+    return false;
 }

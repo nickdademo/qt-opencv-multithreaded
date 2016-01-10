@@ -42,9 +42,13 @@ namespace {
     const char* APP_AUTHOR_WEBSITE          = "@PROJECT_AUTHOR_WEBSITE@";
 }
 
-// FPS statistics queue lengths
-#define PROCESSING_FPS_STAT_QUEUE_LENGTH    32
-#define CAPTURE_FPS_STAT_QUEUE_LENGTH       32
+// Capture statistics settings
+#define CAPTURE__FPS_STAT_QUEUE_LENGTH   	32
+#define CAPTURE__EMIT_DATA_N_SAMPLES		1
+
+// Processing statistics settings
+#define PROCESSING__FPS_STAT_QUEUE_LENGTH   32
+#define PROCESSING__EMIT_DATA_N_SAMPLES		1
 
 // Image buffer size
 #define DEFAULT_IMAGE_BUFFER_SIZE           1
@@ -53,6 +57,8 @@ namespace {
 // Thread priorities
 #define DEFAULT_CAP_THREAD_PRIO             QThread::NormalPriority
 #define DEFAULT_PROC_THREAD_PRIO            QThread::HighPriority
+// Enable Frame Processing
+#define DEFAULT_ENABLE_FRAME_PROCESSING		true
 
 // Image Processing
 // Smooth

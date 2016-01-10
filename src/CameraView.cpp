@@ -45,12 +45,12 @@
 #include <QPushButton>
 #include <QLabel>
 
-CameraView::CameraView(int deviceNumber, SharedImageBuffer *sharedImageBuffer, QWidget *parent) :
+CameraView::CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, QWidget *parent) :
     QWidget(parent),
-    m_sharedImageBuffer(sharedImageBuffer),
-    m_isCameraConnected(false),
-    m_deviceNumber(deviceNumber)
+    m_settings(settings),
+    m_sharedImageBuffer(sharedImageBuffer)
 {
+    // Layout
     QVBoxLayout *mainLayout = new QVBoxLayout;
 
     // Frame label
@@ -67,9 +67,11 @@ CameraView::CameraView(int deviceNumber, SharedImageBuffer *sharedImageBuffer, Q
     // Grid layout
     QGridLayout *gridLayout = new QGridLayout;
 
-    // Bold font
+    // Fonts
     QFont boldFont;
     boldFont.setBold(true);
+    QFont italicFont;
+    italicFont.setItalic(true);
 
     // Device Number
     QLabel *deviceNumberLabel = new QLabel(tr("Device Number") + ":");
@@ -142,162 +144,173 @@ CameraView::CameraView(int deviceNumber, SharedImageBuffer *sharedImageBuffer, Q
     gridLayout->addWidget(imageBufferLabel, 6, 0);
     gridLayout->addWidget(m_imageBufferStatusProgressBar, 6, 1, 1, 2);
     gridLayout->addWidget(m_clearImageBufferButton, 6, 3);
+    // Stream Control
+    QLabel *streamControlLabel = new QLabel(tr("Stream Control") + ":");
+    streamControlLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    streamControlLabel->setFont(boldFont);
+    m_streamControlStatusLabel = new QLabel;
+    m_streamControlStatusLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_streamControlStatusLabel->setFont(italicFont);
+    m_streamControlRunButton = new QPushButton(tr("Run"));
+    m_streamControlRunButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_streamControlRunButton->setEnabled(false);
+    connect(m_streamControlRunButton, &QPushButton::released, this, &CameraView::runStream);
+    m_streamControlPauseButton = new QPushButton(tr("Pause"));
+    m_streamControlPauseButton->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_streamControlPauseButton->setEnabled(false);
+    connect(m_streamControlPauseButton, &QPushButton::released, this, &CameraView::pauseStream);
+    gridLayout->addWidget(streamControlLabel, 7, 0);
+    gridLayout->addWidget(m_streamControlStatusLabel, 7, 1);
+    gridLayout->addWidget(m_streamControlRunButton, 7, 2);
+    gridLayout->addWidget(m_streamControlPauseButton, 7, 3);
 
     mainLayout->addLayout(gridLayout);
 
     // Set layout
     setLayout(mainLayout);
+
+    // Connections related to stream state
+    connect(m_sharedImageBuffer, &SharedImageBuffer::streamRun, this, &CameraView::onStreamRun);
+    connect(m_sharedImageBuffer, &SharedImageBuffer::streamPaused, this, &CameraView::onStreamPaused);
+    // Create image buffer with user-defined size
+    m_imageBuffer = new Buffer<cv::Mat>(settings.imageBufferSize);
 }
 
 CameraView::~CameraView()
 {
-    if(m_isCameraConnected)
+    // Stop processing thread
+    if (m_processingThread->isRunning())
     {
-        // Stop processing thread
-        if (m_processingThread->isRunning())
-        {
-            stopProcessingThread();
-        }
-        // Stop capture thread
-        if (m_captureThread->isRunning())
-        {
-            stopCaptureThread();
-        }
-
-        // Automatically start frame processing for other streams if sync was enabled for camera we are disconnecting
-        if (m_sharedImageBuffer->isSyncEnabled(m_deviceNumber))
-        {
-            m_sharedImageBuffer->setSyncStarted(true);
-        }
-
-        // Remove from shared buffer
-        m_sharedImageBuffer->remove(m_deviceNumber);
-        // Disconnect camera
-        if (m_captureThread->isCameraConnected())
-        {
-            m_captureThread->disconnectCamera();
-            qDebug().noquote() << QString("[%1]: Camera successfully disconnected.").arg(m_deviceNumber);
-        }
-        else
-        {
-            qWarning().noquote() << QString("[%1]: Camera already disconnected.").arg(m_deviceNumber);
-        }
+        stopProcessingThread();
     }
-}
-
-bool CameraView::connectToCamera(bool dropFrameIfBufferFull, int capThreadPriority, int procThreadPriority, bool enableFrameProcessing, int width, int height)
-{
-    // Set frame label text
-    if (m_sharedImageBuffer->isSyncEnabled(m_deviceNumber))
+    // Stop capture thread
+    if (m_captureThread->isRunning())
     {
-        m_frameLabel->setText(tr("Camera connected. Waiting..."));
+        stopCaptureThread();
+    }
+
+    // Automatically start frame processing for other streams if sync was enabled for camera we are disconnecting
+    /*
+    if (m_sharedImageBuffer->isSyncEnabled(m_settings.deviceNumber))
+    {
+        m_sharedImageBuffer->startSync();
+    }
+    */
+
+    // Remove from shared buffer
+    m_sharedImageBuffer->remove(m_settings.deviceNumber);
+    // Disconnect camera
+    if (m_captureThread->isCameraConnected())
+    {
+        m_captureThread->disconnectCamera();
+        qDebug().noquote() << QString("[%1]: Camera successfully disconnected.").arg(m_settings.deviceNumber);
     }
     else
     {
-        m_frameLabel->setText(tr("Connecting to camera..."));
+        qWarning().noquote() << QString("[%1]: Camera already disconnected.").arg(m_settings.deviceNumber);
     }
 
+    // Delete buffer
+    delete m_imageBuffer;
+    // Remove from shared buffer (if it exists)
+    m_sharedImageBuffer->remove(m_settings.deviceNumber);
+}
+
+bool CameraView::connectToCamera()
+{
+    m_frameLabel->setText(tr("Connecting to camera..."));
+
     // Create capture thread
-    m_captureThread = new CaptureThread(m_sharedImageBuffer, m_deviceNumber, dropFrameIfBufferFull, width, height);
+    m_captureThread = new CaptureThread(m_sharedImageBuffer, m_settings.deviceNumber, m_settings.dropFrameIfBufferFull, m_settings.width, m_settings.height);
 
     // Attempt to connect to camera
     if (m_captureThread->connectToCamera())
     {
+        // Add image buffer to SharedImageBuffer object
+        m_sharedImageBuffer->add(m_settings.deviceNumber, m_imageBuffer, m_settings.streamControl);
+
+        // Update UI
+        m_frameLabel->setText(tr("Camera connected."));
+        m_deviceNumberLabel->setNum(m_settings.deviceNumber);
+        m_cameraResolutionLabel->setText(QString("%1x%2").arg(m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH)).arg(m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
+        m_clearImageBufferButton->setEnabled(true);
+        m_imageBufferStatusProgressBar->setMinimum(0);
+        m_imageBufferStatusProgressBar->setMaximum(m_sharedImageBuffer->get(m_settings.deviceNumber)->maxSize());
+
         // Create processing thread
-        m_processingThread = new ProcessingThread(m_sharedImageBuffer, m_deviceNumber);
+        m_processingThread = new ProcessingThread(m_sharedImageBuffer, m_settings.deviceNumber);
+        m_processingThread->setRoi(QRect(0, 0, m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH), m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
 
         // Setup signal/slot connections
         connect(m_processingThread, &ProcessingThread::newFrame, this, &CameraView::updateFrame);
         connect(m_processingThread, &ProcessingThread::newStatistics, this, &CameraView::updateProcessingThreadStatistics);
         connect(m_captureThread, &CaptureThread::newStatistics, this, &CameraView::updateCaptureThreadStatistics);
-
-        //connect(this, &CameraView::newImageProcessingFlags, m_processingThread, &ProcessingThread::updateImageProcessingFlags);
         connect(this, &CameraView::setRoi, m_processingThread, &ProcessingThread::setRoi);
-        // Only enable ROI setting/resetting if frame processing is enabled
-        if(enableFrameProcessing)
+        // Only enable ROI setting if frame processing is enabled
+        if (m_settings.enableFrameProcessing)
         {
-            connect(m_frameLabel, &FrameLabel::newSelection, this, &CameraView::newSelection);
+            connect(m_frameLabel, &FrameLabel::newSelection, this, &CameraView::onNewSelection);
         }
-        // Set initial data in processing thread
-        m_processingThread->setRoi(QRect(0, 0, m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH), m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
 
         // Start capturing frames from camera
-        m_captureThread->start((QThread::Priority)capThreadPriority);
-        // Start processing captured frames (if enabled)
-        if(enableFrameProcessing)
-        {
-            m_processingThread->start((QThread::Priority)procThreadPriority);
-        }
+        m_captureThread->start(m_settings.captureThreadPriority);
 
-        // Setup imageBufferBar with minimum and maximum values
-        m_imageBufferStatusProgressBar->setMinimum(0);
-        m_imageBufferStatusProgressBar->setMaximum(m_sharedImageBuffer->get(m_deviceNumber)->maxSize());
-        // Enable "Clear Image Buffer" push button
-        m_clearImageBufferButton->setEnabled(true);
-        // Set text in labels
-        m_deviceNumberLabel->setNum(m_deviceNumber);
-        m_cameraResolutionLabel->setText(QString::number(m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH)) + QString("x") + QString::number(m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
-        // Set internal flag and return
-        m_isCameraConnected = true;
-        // Set frame label text
-        if(!enableFrameProcessing)
+        // Start processing captured frames (if enabled)
+        if (m_settings.enableFrameProcessing)
         {
-            m_frameLabel->setText(tr("Frame processing disabled."));
+            m_processingThread->start(m_settings.processingThreadPriority);
         }
 
         return true;
     }
     
-    // Failed to connect to camera
     return false;
 }
 
 void CameraView::stopCaptureThread()
 {
-    qDebug().noquote() << QString("[%1]: About to stop capture thread...").arg(m_deviceNumber);
+    qDebug().noquote() << QString("[%1]: About to stop capture thread...").arg(m_settings.deviceNumber);
 
     m_captureThread->stop();
-    m_sharedImageBuffer->wakeAll(); // This allows the thread to be stopped if it is in a wait-state
+    //m_sharedImageBuffer->wakeAll(); // This allows the thread to be stopped if it is in a wait-state
 
     // Take one frame off a FULL queue to allow the capture thread to finish
-    if (m_sharedImageBuffer->get(m_deviceNumber)->isFull())
+    if (m_sharedImageBuffer->get(m_settings.deviceNumber)->isFull())
     {
-        m_sharedImageBuffer->get(m_deviceNumber)->get();
+        m_sharedImageBuffer->get(m_settings.deviceNumber)->get();
     }
     m_captureThread->wait();
 
-    qDebug().noquote() << QString("[%1]: Capture thread successfully stopped.").arg(m_deviceNumber);
+    qDebug().noquote() << QString("[%1]: Capture thread successfully stopped.").arg(m_settings.deviceNumber);
 }
 
 void CameraView::stopProcessingThread()
 {
-    qDebug().noquote() << QString("[%1]: About to stop processing thread...").arg(m_deviceNumber);
+    qDebug().noquote() << QString("[%1]: About to stop processing thread...").arg(m_settings.deviceNumber);
 
     m_processingThread->stop();
-    m_sharedImageBuffer->wakeAll(); // This allows the thread to be stopped if it is in a wait-state
+    //m_sharedImageBuffer->wakeAll(); // This allows the thread to be stopped if it is in a wait-state
     m_processingThread->wait();
 
-    qDebug().noquote() << QString("[%1]: Processing thread successfully stopped.").arg(m_deviceNumber);
+    qDebug().noquote() << QString("[%1]: Processing thread successfully stopped.").arg(m_settings.deviceNumber);
 }
 
 void CameraView::updateCaptureThreadStatistics(ThreadStatistics statistics)
 {
     // Show processing rate in label
-    m_captureRateLabel->setText(QString("%1 fps").arg(statistics.averageFps));
+    m_captureRateLabel->setText(QString("%1 fps").arg(QString::number(statistics.averageFps, 'f', 2)));
     // Show number of frames captured in label
-    m_nFramesCapturedLabel->setText(QString("[%1]").arg(statistics.nFramesProcessed));
-
+    m_nFramesCapturedLabel->setText(QString("[%1]").arg(statistics.frameCounter));
     // Show percentage of image bufffer full in progress bar
-    m_imageBufferStatusProgressBar->setValue(m_sharedImageBuffer->get(m_deviceNumber)->size());
+    m_imageBufferStatusProgressBar->setValue(m_sharedImageBuffer->get(m_settings.deviceNumber)->size());
 }
 
 void CameraView::updateProcessingThreadStatistics(ThreadStatistics statistics)
 {
     // Show processing rate in label
-    m_processingRateLabel->setText(QString("%1 fps").arg(statistics.averageFps));
+    m_processingRateLabel->setText(QString("%1 fps").arg(QString::number(statistics.averageFps, 'f', 2)));
     // Show number of frames processed in label
-    m_nFramesProcessedLabel->setText(QString("[%1]").arg(statistics.nFramesProcessed));
-
+    m_nFramesProcessedLabel->setText(QString("[%1]").arg(statistics.frameCounter));
     // Show ROI information in label   
     m_roiLabel->setText(QString("(%1, %2) %3x%4").arg(m_processingThread->currentRoi().x()).arg(m_processingThread->currentRoi().y()).arg(m_processingThread->currentRoi().width()).arg(m_processingThread->currentRoi().height()));
 }
@@ -309,12 +322,8 @@ void CameraView::updateFrame(const QImage &frame)
 
 void CameraView::clearImageBuffer()
 {
-    int nCleared = m_sharedImageBuffer->get(m_deviceNumber)->clear();
-    qDebug().noquote() << QString("[%1]: %2 frame(s) cleared from buffer.").arg(m_deviceNumber).arg(nCleared);
-}
-
-void CameraView::setImageProcessingSettings()
-{
+    int nCleared = m_sharedImageBuffer->get(m_settings.deviceNumber)->clear();
+    qDebug().noquote() << QString("[%1]: %2 frame(s) cleared from buffer.").arg(m_settings.deviceNumber).arg(nCleared);
 }
 
 void CameraView::updateMouseCursorPosLabel()
@@ -344,7 +353,7 @@ void CameraView::updateMouseCursorPosLabel()
     }
 }
 
-void CameraView::newSelection(QRect box)
+void CameraView::onNewSelection(QRect box)
 {
     int x_temp, y_temp, width_temp, height_temp;
     QRect selectionBox;
@@ -403,7 +412,6 @@ void CameraView::newSelection(QRect box)
             (selectionBox.x() < m_processingThread->currentRoi().x()) ||
             (selectionBox.y() < m_processingThread->currentRoi().y()))
         {
-            // Display error message
             QMessageBox::critical(this, "Invalid Selection", tr("Selection box outside allowable range."));
         }
         // Set ROI
@@ -416,4 +424,34 @@ void CameraView::newSelection(QRect box)
 
 void CameraView::onContextMenuAction(QAction *action)
 {
+}
+
+void CameraView::runStream()
+{
+    m_sharedImageBuffer->setStreamControl(m_settings.deviceNumber, SharedImageBuffer::StreamControl::Run);
+}
+
+void CameraView::pauseStream()
+{
+    m_sharedImageBuffer->setStreamControl(m_settings.deviceNumber, SharedImageBuffer::StreamControl::Pause);
+}
+
+void CameraView::onStreamRun(int deviceNumber)
+{
+    if (deviceNumber == m_settings.deviceNumber)
+    {
+        m_streamControlRunButton->setEnabled(false);
+        m_streamControlPauseButton->setEnabled(true);
+        m_streamControlStatusLabel->setText(tr("Running"));
+    }
+}
+
+void CameraView::onStreamPaused(int deviceNumber)
+{
+    if (deviceNumber == m_settings.deviceNumber)
+    {
+        m_streamControlRunButton->setEnabled(true);
+        m_streamControlPauseButton->setEnabled(false);
+        m_streamControlStatusLabel->setText(tr("Paused"));
+    }
 }

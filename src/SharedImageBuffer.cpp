@@ -32,23 +32,22 @@
 
 #include "SharedImageBuffer.h"
 
+#include <QDebug>
+
 SharedImageBuffer::SharedImageBuffer()
 {
-    m_nArrived = 0;
-    m_doSync = false;
 }
 
-void SharedImageBuffer::add(int deviceNumber, Buffer<cv::Mat>* imageBuffer, bool sync)
+void SharedImageBuffer::add(int deviceNumber, Buffer<cv::Mat>* imageBuffer, StreamControl streamControl)
 {
-    // Device stream is to be synchronized
-    if(sync)
-    {
-        m_mutex.lock();
-        m_syncSet.insert(deviceNumber);
-        m_mutex.unlock();
-    }
-    // Add image buffer to map
+    // Add to maps
     m_imageBufferMap[deviceNumber] = imageBuffer;
+    if (!m_runPauseStreamMap.contains(deviceNumber))
+    {
+        QSemaphore *semaphore = new QSemaphore(0);
+        m_runPauseStreamMap[deviceNumber] = semaphore;
+        setStreamControl(deviceNumber, streamControl);
+    }
 }
 
 Buffer<cv::Mat>* SharedImageBuffer::get(int deviceNumber)
@@ -58,57 +57,67 @@ Buffer<cv::Mat>* SharedImageBuffer::get(int deviceNumber)
 
 void SharedImageBuffer::remove(int deviceNumber)
 {
-    // Remove buffer for device from image buffer map
+    // Remove from maps
     m_imageBufferMap.remove(deviceNumber);
-
-    // Also remove from set (if present)
-    m_mutex.lock();
-    if (m_syncSet.contains(deviceNumber))
-    {
-        m_syncSet.remove(deviceNumber);
-        m_waitCondition.wakeAll();
-    }
-    m_mutex.unlock();
+    m_streamControlMap.remove(deviceNumber);
+    m_runPauseStreamMap.remove(deviceNumber);
 }
 
-void SharedImageBuffer::sync(int deviceNumber)
+void SharedImageBuffer::streamControl(int deviceNumber)
 {
-    // Only perform sync if enabled for specified device/stream
     m_mutex.lock();
-    if (m_syncSet.contains(deviceNumber))
+    StreamControl streamControl = m_streamControlMap[deviceNumber];
+
+    if (streamControl == StreamControl::Run || streamControl == StreamControl::Pause)
     {
-        // Increment arrived count
-        m_nArrived++;
-        // We are the last to arrive: wake all waiting threads
-        if (m_doSync && (m_nArrived == m_syncSet.size()))
+        QSemaphore *semaphore = m_runPauseStreamMap[deviceNumber];
+        m_mutex.unlock();
+
+        // Wait if paused (i.e. if no semaphore is available)
+        if (semaphore->available() == 0)
         {
-            m_waitCondition.wakeAll();
+            semaphore->acquire();
+            semaphore->release();
         }
-        // Still waiting for other streams to arrive: wait
-        else
-        {
-            m_waitCondition.wait(&m_mutex);
-        }
-        // Decrement arrived count
-        m_nArrived--;
     }
-    m_mutex.unlock();
+    else if (streamControl == StreamControl::Sync)
+    {
+        m_syncedStreams.wait(&m_mutex);
+    }
 }
 
-void SharedImageBuffer::wakeAll()
+void SharedImageBuffer::setStreamControl(int deviceNumber, StreamControl streamControl)
 {
     QMutexLocker locker(&m_mutex);
-    m_waitCondition.wakeAll();
-}
 
-void SharedImageBuffer::setSyncStarted(bool start)
-{
-    m_doSync = start;
-}
+    if (streamControl == StreamControl::Run)
+    {
+        // Run stream if no semaphore is available
+        QSemaphore *semaphore = m_runPauseStreamMap[deviceNumber];
+        if (semaphore->available() == 0)
+        {
+            semaphore->release();
+        }
 
-bool SharedImageBuffer::isSyncEnabled(int deviceNumber)
-{
-    return m_syncSet.contains(deviceNumber);
+        emit streamRun(deviceNumber);
+    }
+    else if (streamControl == StreamControl::Pause)
+    {
+        // Pause stream if semaphore is available
+        QSemaphore *semaphore = m_runPauseStreamMap[deviceNumber];
+        if (semaphore->available() > 0)
+        {
+            semaphore->acquire();
+        }
+
+        emit streamPaused(deviceNumber);
+    }
+    else if (streamControl == StreamControl::Sync)
+    {
+
+    }
+
+    m_streamControlMap[deviceNumber] = streamControl;
 }
 
 bool SharedImageBuffer::contains(int deviceNumber)

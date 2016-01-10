@@ -34,34 +34,39 @@
 #define CAMERACONNECTDIALOG_H
 
 #include <QDialog>
+#include <QThread>
 
-namespace Ui {
-class CameraConnectDialog;
-}
+#include "CameraView.h"
+
+class QLineEdit;
+class QCheckBox;
+class QComboBox;
 
 class CameraConnectDialog : public QDialog
 {
     Q_OBJECT
     
     public:
-        explicit CameraConnectDialog(QWidget *parent = 0, bool isStreamSyncEnabled = false);
-        ~CameraConnectDialog();
-        void setDeviceNumber();
-        void setImageBufferSize();
-        int getDeviceNumber();
-        int getResolutionWidth();
-        int getResolutionHeight();
-        int getImageBufferSize();
-        bool getDropFrameCheckBoxState();
-        int getCaptureThreadPrio();
-        int getProcessingThreadPrio();
-        QString getTabLabel();
-        bool getEnableFrameProcessingCheckBoxState();
+        CameraConnectDialog(int nextDeviceNumber, QWidget *parent = 0);
+        CameraView::Settings settings();
+        QString tabName();
 
     private:
-        Ui::CameraConnectDialog *ui;
+        void updateUi();
+        bool setComboBoxByData(QComboBox *comboBox, QVariant data, int &index);
+        int m_nextDeviceNumber;
+        QLineEdit *m_cameraDeviceNumberLineEdit;
+        QLineEdit *m_cameraResolutionWidthLineEdit;
+        QLineEdit *m_cameraResolutionHeightLineEdit;
+        QLineEdit *m_imageBufferSizeLineEdit;
+        QCheckBox *m_dropFrameIfBufferFullCheckbox;
+        QComboBox *m_captureThreadPriorityComboBox;
+        QComboBox *m_processingThreadPriorityComboBox;
+        QLineEdit *m_tabNameLineEdit;
+        QCheckBox *m_enableFrameProcessingCheckbox;
+        QComboBox *m_streamControlComboBox;
 
-    public slots:
+    private slots:
         void resetToDefaults();
 };
 

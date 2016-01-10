@@ -33,16 +33,22 @@
 #ifndef THREADSTATISTICS_H
 #define THREADSTATISTICS_H
 
+#include <QQueue>
+
 class ThreadStatistics
 {
     public:
-        int averageFps;
-        int nFramesProcessed;
+        QQueue<int> frameTimes;
+        int frameTimesSum;
+        float averageFps;
+        quint64 frameCounter;
 
         void init()
         {
+            frameTimes.clear();
+            frameTimesSum = 0;
             averageFps = 0;
-            nFramesProcessed = 0;
+            frameCounter = 0;
         }
 };
 

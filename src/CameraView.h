@@ -34,9 +34,14 @@
 #define CAMERAVIEW_H
 
 #include <QWidget>
+#include <QThread>
 
 #include "ImageProcessing.h"
 #include "ThreadStatistics.h"
+#include "Buffer.h"
+#include "SharedImageBuffer.h"
+
+#include <opencv2/opencv.hpp>
 
 class FrameLabel;
 class ProcessingThread;
@@ -52,9 +57,22 @@ class CameraView : public QWidget
     Q_OBJECT
 
     public:
-        explicit CameraView(int deviceNumber, SharedImageBuffer *sharedImageBuffer, QWidget *parent = 0);
+        class Settings
+        {
+            public:
+                int deviceNumber;
+                int imageBufferSize;
+                SharedImageBuffer::StreamControl streamControl;
+                bool dropFrameIfBufferFull;
+                QThread::Priority captureThreadPriority;
+                QThread::Priority processingThreadPriority;
+                bool enableFrameProcessing;
+                int width;
+                int height;
+        };
+        CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, QWidget *parent = 0);
         ~CameraView();
-        bool connectToCamera(bool dropFrameIfBufferFull, int capThreadPriority, int procThreadPriority, bool enableFrameProcessing, int width, int height);
+        bool connectToCamera();
 
     private:
         void stopCaptureThread();
@@ -71,26 +89,29 @@ class CameraView : public QWidget
         QLabel *m_mouseCursorPosLabel;
         QProgressBar *m_imageBufferStatusProgressBar;
         QPushButton *m_clearImageBufferButton;
+        QLabel *m_streamControlStatusLabel;
+        QPushButton *m_streamControlRunButton;
+        QPushButton *m_streamControlPauseButton;
 
-        int m_deviceNumber;
-        bool m_isCameraConnected;
-
+        Buffer<cv::Mat> *m_imageBuffer;
         ProcessingThread *m_processingThread;
         CaptureThread *m_captureThread;
         SharedImageBuffer *m_sharedImageBuffer;
         ImageProcessing m_imageProcessing;
-
-    public slots:
-        void setImageProcessingSettings();
-        void newSelection(QRect box);
-        void updateMouseCursorPosLabel();
-        void clearImageBuffer();
+        Settings m_settings;
 
     private slots:
+        void onNewSelection(QRect box);
+        void updateMouseCursorPosLabel();
+        void clearImageBuffer();
         void updateFrame(const QImage &frame);
         void updateProcessingThreadStatistics(ThreadStatistics statistics);
         void updateCaptureThreadStatistics(ThreadStatistics statistics);
         void onContextMenuAction(QAction *action);
+        void runStream();
+        void pauseStream();
+        void onStreamRun(int deviceNumber);
+        void onStreamPaused(int deviceNumber);
 
     signals:
         void updateImageProcessing(ImageProcessing imageProcessing);

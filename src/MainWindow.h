@@ -56,12 +56,11 @@ class MainWindow : public QMainWindow
     private:
         void initUi();
         void setTabCloseToolTips(QTabWidget *tabs, QString tooltip);
+        int getNextDeviceNumber();
         QMenu *m_menuFile;
-        QMenu *m_menuOptions;
         QMenu *m_menuView;
         QMenu *m_menuHelp;
         QAction *m_actionQuit;
-        QAction *m_actionSynchronizeStreams;
         QAction *m_actionFullScreen;
         QAction *m_actionAbout;
         QTabWidget *m_tabWidget;

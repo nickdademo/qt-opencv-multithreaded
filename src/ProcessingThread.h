@@ -63,17 +63,12 @@ class ProcessingThread : public QThread
         cv::Rect m_currentRoi;
         QImage m_frame;
         QTime m_time;
-        QQueue<int> m_fps;
         QMutex m_doStopMutex;
         QMutex m_processingMutex;
-        cv::Size m_frameSize;
-        cv::Point m_framePoint;
         ImageProcessing m_imageProcessing;
         ThreadStatistics m_statistics;
         volatile bool m_doStop;
-        int m_processingTime;
-        int m_fpsSum;
-        int m_sampleNumber;
+        int m_sampleCount;
         int m_deviceNumber;
         bool m_enableFrameProcessing;
 

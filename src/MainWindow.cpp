@@ -69,12 +69,6 @@ void MainWindow::initUi()
     m_menuFile->addAction(m_actionQuit);
     connect(m_actionQuit, &QAction::triggered, this, &MainWindow::close);
 
-    // Options menu
-    m_menuOptions = menuBar()->addMenu(tr("Options"));
-    m_actionSynchronizeStreams = new QAction(tr("Synchronize Streams"), this);
-    m_actionSynchronizeStreams->setCheckable(true);
-    m_menuOptions->addAction(m_actionSynchronizeStreams);
-
     // View menu
     m_menuView = menuBar()->addMenu(tr("View"));
     m_actionFullScreen = new QAction(tr("Full Screen"), this);
@@ -116,7 +110,8 @@ void MainWindow::initUi()
 void MainWindow::connectToCamera()
 {
     // We cannot connect to a camera if devices are already connected AND stream synchronization is in progress
-    if ((m_cameraViewMap.size() > 0) && m_sharedImageBuffer->isSyncStarted())
+    /*
+    if ((m_cameraViewMap.size() > 0) && m_sharedImageBuffer->isSyncInProgress())
     {
         QMessageBox::warning(
             this,
@@ -126,14 +121,15 @@ void MainWindow::connectToCamera()
         );
         return;
     }
+    */
 
     // Show dialog
-    CameraConnectDialog dialog(this, m_actionSynchronizeStreams->isChecked());
+    CameraConnectDialog dialog(getNextDeviceNumber(), this);
     int ret = dialog.exec();
     if (ret == QDialog::Accepted)
     {
         // Save user-specified device number
-        int deviceNumber = dialog.getDeviceNumber();
+        int deviceNumber = dialog.settings().deviceNumber;
 
         // Check if this camera is already connected
         if (m_cameraViewMap.contains(deviceNumber))
@@ -146,52 +142,42 @@ void MainWindow::connectToCamera()
             return;
         }
 
-        // Create image buffer with user-defined size
-        Buffer<cv::Mat> *imageBuffer = new Buffer<cv::Mat>(dialog.getImageBufferSize());
-        // Add created buffer to SharedImageBuffer object
-        m_sharedImageBuffer->add(deviceNumber, imageBuffer, m_actionSynchronizeStreams->isChecked());
         // Create CameraView instance
-        CameraView *cameraView = new CameraView(deviceNumber, m_sharedImageBuffer, m_tabWidget);
-
-        // Check if stream synchronization is enabled
-        if (m_actionSynchronizeStreams->isChecked())
-        {
-            // Prompt user
-            int ret = QMessageBox::question(
-                this,
-                tr("Stream Synchronization Enabled"),
-                QString("%1\n\n%2").arg(tr("Do you want to start processing?")).arg(tr("Choose 'No' if you would like to open additional streams.")),
-                QMessageBox::Yes | QMessageBox::No,
-                QMessageBox::Yes
-            );
-            // Start streaming if requested
-            m_sharedImageBuffer->setSyncStarted(ret == QMessageBox::Yes);
-        }
+        CameraView *cameraView = new CameraView(dialog.settings(), m_sharedImageBuffer, m_tabWidget);
 
         // Attempt to connect to camera
-        bool result = cameraView->connectToCamera(
-            dialog.getDropFrameCheckBoxState(),
-            dialog.getCaptureThreadPrio(),
-            dialog.getProcessingThreadPrio(),
-            dialog.getEnableFrameProcessingCheckBoxState(),
-            dialog.getResolutionWidth(),
-            dialog.getResolutionHeight()
-        );
+        bool result = cameraView->connectToCamera();
 
         // Success
         if (result)
         {
+            // Check if stream synchronization is enabled
+            if (dialog.settings().streamControl == SharedImageBuffer::StreamControl::Sync)
+            {
+                // Prompt user
+                QMessageBox::StandardButton ret = QMessageBox::question(
+                    this,
+                    tr("Stream Synchronization Enabled"),
+                    QString("%1\n\n%2").arg(tr("Do you want to start processing on all streams set to synchronize?")).arg(tr("Choose 'No' if you would like to open additional streams to synchronize.")),
+                    QMessageBox::Yes | QMessageBox::No,
+                    QMessageBox::Yes
+                );
+                // Start streaming if requested
+                if (ret == QMessageBox::Yes)
+                {
+                    //m_sharedImageBuffer->startSync();
+                }
+            }
+
             // Save tab label
-            QString tabLabel = dialog.getTabLabel();
+            QString tabName = dialog.tabName();
             // Add tab
-            m_tabWidget->addTab(cameraView, tabLabel.isEmpty() ? QString("[%1]").arg(deviceNumber) : QString("%1 [%2]").arg(tabLabel).arg(deviceNumber));
+            m_tabWidget->addTab(cameraView, tabName.isEmpty() ? QString("[%1]").arg(deviceNumber) : QString("%1 [%2]").arg(tabName).arg(deviceNumber));
             m_tabWidget->setCurrentWidget(cameraView);
             // Insert into map
             m_cameraViewMap.insert(deviceNumber, cameraView);
             // Set tooltips
             setTabCloseToolTips(m_tabWidget, tr("Disconnect Camera"));
-            // Prevent user from enabling/disabling stream synchronization after a camera has been connected
-            m_actionSynchronizeStreams->setEnabled(false);
         }
         // Failure
         else
@@ -205,10 +191,6 @@ void MainWindow::connectToCamera()
 
             // Delete widget
             delete cameraView;
-            // Remove from shared buffer
-            m_sharedImageBuffer->remove(deviceNumber);
-            // Delete buffer
-            delete imageBuffer;
         }
     }
 }
@@ -218,7 +200,8 @@ void MainWindow::disconnectCamera(int index)
     bool doDisconnect = true;
 
     // Check if more than one camera is connected AND stream synchronization is in progress
-    if ((m_cameraViewMap.size() > 1) && !m_sharedImageBuffer->isSyncStarted())
+    /*
+    if ((m_cameraViewMap.size() > 1) && m_sharedImageBuffer->isSyncInProgress())
     {
         // Prompt user
         int ret = QMessageBox::question(
@@ -230,6 +213,7 @@ void MainWindow::disconnectCamera(int index)
         );
         doDisconnect = (ret == QMessageBox::Yes);
     }
+    */
 
     // Disconnect camera
     if(doDisconnect)
@@ -306,8 +290,23 @@ void MainWindow::tabWidgetCurrentIndexChanged(int index)
         // Add initial tab
         m_tabWidget->addTab(m_initialTab, "");
         m_tabWidget->setTabsClosable(false);
-
-        // Allow stream synchronization to be enabled
-        m_actionSynchronizeStreams->setEnabled(true);
     }
+}
+
+int MainWindow::getNextDeviceNumber()
+{
+    int index = 0;
+    QMapIterator<int, CameraView*> i(m_cameraViewMap);
+    while (i.hasNext())
+    {
+        i.next();
+        int deviceNumber = i.key();
+        if (deviceNumber != index)
+        {
+            break;
+        }
+        index++;
+    }
+
+    return index;
 }
