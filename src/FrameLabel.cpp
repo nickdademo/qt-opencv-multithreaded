@@ -108,7 +108,7 @@ void FrameLabel::mouseReleaseEvent(QMouseEvent *ev)
 void FrameLabel::mousePressEvent(QMouseEvent *ev)
 {
     // Update cursor position
-    setMouseCursorPos(ev->pos());;
+    setMouseCursorPos(ev->pos());
     if(ev->button() == Qt::LeftButton)
     {
         // Start drawing box

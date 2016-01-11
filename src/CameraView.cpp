@@ -467,6 +467,9 @@ void CameraView::onContextMenuAction(QAction *action)
     }
     else if (action->data() == (int)FrameLabel::Actions::Canny)
     {
+        ImageProcessing imageProcessing = m_processingThread->imageProcessing();
+        imageProcessing.canny.enabled = action->isChecked();
+        m_processingThread->updateImageProcessing(imageProcessing);
     }
     else if (action->data() == (int)FrameLabel::Actions::Settings)
     {
