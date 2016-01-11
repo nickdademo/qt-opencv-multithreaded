@@ -53,15 +53,16 @@ class ProcessingThread : public QThread
         ProcessingThread(SharedImageBuffer *sharedImageBuffer, int deviceNumber);
         QRect currentRoi();
         void stop();
+        ImageProcessing imageProcessing()
+        {
+            return m_imageProcessing;
+        }
 
     private:
         void updateFps(int timeElapsed);
         void resetRoi();
         SharedImageBuffer *m_sharedImageBuffer;
-        cv::Mat m_currentFrame;
-        cv::Mat m_currentFrameGrayscale;
         cv::Rect m_currentRoi;
-        QImage m_frame;
         QTime m_time;
         QMutex m_doStopMutex;
         QMutex m_processingMutex;
@@ -80,7 +81,7 @@ class ProcessingThread : public QThread
         void setRoi(QRect roi);
 
     signals:
-        void newFrame(const QImage& frame);
+        void newFrame(QImage frame);
         void newStatistics(ThreadStatistics statistics);
 };
 

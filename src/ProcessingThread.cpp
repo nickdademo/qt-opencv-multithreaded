@@ -75,17 +75,18 @@ void ProcessingThread::run()
        
         // Get frame from queue, store in currentFrame, set ROI
         m_processingMutex.lock();
-        m_currentFrame = cv::Mat(m_sharedImageBuffer->get(m_deviceNumber)->get().clone(), m_currentRoi);
+        cv::Mat frame = cv::Mat(m_sharedImageBuffer->get(m_deviceNumber)->get(), m_currentRoi);
 
         // Example of how to grab a frame from another stream (where Device Number=1)
-        // Note: This requires stream synchronization to be ENABLED (in the Options menu of MainWindow) and frame processing for the stream you are grabbing FROM to be DISABLED.
+        // Note:    This requires the Frame Processing thread for the stream you are grabbing FROM to be DISABLED (via the Camera Connect dialog)
+        //          Also, thread synchronization can be enabled if frame-by-frame capture and/or processing is required.
         /*
         if (m_sharedImageBuffer->contains(1))
         {
             // Grab frame from another stream (connected to camera with Device Number=1)
             cv::Mat frameFromAnotherStream = cv::Mat(m_sharedImageBuffer->get(1)->get(), m_currentRoi);
-            // Linear blend images together using OpenCV and save the result to currentFrame. Note: beta = 1 - alpha
-            cv::addWeighted(frameFromAnotherStream, 0.5, m_currentFrame, 0.5, 0.0, m_currentFrame);
+            // Linear blend images together using OpenCV and save the result to 'frame'. Note: beta = 1 - alpha
+            cv::addWeighted(frameFromAnotherStream, 0.5, frame, 0.5, 0.0, frame);
         }
         */
 
@@ -93,11 +94,11 @@ void ProcessingThread::run()
         // PERFORM IMAGE PROCESSING BELOW //
         ////////////////////////////////////
         // Grayscale conversion
-        if (m_imageProcessing.grayscale.enabled && (m_currentFrame.channels() == 3 || m_currentFrame.channels() == 4))
+        if (m_imageProcessing.grayscale.enabled && (frame.channels() == 3 || frame.channels() == 4))
         {
             cvtColor(
-                m_currentFrame,
-                m_currentFrame,
+                frame,
+                frame,
                 CV_BGR2GRAY
             );
         }
@@ -110,16 +111,16 @@ void ProcessingThread::run()
                 // Blur
                 case 0:
                     blur(
-                        m_currentFrame,
-                        m_currentFrame,
+                        frame,
+                        frame,
                         cv::Size(m_imageProcessing.smooth.parameter1, m_imageProcessing.smooth.parameter2)
                     );
                     break;
                 // Gaussian
                 case 1:
                     GaussianBlur(
-                        m_currentFrame,
-                        m_currentFrame,
+                        frame,
+                        frame,
                         cv::Size(m_imageProcessing.smooth.parameter1, m_imageProcessing.smooth.parameter2),
                         m_imageProcessing.smooth.parameter3,
                         m_imageProcessing.smooth.parameter4
@@ -128,8 +129,8 @@ void ProcessingThread::run()
                 // Median
                 case 2:
                     medianBlur(
-                        m_currentFrame,
-                        m_currentFrame,
+                        frame,
+                        frame,
                         m_imageProcessing.smooth.parameter1
                     );
                     break;
@@ -139,8 +140,8 @@ void ProcessingThread::run()
         if (m_imageProcessing.dilate.enabled)
         {
             dilate(
-                m_currentFrame,
-                m_currentFrame,
+                frame,
+                frame,
                 cv::Mat(),
                 cv::Point(-1, -1),
                 m_imageProcessing.dilate.nIterations
@@ -150,8 +151,8 @@ void ProcessingThread::run()
         if (m_imageProcessing.erode.enabled)
         {
             erode(
-                m_currentFrame,
-                m_currentFrame,
+                frame,
+                frame,
                 cv::Mat(),
                 cv::Point(-1, -1),
                 m_imageProcessing.erode.nIterations
@@ -161,8 +162,8 @@ void ProcessingThread::run()
         if (m_imageProcessing.flip.enabled)
         {
             flip(
-                m_currentFrame,
-                m_currentFrame,
+                frame,
+                frame,
                 m_imageProcessing.flip.code
             );
         }
@@ -170,8 +171,8 @@ void ProcessingThread::run()
         if (m_imageProcessing.canny.enabled)
         {
             Canny(
-                m_currentFrame,
-                m_currentFrame,
+                frame,
+                frame,
                 m_imageProcessing.canny.threshold1,
                 m_imageProcessing.canny.threshold2,
                 m_imageProcessing.canny.apertureSize,
@@ -183,13 +184,13 @@ void ProcessingThread::run()
         ////////////////////////////////////
 
         // Convert Mat to QImage
-        m_frame = MatToQImage(m_currentFrame);
+        QImage qImageFrame = MatToQImage(frame);
         m_processingMutex.unlock();
 
         // Only emit valid frames
-        if (!m_frame.isNull())
+        if (!qImageFrame.isNull())
         {
-            emit newFrame(m_frame);
+            emit newFrame(qImageFrame);
         }
 
         // Update statistics

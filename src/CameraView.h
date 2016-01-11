@@ -112,7 +112,7 @@ class CameraView : public QWidget
         void onNewSelection(QRect box);
         void updateMouseCursorPosLabel();
         void clearImageBuffer();
-        void updateFrame(const QImage &frame);
+        void updateFrame(QImage frame);
         void updateProcessingThreadStatistics(ThreadStatistics statistics);
         void updateCaptureThreadStatistics(ThreadStatistics statistics);
         void onContextMenuAction(QAction *action);

@@ -44,6 +44,18 @@ class FrameLabel : public QLabel
     Q_OBJECT
 
     public:
+        enum class Actions
+        {
+            ResetRoi,
+            ScaleToFitFrame,
+            Grayscale,
+            Smooth,
+            Dilate,
+            Erode,
+            Flip,
+            Canny,
+            Settings
+        };
         FrameLabel(QWidget *parent = 0);
         void setMouseCursorPos(QPoint point);
         QPoint getMouseCursorPos();

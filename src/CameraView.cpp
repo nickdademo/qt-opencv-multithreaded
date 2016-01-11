@@ -318,7 +318,7 @@ void CameraView::updateProcessingThreadStatistics(ThreadStatistics statistics)
     m_roiLabel->setText(QString("(%1, %2) %3x%4").arg(m_processingThread->currentRoi().x()).arg(m_processingThread->currentRoi().y()).arg(m_processingThread->currentRoi().width()).arg(m_processingThread->currentRoi().height()));
 }
 
-void CameraView::updateFrame(const QImage &frame)
+void CameraView::updateFrame(QImage frame)
 {
     m_frameLabel->setPixmap(QPixmap::fromImage(frame).scaled(m_frameLabel->width(), m_frameLabel->height(), Qt::KeepAspectRatio));
 }
@@ -427,6 +427,50 @@ void CameraView::onNewSelection(QRect box)
 
 void CameraView::onContextMenuAction(QAction *action)
 {
+    if (action->data() == (int)FrameLabel::Actions::ResetRoi)
+    {
+        m_processingThread->setRoi(QRect(0, 0, m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH), m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
+    }
+    else if (action->data() == (int)FrameLabel::Actions::ScaleToFitFrame)
+    {
+        m_frameLabel->setScaledContents(action->isChecked());
+    }
+    else if (action->data() == (int)FrameLabel::Actions::Grayscale)
+    {
+        ImageProcessing imageProcessing = m_processingThread->imageProcessing();
+        imageProcessing.grayscale.enabled = action->isChecked();
+        m_processingThread->updateImageProcessing(imageProcessing);
+    }
+    else if (action->data() == (int)FrameLabel::Actions::Smooth)
+    {
+        ImageProcessing imageProcessing = m_processingThread->imageProcessing();
+        imageProcessing.smooth.enabled = action->isChecked();
+        m_processingThread->updateImageProcessing(imageProcessing);
+    }
+    else if (action->data() == (int)FrameLabel::Actions::Dilate)
+    {
+        ImageProcessing imageProcessing = m_processingThread->imageProcessing();
+        imageProcessing.dilate.enabled = action->isChecked();
+        m_processingThread->updateImageProcessing(imageProcessing);
+    }
+    else if (action->data() == (int)FrameLabel::Actions::Erode)
+    {
+        ImageProcessing imageProcessing = m_processingThread->imageProcessing();
+        imageProcessing.erode.enabled = action->isChecked();
+        m_processingThread->updateImageProcessing(imageProcessing);
+    }
+    else if (action->data() == (int)FrameLabel::Actions::Flip)
+    {
+        ImageProcessing imageProcessing = m_processingThread->imageProcessing();
+        imageProcessing.flip.enabled = action->isChecked();
+        m_processingThread->updateImageProcessing(imageProcessing);
+    }
+    else if (action->data() == (int)FrameLabel::Actions::Canny)
+    {
+    }
+    else if (action->data() == (int)FrameLabel::Actions::Settings)
+    {
+    }
 }
 
 void CameraView::runStream()
@@ -449,6 +493,10 @@ void CameraView::onStreamRun(int deviceNumber)
         if (!m_sharedImageBuffer->isCaptureSyncInProgress() && m_sharedImageBuffer->isCaptureSyncEnabled(m_settings.deviceNumber))
         {
             m_captureSyncLabel->setText(tr("Waiting for sync"));
+        }
+        if (!m_sharedImageBuffer->isProcessingSyncInProgress() && m_sharedImageBuffer->isProcessingSyncEnabled(m_settings.deviceNumber))
+        {
+            m_processingSyncLabel->setText(tr("Waiting for sync"));
         }
         // Only enable ROI setting if frame processing is enabled
         if (m_settings.processingThreadEnable)
@@ -475,6 +523,10 @@ void CameraView::onStreamPaused(int deviceNumber)
         if (!m_sharedImageBuffer->isCaptureSyncInProgress() && m_sharedImageBuffer->isCaptureSyncEnabled(m_settings.deviceNumber))
         {
             m_captureSyncLabel->setText(tr("Waiting for sync"));
+        }
+        if (!m_sharedImageBuffer->isProcessingSyncInProgress() && m_sharedImageBuffer->isProcessingSyncEnabled(m_settings.deviceNumber))
+        {
+            m_processingSyncLabel->setText(tr("Waiting for sync"));
         }
         disconnect(m_newSelectionConnection);
         disconnect(m_captureStatisticsConnection);
