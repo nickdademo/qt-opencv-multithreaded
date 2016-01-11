@@ -41,6 +41,8 @@
 class QLineEdit;
 class QCheckBox;
 class QComboBox;
+class QRadioButton;
+class QGroupBox;
 
 class CameraConnectDialog : public QDialog
 {
@@ -63,12 +65,16 @@ class CameraConnectDialog : public QDialog
         QComboBox *m_captureThreadPriorityComboBox;
         QComboBox *m_processingThreadPriorityComboBox;
         QLineEdit *m_tabNameLineEdit;
-        QCheckBox *m_enableFrameProcessingCheckbox;
         QComboBox *m_streamControlComboBox;
-        QCheckBox *m_syncStreamCheckbox;
+        QCheckBox *m_captureThreadSyncCheckbox;
+        QCheckBox *m_processingThreadSyncCheckbox;
+        QRadioButton *m_runningButton;
+        QRadioButton *m_pausedButton;
+        QGroupBox *m_processingThreadGroupBox;
 
     private slots:
         void resetToDefaults();
+        void onEnableFrameProcessingCheckboxToggled(bool enable);
 };
 
 #endif // CAMERACONNECTDIALOG_H

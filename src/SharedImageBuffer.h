@@ -49,45 +49,63 @@ class SharedImageBuffer : public QObject
     Q_OBJECT
 
     public:
-        enum class StreamControl
-        {
-            Run,
-            Pause
-        };
         SharedImageBuffer();
-        void add(int deviceNumber, Buffer<cv::Mat> *imageBuffer, StreamControl streamControl, bool sync);
+        void add(int deviceNumber, Buffer<cv::Mat> *imageBuffer, bool run, bool captureThreadSync, bool processingThreadSync);
         Buffer<cv::Mat>* get(int deviceNumber);
         void remove(int deviceNumber);
         bool contains(int deviceNumber);
 
-        void setStreamControl(int deviceNumber, StreamControl streamControl);
-        StreamControl getStreamControl(int deviceNumber);
+        void setStreamRunning(int deviceNumber, bool run);
+        bool isStreamRunning(int deviceNumber);
         void streamControl(int deviceNumber);
 
-        void startSync();
-        void stopSync();
-        bool isSyncInProgress()
+        void captureSync(int deviceNumber);
+        bool isCaptureSyncEnabled(int deviceNumber);
+        void startCaptureSync();
+        void stopCaptureSync();
+        bool isCaptureSyncInProgress()
         {
-            return m_doSync;
+            return m_doCaptureSync;
         }
-        bool isSyncEnabled(int deviceNumber);
+
+        void processingSync(int deviceNumber);
+        bool isProcessingSyncEnabled(int deviceNumber);
+        void startProcessingSync();
+        void stopProcessingSync();
+        bool isProcessingSyncInProgress()
+        {
+            return m_doProcessingSync;
+        }
 
     private:
-        void _setStreamControl(int deviceNumber, StreamControl streamControl);
+        void _setStreamRunning(int deviceNumber, bool run);
+
         QHash<int, Buffer<cv::Mat>*> m_imageBufferMap;
-        QHash<int, StreamControl> m_streamControlMap;
-        QHash<int, QSemaphore*> m_runPauseStreamMap;
-        QWaitCondition m_syncedStreams;
-        QSet<int> m_syncSet;
-        QMutex m_mutex;
-        bool m_doSync;
-        int m_nArrived;
+        QMutex m_imageBufferMutex;
+
+        QHash<int, bool> m_streamControlMap;
+        QHash<int, QSemaphore*> m_streamControlSemaphoreMap;
+        QMutex m_streamControlMutex;
+
+        QWaitCondition m_captureSyncWaitCondition;
+        QSet<int> m_captureSyncSet;
+        QMutex m_captureSyncMutex;
+        bool m_doCaptureSync;
+        int m_nArrivedCapture;
+
+        QWaitCondition m_processingSyncWaitCondition;
+        QSet<int> m_processingSyncSet;
+        QMutex m_processingSyncMutex;
+        bool m_doProcessingSync;
+        int m_nArrivedProcessing;
 
     signals:
         void streamRun(int deviceNumber);
         void streamPaused(int deviceNumber);
-        void syncStarted();
-        void syncStopped();
+        void captureSyncStarted();
+        void captureSyncStopped();
+        void processingSyncStarted();
+        void processingSyncStopped();
 };
 
 #endif // SHAREDIMAGEBUFFER_H

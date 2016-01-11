@@ -62,14 +62,15 @@ class CameraView : public QWidget
             public:
                 int deviceNumber;
                 int imageBufferSize;
-                SharedImageBuffer::StreamControl streamControl;
+                bool run;
                 bool dropFrameIfBufferFull;
                 QThread::Priority captureThreadPriority;
+                bool captureThreadSync;
+                bool processingThreadEnable;
                 QThread::Priority processingThreadPriority;
-                bool enableFrameProcessing;
+                bool processingThreadSync;
                 int width;
                 int height;
-                bool synchronizeStream;
         };
         CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, QWidget *parent = 0);
         ~CameraView();
@@ -82,8 +83,10 @@ class CameraView : public QWidget
         FrameLabel *m_frameLabel;
         QLabel *m_captureRateLabel;
         QLabel *m_nFramesCapturedLabel;
+        QLabel *m_captureSyncLabel;
         QLabel *m_processingRateLabel;
         QLabel *m_nFramesProcessedLabel;
+        QLabel *m_processingSyncLabel;
         QLabel *m_deviceNumberLabel;
         QLabel *m_cameraResolutionLabel;
         QLabel *m_roiLabel;
@@ -117,8 +120,10 @@ class CameraView : public QWidget
         void pauseStream();
         void onStreamRun(int deviceNumber);
         void onStreamPaused(int deviceNumber);
-        void onSyncStarted();
-        void onSyncStopped();
+        void onCaptureSyncStarted();
+        void onCaptureSyncStopped();
+        void onProcessingSyncStarted();
+        void onProcessingSyncStopped();
 
     signals:
         void updateImageProcessing(ImageProcessing imageProcessing);

@@ -153,21 +153,38 @@ void MainWindow::connectToCamera()
         // Success
         if (result)
         {
-            // Check if stream synchronization is enabled
-            if (dialog.settings().synchronizeStream)
+            // Check if Capture Thread synchronization is enabled
+            if (dialog.settings().captureThreadSync)
             {
                 // Prompt user
                 QMessageBox::StandardButton ret = QMessageBox::question(
                     this,
-                    tr("Stream Synchronization Enabled"),
-                    QString("%1\n\n%2").arg(tr("Do you want to start processing on all streams set to synchronize?")).arg(tr("Choose 'No' if you would like to open additional streams to synchronize.")),
+                    tr("Capture Synchronization Enabled"),
+                    QString("%1\n\n%2").arg(tr("Do you want to start processing on all Capture Threads set to synchronize?")).arg(tr("Choose 'No' if you would like to open additional streams to synchronize.")),
                     QMessageBox::Yes | QMessageBox::No,
                     QMessageBox::Yes
                 );
                 // Start streaming if requested
                 if (ret == QMessageBox::Yes)
                 {
-                    m_sharedImageBuffer->startSync();
+                    m_sharedImageBuffer->startCaptureSync();
+                }
+            }
+            // Check if Processing Thread synchronization is enabled
+            if (dialog.settings().processingThreadSync)
+            {
+                // Prompt user
+                QMessageBox::StandardButton ret = QMessageBox::question(
+                    this,
+                    tr("Processing Synchronization Enabled"),
+                    QString("%1\n\n%2").arg(tr("Do you want to start processing on all Processing Threads set to synchronize?")).arg(tr("Choose 'No' if you would like to open additional streams to synchronize.")),
+                    QMessageBox::Yes | QMessageBox::No,
+                    QMessageBox::Yes
+                    );
+                // Start streaming if requested
+                if (ret == QMessageBox::Yes)
+                {
+                    m_sharedImageBuffer->startProcessingSync();
                 }
             }
 

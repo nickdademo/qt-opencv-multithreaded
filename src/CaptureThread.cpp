@@ -73,6 +73,8 @@ void CaptureThread::run()
 
         // Stream control
         m_sharedImageBuffer->streamControl(m_deviceNumber);
+        // Sync
+        m_sharedImageBuffer->captureSync(m_deviceNumber);
 
         // Capture frame (if available)
         if (!m_cap.grab())

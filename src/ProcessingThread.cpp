@@ -70,9 +70,11 @@ void ProcessingThread::run()
         ///////////////////////
         ///////////////////////
 
-        m_processingMutex.lock();
-
+        // Sync
+        m_sharedImageBuffer->processingSync(m_deviceNumber);
+       
         // Get frame from queue, store in currentFrame, set ROI
+        m_processingMutex.lock();
         m_currentFrame = cv::Mat(m_sharedImageBuffer->get(m_deviceNumber)->get().clone(), m_currentRoi);
 
         // Example of how to grab a frame from another stream (where Device Number=1)

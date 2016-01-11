@@ -98,9 +98,13 @@ CameraView::CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, 
     m_captureRateLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     m_nFramesCapturedLabel = new QLabel;
     m_nFramesCapturedLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_captureSyncLabel = new QLabel;
+    m_captureSyncLabel->setFont(italicFont);
+    m_captureSyncLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     gridLayout->addWidget(captureRateLabel, 2, 0); 
     gridLayout->addWidget(m_captureRateLabel, 2, 1);
     gridLayout->addWidget(m_nFramesCapturedLabel, 2, 2);
+    gridLayout->addWidget(m_captureSyncLabel, 2, 3);
     // Processing Rate
     QLabel *processingRateLabel = new QLabel(tr("Processing Rate") + ":");
     processingRateLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -110,9 +114,13 @@ CameraView::CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, 
     m_processingRateLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     m_nFramesProcessedLabel = new QLabel;
     m_nFramesProcessedLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    m_processingSyncLabel = new QLabel;
+    m_processingSyncLabel->setFont(italicFont);
+    m_processingSyncLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     gridLayout->addWidget(processingRateLabel, 3, 0);
     gridLayout->addWidget(m_processingRateLabel, 3, 1);
     gridLayout->addWidget(m_nFramesProcessedLabel, 3, 2);
+    gridLayout->addWidget(m_processingSyncLabel, 3, 3);
     // ROI
     QLabel *roiLabel = new QLabel(tr("ROI") + ":");
     roiLabel->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -176,8 +184,10 @@ CameraView::CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, 
     // We use Queued Connections here to prevent dead locks due to the SharedImageBuffer mutex
     connect(m_sharedImageBuffer, &SharedImageBuffer::streamRun, this, &CameraView::onStreamRun, Qt::QueuedConnection);
     connect(m_sharedImageBuffer, &SharedImageBuffer::streamPaused, this, &CameraView::onStreamPaused, Qt::QueuedConnection);
-    connect(m_sharedImageBuffer, &SharedImageBuffer::syncStarted, this, &CameraView::onSyncStarted, Qt::QueuedConnection);
-    connect(m_sharedImageBuffer, &SharedImageBuffer::syncStarted, this, &CameraView::onSyncStopped, Qt::QueuedConnection);
+    connect(m_sharedImageBuffer, &SharedImageBuffer::captureSyncStarted, this, &CameraView::onCaptureSyncStarted, Qt::QueuedConnection);
+    connect(m_sharedImageBuffer, &SharedImageBuffer::captureSyncStarted, this, &CameraView::onCaptureSyncStopped, Qt::QueuedConnection);
+    connect(m_sharedImageBuffer, &SharedImageBuffer::processingSyncStarted, this, &CameraView::onProcessingSyncStarted, Qt::QueuedConnection);
+    connect(m_sharedImageBuffer, &SharedImageBuffer::processingSyncStopped, this, &CameraView::onProcessingSyncStopped, Qt::QueuedConnection);
     // Create image buffer with user-defined size
     m_imageBuffer = new Buffer<cv::Mat>(settings.imageBufferSize);
 }
@@ -237,12 +247,12 @@ bool CameraView::connectToCamera()
         m_processingThread->setRoi(QRect(0, 0, m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_WIDTH), m_captureThread->videoCapture().get(CV_CAP_PROP_FRAME_HEIGHT)));
 
         // Add image buffer to SharedImageBuffer object
-        m_sharedImageBuffer->add(m_settings.deviceNumber, m_imageBuffer, m_settings.streamControl, m_settings.synchronizeStream);
+        m_sharedImageBuffer->add(m_settings.deviceNumber, m_imageBuffer, m_settings.run, m_settings.captureThreadSync, m_settings.processingThreadSync);
 
         // Start capturing frames from camera
         m_captureThread->start(m_settings.captureThreadPriority);
         // Start processing captured frames (if enabled)
-        if (m_settings.enableFrameProcessing)
+        if (m_settings.processingThreadEnable)
         {
             m_processingThread->start(m_settings.processingThreadPriority);
         }
@@ -421,12 +431,12 @@ void CameraView::onContextMenuAction(QAction *action)
 
 void CameraView::runStream()
 {
-    m_sharedImageBuffer->setStreamControl(m_settings.deviceNumber, SharedImageBuffer::StreamControl::Run);
+    m_sharedImageBuffer->setStreamRunning(m_settings.deviceNumber, true);
 }
 
 void CameraView::pauseStream()
 {
-    m_sharedImageBuffer->setStreamControl(m_settings.deviceNumber, SharedImageBuffer::StreamControl::Pause);
+    m_sharedImageBuffer->setStreamRunning(m_settings.deviceNumber, false);
 }
 
 void CameraView::onStreamRun(int deviceNumber)
@@ -435,17 +445,13 @@ void CameraView::onStreamRun(int deviceNumber)
     {
         m_streamControlRunButton->setEnabled(false);
         m_streamControlPauseButton->setEnabled(true);
-        if (m_sharedImageBuffer->isSyncEnabled(deviceNumber) && m_sharedImageBuffer->isSyncInProgress())
+        m_streamControlStatusLabel->setText(tr("Running"));
+        if (!m_sharedImageBuffer->isCaptureSyncInProgress() && m_sharedImageBuffer->isCaptureSyncEnabled(m_settings.deviceNumber))
         {
-            m_streamControlStatusLabel->setText(tr("Running (synchronized)"));
+            m_captureSyncLabel->setText(tr("Waiting for sync"));
         }
-        else
-        {
-            m_streamControlStatusLabel->setText(m_settings.synchronizeStream ? tr("Running (waiting for sync)") : tr("Running"));
-        }
-        
         // Only enable ROI setting if frame processing is enabled
-        if (m_settings.enableFrameProcessing)
+        if (m_settings.processingThreadEnable)
         {
             disconnect(m_newSelectionConnection);
             m_newSelectionConnection = connect(m_frameLabel, &FrameLabel::newSelection, this, &CameraView::onNewSelection);
@@ -465,13 +471,10 @@ void CameraView::onStreamPaused(int deviceNumber)
     {
         m_streamControlRunButton->setEnabled(true);
         m_streamControlPauseButton->setEnabled(false);
-        if (m_sharedImageBuffer->isSyncEnabled(deviceNumber) && m_sharedImageBuffer->isSyncInProgress())
+        m_streamControlStatusLabel->setText(tr("Paused"));
+        if (!m_sharedImageBuffer->isCaptureSyncInProgress() && m_sharedImageBuffer->isCaptureSyncEnabled(m_settings.deviceNumber))
         {
-            m_streamControlStatusLabel->setText(tr("Paused (synchronized)"));
-        }
-        else
-        {
-            m_streamControlStatusLabel->setText(m_settings.synchronizeStream ? tr("Paused (waiting for sync)") : tr("Paused"));
+            m_captureSyncLabel->setText(tr("Waiting for sync"));
         }
         disconnect(m_newSelectionConnection);
         disconnect(m_captureStatisticsConnection);
@@ -483,23 +486,36 @@ void CameraView::onStreamPaused(int deviceNumber)
     }
 }
 
-void CameraView::onSyncStarted()
+void CameraView::onCaptureSyncStarted()
 {
-    if (m_sharedImageBuffer->isSyncEnabled(m_settings.deviceNumber))
+    if (m_sharedImageBuffer->isCaptureSyncEnabled(m_settings.deviceNumber))
     {
-        SharedImageBuffer::StreamControl streamControl = m_sharedImageBuffer->getStreamControl(m_settings.deviceNumber);
-        if (streamControl == SharedImageBuffer::StreamControl::Run)
-        {
-            m_streamControlStatusLabel->setText(tr("Running (synchronized)"));
-        }
-        else if (streamControl == SharedImageBuffer::StreamControl::Pause)
-        {
-            m_streamControlStatusLabel->setText(tr("Paused (synchronized)"));
-        }
+        m_captureSyncLabel->setText(tr("Synchronized"));
+    }
+    else
+    {
+        m_captureSyncLabel->setText("");
     }
 }
 
-void CameraView::onSyncStopped()
+void CameraView::onCaptureSyncStopped()
+{
+    // Do nothing
+}
+
+void CameraView::onProcessingSyncStarted()
+{
+    if (m_sharedImageBuffer->isProcessingSyncEnabled(m_settings.deviceNumber))
+    {
+        m_processingSyncLabel->setText(tr("Synchronized"));
+    }
+    else
+    {
+        m_processingSyncLabel->setText("");
+    }
+}
+
+void CameraView::onProcessingSyncStopped()
 {
     // Do nothing
 }

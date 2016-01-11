@@ -55,7 +55,7 @@ namespace {
 #define PROCESSING__EMIT_DATA_N_SAMPLES     1
 
 // Image buffer size
-#define DEFAULT_IMAGE_BUFFER_SIZE           1
+#define DEFAULT_IMAGE_BUFFER_SIZE           10
 // Drop frame if buffer is full
 #define DEFAULT_DROP_FRAMES                 false
 // Thread priorities
