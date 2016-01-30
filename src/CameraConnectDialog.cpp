@@ -64,7 +64,7 @@ CameraConnectDialog::CameraConnectDialog(int nextDeviceNumber, QWidget *parent) 
     mainLayout->addWidget(m_tabNameLineEdit, 0, 2, 1, 2);
 
     // Stream Control
-    QGroupBox *streamControlBox = new QGroupBox(tr("Stream Control"));
+    QGroupBox *streamControlBox = new QGroupBox(tr("Stream Control (Initial State)"));
     m_runningButton = new QRadioButton(tr("Running"));
     m_pausedButton = new QRadioButton(tr("Paused"));
     QVBoxLayout *vBoxLayout = new QVBoxLayout;
@@ -203,10 +203,10 @@ void CameraConnectDialog::updateUi()
     m_imageBufferSizeLineEdit->setText(QString::number(DEFAULT_IMAGE_BUFFER_SIZE));
     m_dropFrameIfBufferFullCheckbox->setChecked(DEFAULT_DROP_FRAMES);
     setComboBoxByData(m_captureThreadPriorityComboBox, QThread::Priority::NormalPriority, index);
-    m_captureThreadSyncCheckbox->setChecked(false);
-    m_processingThreadGroupBox->setChecked(DEFAULT_ENABLE_FRAME_PROCESSING);
+    m_captureThreadSyncCheckbox->setChecked(DEFAULT_CAP_THREAD_SYNC);
+    m_processingThreadGroupBox->setChecked(DEFAULT_PROC_THREAD_ENABLE);
     setComboBoxByData(m_processingThreadPriorityComboBox, QThread::Priority::NormalPriority, index);
-    m_processingThreadSyncCheckbox->setChecked(false);
+    m_processingThreadSyncCheckbox->setChecked(DEFAULT_PROC_THREAD_SYNC);
     m_tabNameLineEdit->setText("");
     m_runningButton->setChecked(true);
 }

@@ -58,11 +58,12 @@ namespace {
 #define DEFAULT_IMAGE_BUFFER_SIZE           10
 // Drop frame if buffer is full
 #define DEFAULT_DROP_FRAMES                 false
-// Thread priorities
+// Threads
 #define DEFAULT_CAP_THREAD_PRIO             QThread::NormalPriority
+#define DEFAULT_CAP_THREAD_SYNC             false
 #define DEFAULT_PROC_THREAD_PRIO            QThread::HighPriority
-// Enable Frame Processing
-#define DEFAULT_ENABLE_FRAME_PROCESSING     true
+#define DEFAULT_PROC_THREAD_SYNC            false
+#define DEFAULT_PROC_THREAD_ENABLE          true
 
 // Image Processing
 // Smooth

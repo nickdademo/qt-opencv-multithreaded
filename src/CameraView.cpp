@@ -181,14 +181,14 @@ CameraView::CameraView(Settings settings, SharedImageBuffer *sharedImageBuffer, 
     setLayout(mainLayout);
 
     // Connections related to stream state
-    // We use Queued Connections here to prevent dead locks due to the SharedImageBuffer mutex
+    // We use queued connections here to prevent dead-locks due to the SharedImageBuffer mutex
     connect(m_sharedImageBuffer, &SharedImageBuffer::streamRun, this, &CameraView::onStreamRun, Qt::QueuedConnection);
     connect(m_sharedImageBuffer, &SharedImageBuffer::streamPaused, this, &CameraView::onStreamPaused, Qt::QueuedConnection);
     connect(m_sharedImageBuffer, &SharedImageBuffer::captureSyncStarted, this, &CameraView::onCaptureSyncStarted, Qt::QueuedConnection);
     connect(m_sharedImageBuffer, &SharedImageBuffer::captureSyncStarted, this, &CameraView::onCaptureSyncStopped, Qt::QueuedConnection);
     connect(m_sharedImageBuffer, &SharedImageBuffer::processingSyncStarted, this, &CameraView::onProcessingSyncStarted, Qt::QueuedConnection);
     connect(m_sharedImageBuffer, &SharedImageBuffer::processingSyncStopped, this, &CameraView::onProcessingSyncStopped, Qt::QueuedConnection);
-    // Create image buffer with user-defined size
+    // Create image buffer with user-specified size
     m_imageBuffer = new Buffer<cv::Mat>(settings.imageBufferSize);
 }
 
