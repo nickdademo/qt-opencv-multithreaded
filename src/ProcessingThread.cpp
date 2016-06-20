@@ -45,8 +45,6 @@ ProcessingThread::ProcessingThread(SharedImageBuffer *sharedImageBuffer, int dev
     m_doStop(false),
     m_sampleCount(0)
 {
-    m_statistics.init();
-    m_imageProcessing.init();
 }
 
 void ProcessingThread::run()

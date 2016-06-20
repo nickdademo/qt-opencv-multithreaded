@@ -38,12 +38,17 @@
 class ThreadStatistics
 {
     public:
+        ThreadStatistics()
+        {
+            reset();
+        }
+
         QQueue<int> frameTimes;
         int frameTimesSum;
         float averageFps;
         quint64 frameCounter;
 
-        void init()
+        void reset()
         {
             frameTimes.clear();
             frameTimesSum = 0;

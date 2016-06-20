@@ -38,6 +38,11 @@
 class ImageProcessing
 {
     public:
+        ImageProcessing()
+        {
+            resetToDefaults();
+        }
+
         struct Grayscale
         {
             bool enabled;
@@ -75,7 +80,7 @@ class ImageProcessing
             bool l2gradient;
         } canny;
 
-        void init()
+        void resetToDefaults()
         {
             // Grayscale
             grayscale.enabled = false;

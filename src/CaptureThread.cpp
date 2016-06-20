@@ -47,7 +47,6 @@ CaptureThread::CaptureThread(SharedImageBuffer *sharedImageBuffer, int deviceNum
     m_doStop(false),
     m_sampleCount(0)
 {
-    m_statistics.init();
 }
 
 void CaptureThread::run()

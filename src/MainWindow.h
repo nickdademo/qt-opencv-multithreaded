@@ -36,6 +36,8 @@
 #include <QMainWindow>
 #include <QMap>
 
+#include "Config.h"
+
 class SharedImageBuffer;
 class CameraView;
 

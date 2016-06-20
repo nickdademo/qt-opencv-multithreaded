@@ -35,7 +35,6 @@
 #include "SharedImageBuffer.h"
 #include "CameraView.h"
 #include "CameraConnectDialog.h"
-#include "Config.h"
 
 #include <QLabel>
 #include <QMessageBox>
@@ -44,6 +43,8 @@
 #include <QAction>
 #include <QTabWidget>
 #include <QMenuBar>
+#include <QApplication>
+#include <QTabBar>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
@@ -85,14 +86,15 @@ void MainWindow::initUi()
     connect(m_actionAbout, &QAction::triggered, this, &MainWindow::showAboutDialog);
 
     // Tab widget
-    m_tabWidget = new QTabWidget(this);
+    m_tabWidget = new QTabWidget;
 
     // Set initial tab
     m_initialTab = new QLabel;
     m_initialTab->setText(tr("No camera connected."));
     m_initialTab->setAlignment(Qt::AlignCenter);
     m_tabWidget->addTab(m_initialTab, "");
-    m_tabWidget->setTabsClosable(false);
+    m_tabWidget->setTabsClosable(true);
+    m_tabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->hide();
     // Add button to tab
     m_connectToCameraButton = new QPushButton();
     m_connectToCameraButton->setText(tr("Connect to Camera..."));
@@ -255,16 +257,16 @@ void MainWindow::showAboutDialog()
     QMessageBox::information(
         this,
         tr("About"),
-        QString("%1 v%2\n\nCreated by %3\nEmail: %4\nWebsite: %5").arg(APP_NAME).arg(APP_VERSION).arg(APP_AUTHOR_NAME).arg(APP_AUTHOR_EMAIL).arg(APP_AUTHOR_WEBSITE)
+        QString("%1 v%2\n\nCreated by %3\nEmail: %4\nWebsite: %5").arg(qApp->applicationName()).arg(qApp->applicationVersion()).arg(APP_AUTHOR_NAME).arg(APP_AUTHOR_EMAIL).arg(APP_AUTHOR_WEBSITE)
     );
 }
 
 void MainWindow::setTabCloseToolTips(QTabWidget *tabs, QString tooltip)
 {
     QList<QAbstractButton*> allPushButtons = tabs->findChildren<QAbstractButton*>();
-    for (int ind = 0; ind < allPushButtons.size(); ind++)
+    for (int i = 0; i < allPushButtons.size(); i++)
     {
-        QAbstractButton* item = allPushButtons.at(ind);
+        QAbstractButton* item = allPushButtons.at(i);
         if (item->inherits("CloseButton"))
         {
             item->setToolTip(tooltip);
@@ -280,7 +282,7 @@ void MainWindow::setFullScreen(bool checked)
     }
     else
     {
-        showNormal();
+        showMaximized();
     }
 }
 
@@ -300,7 +302,6 @@ void MainWindow::tabWidgetCurrentIndexChanged(int index)
             {
                 m_tabWidget->removeTab(initialTabIndex);
             }
-            m_tabWidget->setTabsClosable(true);
         }
     }
     // No tabs present
@@ -308,7 +309,7 @@ void MainWindow::tabWidgetCurrentIndexChanged(int index)
     {
         // Add initial tab
         m_tabWidget->addTab(m_initialTab, "");
-        m_tabWidget->setTabsClosable(false);
+        m_tabWidget->tabBar()->tabButton(0, QTabBar::RightSide)->hide();
     }
 }
 

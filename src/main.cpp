@@ -36,8 +36,11 @@
 
 int main(int argc, char *argv[])
 {
-    // Show main window
     QApplication a(argc, argv);
+    a.setApplicationName(APP_NAME);
+    a.setApplicationVersion(APP_VERSION);
+
+    // Create and show main window
     MainWindow w;
     w.show();
     // Start event loop
